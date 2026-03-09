@@ -353,6 +353,16 @@ export class GameScene extends Phaser.Scene {
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!this.isDragging) return;
+
+      // If direction is set, snap to nearest cell along the direction line
+      if (this.selectionDirection && this.selectedCells.length >= 1) {
+        const snapped = this.snapToDirectionLine(pointer);
+        if (snapped) {
+          this.onCellPointerOver(snapped.row, snapped.col);
+          return;
+        }
+      }
+
       const cell = this.getCellAtPointer(pointer);
       if (cell) this.onCellPointerOver(cell.row, cell.col);
     });
@@ -363,6 +373,42 @@ export class GameScene extends Phaser.Scene {
   // =========================================
   // INPUT HANDLING
   // =========================================
+
+  /** Snap pointer to nearest cell along the current selection direction */
+  private snapToDirectionLine(pointer: Phaser.Input.Pointer): { row: number; col: number } | null {
+    const first = this.selectedCells[0];
+    const { dx, dy } = this.selectionDirection!;
+    const cellSize = this.cellSize;
+    const gridSize = this.gridData.size;
+
+    const localX = pointer.x - this.gridContainer.x;
+    const localY = pointer.y - this.gridContainer.y;
+
+    // Walk along the direction, find the cell center closest to the pointer
+    let bestDist = Infinity;
+    let bestCell: { row: number; col: number } | null = null;
+
+    for (let step = 0; step < gridSize; step++) {
+      const r = first.row + step * dy;
+      const c = first.col + step * dx;
+      if (r < 0 || r >= gridSize || c < 0 || c >= gridSize) break;
+
+      const cx = c * cellSize + cellSize / 2;
+      const cy = r * cellSize + cellSize / 2;
+      const dist = (localX - cx) ** 2 + (localY - cy) ** 2;
+
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestCell = { row: r, col: c };
+      }
+    }
+
+    // Only snap if within 1.5 cell radius
+    if (bestCell && bestDist < (cellSize * 1.5) ** 2) {
+      return bestCell;
+    }
+    return null;
+  }
 
   private getCellAtPointer(pointer: Phaser.Input.Pointer): { row: number; col: number } | null {
     const cellSize = this.cellSize;

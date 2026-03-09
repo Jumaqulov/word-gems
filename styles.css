@@ -171,9 +171,9 @@ html, body {
 /* ====== TOP HUD ====== */
 #top-hud {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 10px 20px 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
   background: linear-gradient(180deg, rgba(15, 8, 40, 0.7) 0%, rgba(15, 8, 40, 0.3) 100%);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -186,6 +186,7 @@ html, body {
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 100%;
 }
 
 .hud-left {
@@ -206,8 +207,15 @@ html, body {
 
 .hud-center {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+}
+
+.hud-badges-row {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
@@ -306,12 +314,12 @@ html, body {
 .zone-label {
   text-align: center;
   font-family: 'Nunito', sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 800;
   color: rgba(200, 185, 255, 0.45);
   text-transform: uppercase;
   letter-spacing: 3px;
-  padding: 3px 0 2px;
+  padding: 0;
 }
 
 /* ====== MAIN CONTENT ====== */

@@ -41,19 +41,22 @@
           <h1 class="game-title">WORD GEMS</h1>
         </div>
         <div class="hud-center">
-          <div class="hud-badge badge-level">
-            <span class="badge-label">LEVEL:</span>
-            <span id="hud-level" class="badge-value">1</span>
+          <div class="hud-badges-row">
+            <div class="hud-badge badge-level">
+              <span class="badge-label">LEVEL:</span>
+              <span id="hud-level" class="badge-value">1</span>
+            </div>
+            <div class="hud-badge badge-streak">
+              <span class="badge-icon" id="icon-streak"></span>
+              <span class="badge-label">STREAK:</span>
+              <span id="hud-streak" class="badge-value">0</span>
+            </div>
+            <div class="hud-badge badge-coins">
+              <span class="badge-icon" id="icon-gems"></span>
+              <span id="hud-gems" class="badge-value">0</span>
+            </div>
           </div>
-          <div class="hud-badge badge-streak">
-            <span class="badge-icon" id="icon-streak"></span>
-            <span class="badge-label">STREAK:</span>
-            <span id="hud-streak" class="badge-value">0</span>
-          </div>
-          <div class="hud-badge badge-coins">
-            <span class="badge-icon" id="icon-gems"></span>
-            <span id="hud-gems" class="badge-value">0</span>
-          </div>
+          <div id="zone-name" class="zone-label"></div>
         </div>
         <div class="hud-right">
           <button id="btn-settings" class="hud-icon-btn" title="Settings">
@@ -61,7 +64,6 @@
           </button>
         </div>
       </div>
-      <div id="zone-name" class="zone-label"></div>
     </div>
 
     <!-- Main Content Area -->
