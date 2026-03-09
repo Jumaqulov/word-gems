@@ -633,8 +633,6 @@ export class GameScene extends Phaser.Scene {
   // =========================================
 
   private updateSelectionVisuals(): void {
-    const cellSize = this.cellSize;
-
     // Reset all cells to default
     for (const row of this.cells) {
       for (const cell of row) {
@@ -662,39 +660,11 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < this.selectedCells.length; i++) {
       const { row, col } = this.selectedCells[i];
       this.cells[row][col].bg.setTexture('cell-selected');
-      this.cells[row][col].letter.setColor('#1a6b65');
+      this.cells[row][col].letter.setColor('#FFFFFF');
       this.cells[row][col].letter.setScale(1.15);
     }
 
-    // Draw selection glow line
     this.selectionGraphics.clear();
-    if (this.selectedCells.length >= 2) {
-      this.selectionGraphics.lineStyle(cellSize * 0.55, COLORS.SELECT_COLOR, 0.08);
-      this.drawSelectionPath(cellSize);
-
-      this.selectionGraphics.lineStyle(cellSize * 0.35, COLORS.SELECT_COLOR, 0.18);
-      this.drawSelectionPath(cellSize);
-
-      this.selectionGraphics.lineStyle(cellSize * 0.15, COLORS.SELECT_COLOR, 0.3);
-      this.drawSelectionPath(cellSize);
-    }
-  }
-
-  private drawSelectionPath(cellSize: number): void {
-    this.selectionGraphics.beginPath();
-    const first = this.selectedCells[0];
-    this.selectionGraphics.moveTo(
-      this.gridContainer.x + first.col * cellSize + cellSize / 2,
-      this.gridContainer.y + first.row * cellSize + cellSize / 2
-    );
-    for (let i = 1; i < this.selectedCells.length; i++) {
-      const cell = this.selectedCells[i];
-      this.selectionGraphics.lineTo(
-        this.gridContainer.x + cell.col * cellSize + cellSize / 2,
-        this.gridContainer.y + cell.row * cellSize + cellSize / 2
-      );
-    }
-    this.selectionGraphics.strokePath();
   }
 
   private clearSelection(): void {

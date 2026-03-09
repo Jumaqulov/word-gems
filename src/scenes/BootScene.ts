@@ -62,13 +62,13 @@ export class BootScene extends Phaser.Scene {
       glossy: true,
     });
 
-    // Selected cell (part of valid selection)
+    // Selected cell (part of valid selection) — vivid teal
     this.generateCellTexture('cell-selected', cellSize, innerSize, {
-      fillTop: 0xc0f0ec,
-      fillBottom: 0xa0e0da,
-      border: COLORS.SELECT_COLOR,
-      borderAlpha: 0.7,
-      borderWidth: 2,
+      fillTop: 0x7EE8DF,
+      fillBottom: 0x4ECDC4,
+      border: 0x35AEA5,
+      borderAlpha: 0.9,
+      borderWidth: 2.5,
       glossy: true,
     });
 
