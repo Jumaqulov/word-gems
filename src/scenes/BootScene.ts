@@ -152,11 +152,27 @@ export class BootScene extends Phaser.Scene {
     g.lineStyle(opts.borderWidth, opts.border, opts.borderAlpha);
     g.strokeRoundedRect(offset, offset, innerSize, innerSize, radius);
 
-    // Glossy highlight (white shine on top)
+    // Glossy highlight (multi-layer crystal shine)
     if (opts.glossy) {
-      // White glossy highlight on top third
-      g.fillStyle(0xFFFFFF, 0.3);
-      g.fillRoundedRect(offset + 3, offset + 2, innerSize - 6, innerSize * 0.3, { tl: radius - 2, tr: radius - 2, bl: 0, br: 0 });
+      // Layer 1: Yuqori yarim — keng yumshoq oq gradient
+      g.fillStyle(0xFFFFFF, 0.15);
+      g.fillRoundedRect(offset + 1, offset + 1, innerSize - 2, innerSize * 0.5,
+        { tl: radius - 1, tr: radius - 1, bl: 0, br: 0 });
+
+      // Layer 2: Yuqori qism — aniqroq glossy highlight
+      g.fillStyle(0xFFFFFF, 0.35);
+      g.fillRoundedRect(offset + 4, offset + 3, innerSize - 8, innerSize * 0.22,
+        { tl: radius - 3, tr: radius - 3, bl: 4, br: 4 });
+
+      // Layer 3: Eng yuqori chiziq — sharp reflection
+      g.fillStyle(0xFFFFFF, 0.5);
+      g.fillRoundedRect(offset + 6, offset + 3, innerSize - 12, 4,
+        { tl: 2, tr: 2, bl: 2, br: 2 });
+
+      // Layer 4: Pastki ichki soya (depth uchun)
+      g.fillStyle(0x000000, 0.06);
+      g.fillRoundedRect(offset + 2, offset + innerSize - 8, innerSize - 4, 6,
+        { tl: 0, tr: 0, bl: radius - 2, br: radius - 2 });
     }
 
     g.generateTexture(key, totalSize, totalSize);

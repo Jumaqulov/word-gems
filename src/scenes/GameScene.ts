@@ -61,6 +61,12 @@ export class GameScene extends Phaser.Scene {
   private foundColorIndex = 0;
   private spinAngle = 0;
 
+  // Found cell tracking for efficient reset
+  private foundCellKeys: Set<string> = new Set();
+
+  // Idle animation
+  private idleTimer: Phaser.Time.TimerEvent | null = null;
+
   // Track if UI setup done
   private uiSetup = false;
 
@@ -153,6 +159,9 @@ export class GameScene extends Phaser.Scene {
     // Combo UI reset
     this.updateComboUI();
 
+    // Start idle letter pulse animation
+    this.startIdleAnimation();
+
     EventBus.emit(EVENTS.LEVEL_START, level);
   }
 
@@ -164,6 +173,8 @@ export class GameScene extends Phaser.Scene {
     this.selectedCells = [];
     this.selectionDirection = null;
     this.isDragging = false;
+    this.foundCellKeys.clear();
+    this.stopIdleAnimation();
 
     for (const g of this.foundWordGraphics) {
       g.destroy();
@@ -421,6 +432,12 @@ export class GameScene extends Phaser.Scene {
       this.selectedCells = newSelection;
       this.updateSelectionVisuals();
       SoundManager.playLetterSelect(this.selectedCells.length - 1);
+
+      // Trail particle at last selected cell
+      const lastCell = newSelection[newSelection.length - 1];
+      const px = this.gridContainer.x + lastCell.col * this.cellSize + this.cellSize / 2;
+      const py = this.gridContainer.y + lastCell.row * this.cellSize + this.cellSize / 2;
+      this.juice.selectionTrailAt(px, py, COLORS.SELECT_COLOR);
     }
   }
 
@@ -476,7 +493,9 @@ export class GameScene extends Phaser.Scene {
       const cs = this.cells[cell.row][cell.col];
       cs.bg.setTexture(`cell-found-${colorIndex}`);
       cs.letter.setColor('#FFFFFF');
-      cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
+      cs.letter.setFontStyle('bold');
+      cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.3)', 2, false, true);
+      this.foundCellKeys.add(`${cell.row}:${cell.col}`);
     }
 
     // 3. Bounce letters
@@ -628,25 +647,14 @@ export class GameScene extends Phaser.Scene {
   // =========================================
 
   private updateSelectionVisuals(): void {
-    // Reset all cells to default
+    // Reset non-found cells to default
     for (const row of this.cells) {
       for (const cell of row) {
-        cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#1e1e40');
-        cell.letter.setScale(1);
-        cell.letter.setShadow(0, 0, 'transparent', 0);
-      }
-    }
-
-    // Re-apply found word gem textures
-    for (const [word, colorIdx] of this.foundWordColors) {
-      const placed = this.gridData.placedWords.find(pw => pw.word === word);
-      if (placed) {
-        for (const c of placed.cells) {
-          const cs = this.cells[c.row][c.col];
-          cs.bg.setTexture(`cell-found-${colorIdx}`);
-          cs.letter.setColor('#FFFFFF');
-          cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
+        if (!this.foundCellKeys.has(`${cell.row}:${cell.col}`)) {
+          cell.bg.setTexture('cell-bg');
+          cell.letter.setColor('#1e1e40');
+          cell.letter.setScale(1);
+          cell.letter.setShadow(0, 0, 'transparent', 0);
         }
       }
     }
@@ -666,24 +674,14 @@ export class GameScene extends Phaser.Scene {
     this.selectedCells = [];
     this.selectionDirection = null;
 
+    // Reset non-found cells to default
     for (const row of this.cells) {
       for (const cell of row) {
-        cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#1e1e40');
-        cell.letter.setScale(1);
-        cell.letter.setShadow(0, 0, 'transparent', 0);
-      }
-    }
-
-    // Re-apply found word gem textures
-    for (const [word, colorIdx] of this.foundWordColors) {
-      const placed = this.gridData.placedWords.find(pw => pw.word === word);
-      if (placed) {
-        for (const c of placed.cells) {
-          const cs = this.cells[c.row][c.col];
-          cs.bg.setTexture(`cell-found-${colorIdx}`);
-          cs.letter.setColor('#FFFFFF');
-          cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
+        if (!this.foundCellKeys.has(`${cell.row}:${cell.col}`)) {
+          cell.bg.setTexture('cell-bg');
+          cell.letter.setColor('#1e1e40');
+          cell.letter.setScale(1);
+          cell.letter.setShadow(0, 0, 'transparent', 0);
         }
       }
     }
@@ -1169,5 +1167,44 @@ export class GameScene extends Phaser.Scene {
       span.textContent = word;
       mobileList!.appendChild(span);
     });
+  }
+
+  // =========================================
+  // IDLE ANIMATION
+  // =========================================
+
+  private startIdleAnimation(): void {
+    this.stopIdleAnimation();
+    this.idleTimer = this.time.addEvent({
+      delay: 3000,
+      callback: () => {
+        if (this.isDragging) return;
+        const count = 2 + Math.floor(Math.random() * 2);
+        const gridSize = this.gridData.size;
+        for (let i = 0; i < count; i++) {
+          const r = Math.floor(Math.random() * gridSize);
+          const c = Math.floor(Math.random() * gridSize);
+          if (this.foundCellKeys.has(`${r}:${c}`)) continue;
+          const cell = this.cells[r]?.[c];
+          if (!cell) continue;
+          this.tweens.add({
+            targets: cell.letter,
+            alpha: 0.5,
+            duration: 400,
+            yoyo: true,
+            ease: 'Sine.easeInOut',
+            delay: i * 150,
+          });
+        }
+      },
+      loop: true,
+    });
+  }
+
+  private stopIdleAnimation(): void {
+    if (this.idleTimer) {
+      this.idleTimer.destroy();
+      this.idleTimer = null;
+    }
   }
 }

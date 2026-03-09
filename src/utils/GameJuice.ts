@@ -328,6 +328,29 @@ export class GameJuice {
     });
   }
 
+  /** Selection trail — drag paytida zarrachalar */
+  selectionTrailAt(x: number, y: number, color: number = 0x4ECDC4): void {
+    for (let i = 0; i < 3; i++) {
+      const offsetX = (Math.random() - 0.5) * 15;
+      const offsetY = (Math.random() - 0.5) * 15;
+      const size = 1.5 + Math.random() * 2;
+
+      const particle = this.scene.add.circle(x + offsetX, y + offsetY, size, color, 0.6);
+      particle.setDepth(15);
+
+      this.scene.tweens.add({
+        targets: particle,
+        alpha: 0,
+        scaleX: 0,
+        scaleY: 0,
+        y: particle.y - 10 - Math.random() * 10,
+        duration: 300 + Math.random() * 200,
+        ease: 'Cubic.easeOut',
+        onComplete: () => particle.destroy(),
+      });
+    }
+  }
+
   /** Crystal shower particles for level complete */
   crystalShower(centerX: number, centerY: number): void {
     const colors = [COLORS.SELECT_COLOR, COLORS.GOLD, 0xFF6B6B, 0x4ECDC4, 0x45B7D1, 0xFFD93D];
