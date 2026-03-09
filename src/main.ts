@@ -14,7 +14,7 @@ async function boot() {
 
   const isMobile = IS_MOBILE();
 
-  // Phaser config
+  // Phaser config — match canvas to grid area for perfect centering
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: 'game-container',
