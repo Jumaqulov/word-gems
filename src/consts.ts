@@ -17,21 +17,21 @@ export function getCellSizeForGrid(gridSize: number): number {
 export const getGridSize = () => IS_MOBILE() ? 8 : 10;
 export const getCellSize = () => getCellSizeForGrid(getGridSize());
 
-// Colors
+// Colors — Casual bright palette
 export const COLORS = {
-  BG_DARK: 0x0F051D,
-  BG_MID: 0x1A0C2E,
-  CELL_BG: 0x1E0A3C,
-  CELL_BORDER: 0x3D1F6E,
-  CELL_HOVER: 0x2D1555,
-  LETTER_WHITE: 0xFFFFFF,
-  LETTER_DIM: 0xC4B5FD,
-  SELECT_CYAN: 0x00D4FF,
-  SELECT_GLOW: 0x00D4FF,
-  FOUND_COLORS: [0xFF0055, 0x00D4FF, 0x39FF14, 0xBC13FE, 0xFFD700, 0xFF6B35, 0xE040FB, 0x00E5FF],
-  FOUND_COLORS_HEX: ['#FF0055', '#00D4FF', '#39FF14', '#BC13FE', '#FFD700', '#FF6B35', '#E040FB', '#00E5FF'],
+  BG_DARK: 0x1a0e3e,
+  BG_MID: 0x2d1b69,
+  CELL_BG: 0xd0d8f0,
+  CELL_BORDER: 0xb8c0dd,
+  CELL_HOVER: 0xe0e6f8,
+  LETTER_DARK: 0x2a2a4e,
+  LETTER_DIM: 0x5a5a7e,
+  SELECT_COLOR: 0x4ECDC4,
+  SELECT_GLOW: 0x4ECDC4,
+  FOUND_COLORS: [0xFF6B6B, 0x4ECDC4, 0x45B7D1, 0x96CEB4, 0xFFD93D, 0xFF8B5E, 0xDDA0DD, 0x87CEEB],
+  FOUND_COLORS_HEX: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFD93D', '#FF8B5E', '#DDA0DD', '#87CEEB'],
   GOLD: 0xFFD700,
-  ERROR_RED: 0xFF4444,
+  ERROR_RED: 0xFF6B6B,
   PERFECT_GOLD: 0xFFD700,
 };
 

@@ -42,49 +42,54 @@ export class BootScene extends Phaser.Scene {
     const cellSize = 64;
     const innerSize = cellSize - CELL_GAP;
 
-    // Normal cell — gradient fill with subtle glow border
+    // Normal cell — light glossy casual style
     this.generateCellTexture('cell-bg', cellSize, innerSize, {
-      fillTop: 0x1E0B36,
-      fillBottom: 0x281446,
+      fillTop: 0xe4e8f8,
+      fillBottom: 0xd0d8f0,
       border: COLORS.CELL_BORDER,
-      borderAlpha: 0.3,
+      borderAlpha: 0.5,
       borderWidth: 1,
+      glossy: true,
     });
 
     // Hover cell
     this.generateCellTexture('cell-hover', cellSize, innerSize, {
-      fillTop: 0x2D1555,
-      fillBottom: 0x3A1C6E,
-      border: COLORS.SELECT_CYAN,
-      borderAlpha: 0.4,
+      fillTop: 0xeef0ff,
+      fillBottom: 0xe0e6f8,
+      border: COLORS.SELECT_COLOR,
+      borderAlpha: 0.5,
       borderWidth: 1.5,
+      glossy: true,
     });
 
     // Selected cell (part of valid selection)
     this.generateCellTexture('cell-selected', cellSize, innerSize, {
-      fillTop: 0x0A2D40,
-      fillBottom: 0x0E3A52,
-      border: COLORS.SELECT_CYAN,
+      fillTop: 0xc0f0ec,
+      fillBottom: 0xa0e0da,
+      border: COLORS.SELECT_COLOR,
       borderAlpha: 0.7,
       borderWidth: 2,
+      glossy: true,
     });
 
-    // Found cell overlay (just a highlight)
+    // Found cell overlay
     this.generateCellTexture('cell-found', cellSize, innerSize, {
-      fillTop: 0x2D1555,
-      fillBottom: 0x2D1555,
-      border: 0xFFFFFF,
-      borderAlpha: 0.15,
+      fillTop: 0xe8ecf8,
+      fillBottom: 0xdce2f2,
+      border: 0xc0c8e0,
+      borderAlpha: 0.3,
       borderWidth: 1,
+      glossy: true,
     });
 
     // Wrong cell flash
     this.generateCellTexture('cell-wrong', cellSize, innerSize, {
-      fillTop: 0x3D0A0A,
-      fillBottom: 0x4D1515,
+      fillTop: 0xffd0d0,
+      fillBottom: 0xffb8b8,
       border: COLORS.ERROR_RED,
       borderAlpha: 0.6,
       borderWidth: 2,
+      glossy: false,
     });
   }
 
@@ -98,15 +103,18 @@ export class BootScene extends Phaser.Scene {
       border: number;
       borderAlpha: number;
       borderWidth: number;
+      glossy?: boolean;
     }
   ): void {
     const g = this.add.graphics();
     const offset = (totalSize - innerSize) / 2;
-    const radius = 6;
+    const radius = 10;
 
-    // Gradient fill (simulated with two rects)
+    // Top half (lighter)
     g.fillStyle(opts.fillTop, 1);
     g.fillRoundedRect(offset, offset, innerSize, innerSize / 2, { tl: radius, tr: radius, bl: 0, br: 0 });
+
+    // Bottom half (slightly darker)
     g.fillStyle(opts.fillBottom, 1);
     g.fillRoundedRect(offset, offset + innerSize / 2, innerSize, innerSize / 2, { tl: 0, tr: 0, bl: radius, br: radius });
 
@@ -114,9 +122,27 @@ export class BootScene extends Phaser.Scene {
     g.lineStyle(opts.borderWidth, opts.border, opts.borderAlpha);
     g.strokeRoundedRect(offset, offset, innerSize, innerSize, radius);
 
-    // Subtle inner highlight (top edge)
-    g.lineStyle(1, 0xFFFFFF, 0.04);
-    g.strokeRoundedRect(offset + 1, offset + 1, innerSize - 2, innerSize - 2, radius - 1);
+    // Glossy highlight (white shine on top)
+    if (opts.glossy) {
+      // Drop shadow (darker area behind the cell)
+      g.fillStyle(0x000000, 0.06);
+      g.fillRoundedRect(offset + 1, offset + 2, innerSize, innerSize, radius);
+
+      // Strong white glossy highlight on top third
+      g.fillStyle(0xFFFFFF, 0.35);
+      g.fillRoundedRect(offset + 3, offset + 2, innerSize - 6, innerSize * 0.3, { tl: radius - 2, tr: radius - 2, bl: 0, br: 0 });
+
+      // Softer secondary highlight
+      g.fillStyle(0xFFFFFF, 0.1);
+      g.fillRoundedRect(offset + 4, offset + 3, innerSize - 8, innerSize * 0.2, { tl: radius - 3, tr: radius - 3, bl: 0, br: 0 });
+
+      // Bottom inner shadow
+      g.lineStyle(1, 0x000000, 0.06);
+      g.beginPath();
+      g.arc(offset + radius, offset + innerSize - radius, radius - 1, Math.PI * 0.5, Math.PI, false);
+      g.arc(offset + innerSize - radius, offset + innerSize - radius, radius - 1, 0, Math.PI * 0.5, false);
+      g.strokePath();
+    }
 
     g.generateTexture(key, totalSize, totalSize);
     g.destroy();

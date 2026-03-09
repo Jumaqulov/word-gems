@@ -15,6 +15,7 @@ import {
   SPIN_REWARDS, GEM_TYPES, GEM_COLORS,
   getCellSizeForGrid, CELL_GAP, IS_MOBILE,
 } from '../consts';
+import { setIcon, ICONS, iconHTML } from '../icons';
 
 interface CellSprite {
   bg: Phaser.GameObjects.Image;
@@ -325,14 +326,13 @@ export class GameScene extends Phaser.Scene {
 
         const fontSize = Math.floor((cellSize - CELL_GAP) * 0.45);
         const letter = this.add.text(x, y, this.gridData.grid[r][c], {
-          fontFamily: 'Orbitron, monospace',
+          fontFamily: '"Fredoka One", cursive',
           fontSize: `${fontSize}px`,
-          color: '#FFFFFF',
+          color: '#2a2a4e',
           fontStyle: 'bold',
         });
         letter.setOrigin(0.5);
         letter.setDepth(2);
-        letter.setShadow(0, 0, '#00D4FF', 2, false, true);
 
         this.gridContainer.add([bg, letter]);
         this.cells[r][c] = { bg, letter, row: r, col: c };
@@ -620,7 +620,7 @@ export class GameScene extends Phaser.Scene {
       for (let i = 0; i < 3; i++) {
         const star = document.createElement('span');
         star.className = i < result.stars ? 'star-icon star-filled' : 'star-icon star-empty';
-        star.textContent = '\u2605';
+        star.innerHTML = i < result.stars ? ICONS.starFilled : ICONS.starEmpty;
         starsContainer.appendChild(star);
       }
     }
@@ -642,7 +642,7 @@ export class GameScene extends Phaser.Scene {
     for (const row of this.cells) {
       for (const cell of row) {
         cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#FFFFFF');
+        cell.letter.setColor('#2a2a4e');
         cell.letter.setScale(1);
       }
     }
@@ -662,20 +662,20 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < this.selectedCells.length; i++) {
       const { row, col } = this.selectedCells[i];
       this.cells[row][col].bg.setTexture('cell-selected');
-      this.cells[row][col].letter.setColor('#00D4FF');
+      this.cells[row][col].letter.setColor('#1a6b65');
       this.cells[row][col].letter.setScale(1.15);
     }
 
     // Draw selection glow line
     this.selectionGraphics.clear();
     if (this.selectedCells.length >= 2) {
-      this.selectionGraphics.lineStyle(cellSize * 0.55, 0x00D4FF, 0.08);
+      this.selectionGraphics.lineStyle(cellSize * 0.55, COLORS.SELECT_COLOR, 0.08);
       this.drawSelectionPath(cellSize);
 
-      this.selectionGraphics.lineStyle(cellSize * 0.35, 0x00D4FF, 0.2);
+      this.selectionGraphics.lineStyle(cellSize * 0.35, COLORS.SELECT_COLOR, 0.18);
       this.drawSelectionPath(cellSize);
 
-      this.selectionGraphics.lineStyle(cellSize * 0.15, 0x00D4FF, 0.35);
+      this.selectionGraphics.lineStyle(cellSize * 0.15, COLORS.SELECT_COLOR, 0.3);
       this.drawSelectionPath(cellSize);
     }
   }
@@ -704,7 +704,7 @@ export class GameScene extends Phaser.Scene {
     for (const row of this.cells) {
       for (const cell of row) {
         cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#FFFFFF');
+        cell.letter.setColor('#2a2a4e');
         cell.letter.setScale(1);
       }
     }
@@ -740,6 +740,9 @@ export class GameScene extends Phaser.Scene {
   // =========================================
 
   private setupUI(): void {
+    // Inject SVG icons
+    this.injectIcons();
+
     // Next level button
     document.getElementById('btn-next-level')?.addEventListener('click', async () => {
       document.getElementById('level-complete-modal')!.style.display = 'none';
@@ -860,6 +863,30 @@ export class GameScene extends Phaser.Scene {
   }
 
   // =========================================
+  // SVG ICONS
+  // =========================================
+
+  private injectIcons(): void {
+    setIcon('icon-streak', 'fire');
+    setIcon('icon-gems', 'gem');
+    setIcon('icon-settings', 'settings');
+    setIcon('icon-collection', 'chest');
+    setIcon('icon-spin', 'spin');
+    setIcon('icon-detect', 'detect');
+    setIcon('icon-undo', 'undo');
+    setIcon('icon-watch-ad', 'watchAd');
+    setIcon('icon-sound', 'soundOn');
+    setIcon('icon-vibration', 'vibration');
+    setIcon('icon-howto', 'howToPlay');
+
+    // Power-up costs with gem icon
+    const costDetect = document.getElementById('cost-detect');
+    if (costDetect) costDetect.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.DETECT}`;
+    const costUndo = document.getElementById('cost-undo');
+    if (costUndo) costUndo.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.UNDO}`;
+  }
+
+  // =========================================
   // POWER-UPS
   // =========================================
 
@@ -923,7 +950,7 @@ export class GameScene extends Phaser.Scene {
       const arrowX = x + placed.dx * cellSize * 0.6;
       const arrowY = y + placed.dy * cellSize * 0.6;
       const arrow = this.add.text(arrowX, arrowY, '\u2192', {
-        fontFamily: 'Orbitron',
+        fontFamily: '"Fredoka One", cursive',
         fontSize: '18px',
         color: '#FFD700',
       });
@@ -1039,7 +1066,7 @@ export class GameScene extends Phaser.Scene {
 
     const segments = SPIN_REWARDS.length;
     const segAngle = (Math.PI * 2) / segments;
-    const colors = ['#A855F7', '#6D28D9', '#7C3AED', '#8B5CF6'];
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFD93D'];
 
     for (let i = 0; i < segments; i++) {
       ctx.beginPath();
@@ -1057,7 +1084,7 @@ export class GameScene extends Phaser.Scene {
       ctx.rotate((i + 0.5) * segAngle - Math.PI / 2);
       ctx.textAlign = 'center';
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 14px Orbitron, sans-serif';
+      ctx.font = 'bold 13px "Fredoka One", cursive';
       ctx.fillText(SPIN_REWARDS[i].label, r * 0.6, 5);
       ctx.restore();
     }
@@ -1174,7 +1201,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         item.innerHTML = `
-          <span class="word-check"></span>
+          <span class="word-check">${isFound ? ICONS.checkFilled : ICONS.checkEmpty}</span>
           <span class="word-text">${word}</span>
         `;
         wordList.appendChild(item);

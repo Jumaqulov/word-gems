@@ -7,7 +7,7 @@
   <title>Word Gems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 </head>
@@ -36,60 +36,67 @@
   <div id="game-shell" style="display:none;">
     <!-- Top HUD -->
     <div id="top-hud">
-      <div class="hud-left">
-        <button id="btn-collection" class="hud-btn" title="Collection">
-          <span class="icon-diamond"></span>
-        </button>
-      </div>
-      <div class="hud-center">
-        <h1 class="game-title">WORD GEMS</h1>
-        <div id="zone-name" class="zone-label"></div>
-      </div>
-      <div class="hud-right">
-        <div class="hud-stat">
-          <span class="stat-label">Level</span>
-          <span id="hud-level" class="stat-value">1</span>
+      <div class="hud-bar">
+        <div class="hud-left">
+          <h1 class="game-title">WORD GEMS</h1>
         </div>
-        <div class="hud-stat streak-stat">
-          <span class="stat-label">&#x1F525; Streak</span>
-          <span id="hud-streak" class="stat-value">0</span>
+        <div class="hud-center">
+          <div class="hud-badge badge-level">
+            <span class="badge-label">LEVEL:</span>
+            <span id="hud-level" class="badge-value">1</span>
+          </div>
+          <div class="hud-badge badge-streak">
+            <span class="badge-icon" id="icon-streak"></span>
+            <span class="badge-label">STREAK:</span>
+            <span id="hud-streak" class="badge-value">0</span>
+          </div>
+          <div class="hud-badge badge-coins">
+            <span class="badge-icon" id="icon-gems"></span>
+            <span id="hud-gems" class="badge-value">0</span>
+          </div>
         </div>
-        <div class="hud-stat gems-stat">
-          <span class="gem-icon"></span>
-          <span id="hud-gems" class="stat-value">0</span>
+        <div class="hud-right">
+          <button id="btn-settings" class="hud-icon-btn" title="Settings">
+            <span id="icon-settings"></span>
+          </button>
         </div>
-        <button id="btn-settings" class="hud-btn" title="Settings">
-          <span class="icon-gear"></span>
-        </button>
       </div>
+      <div id="zone-name" class="zone-label"></div>
     </div>
 
     <!-- Main Content Area -->
     <div id="main-content">
-      <!-- Left Panel (Daily Spin - Desktop) -->
+      <!-- Left Panel (Desktop) -->
       <div id="left-panel">
-        <button id="btn-daily-spin" class="panel-btn spin-btn">
-          <span class="spin-icon"></span>
-          <span>DAILY<br/>SPIN</span>
+        <div class="panel-card collection-card" id="btn-collection">
+          <span class="card-icon" id="icon-collection"></span>
+          <span class="card-label">COLLECTION</span>
+        </div>
+        <button id="btn-daily-spin" class="panel-card spin-card">
+          <span class="card-icon" id="icon-spin"></span>
+          <span class="card-label">DAILY SPIN</span>
         </button>
       </div>
 
-      <!-- Timer & Combo -->
-      <div id="game-info-bar">
-        <div id="timer-container" style="display:none;">
-          <span class="timer-icon">&#x23F1;</span>
-          <span id="timer-display" class="timer-value">0:00</span>
+      <!-- Center Column -->
+      <div id="center-column">
+        <!-- Timer & Combo -->
+        <div id="game-info-bar">
+          <div id="timer-container" style="display:none;">
+            <span class="timer-icon">&#x23F1;</span>
+            <span id="timer-display" class="timer-value">0:00</span>
+          </div>
+          <div id="combo-container">
+            <span id="combo-display" style="display:none;">x1</span>
+            <div id="combo-bar"><div id="combo-bar-fill"></div></div>
+          </div>
         </div>
-        <div id="combo-container">
-          <span id="combo-display" style="display:none;">x1</span>
-          <div id="combo-bar"><div id="combo-bar-fill"></div></div>
-        </div>
+
+        <!-- Game Container -->
+        <div id="game-container"></div>
       </div>
 
-      <!-- Game Container -->
-      <div id="game-container"></div>
-
-      <!-- Right Panel (Word List) -->
+      <!-- Right Panel (Word List + Power-ups) -->
       <div id="right-panel">
         <div class="panel-header">FIND WORDS</div>
         <div id="word-list"></div>
@@ -97,21 +104,21 @@
         <div class="panel-header">POWER-UPS</div>
         <div id="powerup-buttons">
           <button id="btn-detect" class="powerup-btn">
-            <span class="pu-icon detect-icon"></span>
-            <span class="pu-label">Detect</span>
-            <span class="pu-cost">50</span>
+            <span class="pu-icon" id="icon-detect"></span>
+            <span class="pu-label">GEM DETECTOR</span>
+            <span class="pu-cost" id="cost-detect"></span>
           </button>
           <button id="btn-undo" class="powerup-btn">
-            <span class="pu-icon undo-icon"></span>
-            <span class="pu-label">Undo</span>
-            <span class="pu-cost">30</span>
-          </button>
-          <button id="btn-ad-gems" class="powerup-btn ad-btn">
-            <span class="pu-icon ad-icon"></span>
-            <span class="pu-label">Watch Ad</span>
-            <span class="pu-cost">+100</span>
+            <span class="pu-icon" id="icon-undo"></span>
+            <span class="pu-label">UNDO</span>
+            <span class="pu-cost" id="cost-undo"></span>
           </button>
         </div>
+        <button id="btn-ad-gems" class="powerup-btn ad-btn">
+          <span class="pu-icon" id="icon-watch-ad"></span>
+          <span class="pu-label">WATCH VIDEO</span>
+          <span class="pu-sublabel">BOOST YOUR GEMS</span>
+        </button>
       </div>
     </div>
 
@@ -121,10 +128,10 @@
     </div>
   </div>
 
-  <!-- Tutorial Overlay (first play) -->
+  <!-- Tutorial Overlay -->
   <div id="tutorial-overlay" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content glass-panel tutorial-content">
+    <div class="modal-content tutorial-content">
       <h2>HOW TO PLAY</h2>
       <div class="tutorial-steps">
         <div class="tutorial-step">
@@ -147,23 +154,32 @@
   <!-- Settings Modal -->
   <div id="settings-modal" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content glass-panel">
+    <div class="modal-content">
       <h2>Settings</h2>
       <div class="setting-row">
-        <span>&#x1F50A; Sound</span>
+        <div class="setting-label">
+          <span class="setting-icon" id="icon-sound"></span>
+          <span>Sound</span>
+        </div>
         <label class="toggle-switch">
           <input type="checkbox" id="toggle-sound" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="setting-row">
-        <span>&#x1F4F3; Vibration</span>
+        <div class="setting-label">
+          <span class="setting-icon" id="icon-vibration"></span>
+          <span>Vibration</span>
+        </div>
         <label class="toggle-switch">
           <input type="checkbox" id="toggle-vibration" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <button id="btn-how-to-play" class="modal-btn-secondary">HOW TO PLAY</button>
+      <button id="btn-how-to-play" class="modal-btn-secondary">
+        <span id="icon-howto"></span>
+        HOW TO PLAY
+      </button>
       <button id="btn-close-settings" class="modal-close-btn">CLOSE</button>
     </div>
   </div>
@@ -171,7 +187,7 @@
   <!-- Daily Spin Modal -->
   <div id="spin-modal" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content glass-panel spin-modal-content">
+    <div class="modal-content spin-modal-content">
       <h2>DAILY SPIN</h2>
       <div id="spin-wheel-container">
         <canvas id="spin-wheel" width="300" height="300"></canvas>
@@ -189,7 +205,7 @@
   <!-- Level Complete Modal -->
   <div id="level-complete-modal" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content glass-panel level-complete-content">
+    <div class="modal-content level-complete-content">
       <h2>LEVEL <span id="complete-level-num">1</span> COMPLETE!</h2>
       <div id="complete-stars" class="complete-stars"></div>
       <div class="complete-stats">
@@ -207,7 +223,7 @@
         </div>
         <div class="complete-stat" id="complete-perfect" style="display:none;">
           <span class="complete-label">PERFECT!</span>
-          <span class="complete-value">+200 &#x2B50;</span>
+          <span class="complete-value">+200</span>
         </div>
       </div>
       <button id="btn-next-level" class="action-btn">NEXT LEVEL</button>
@@ -217,7 +233,7 @@
   <!-- Collection Modal -->
   <div id="collection-modal" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content glass-panel collection-content">
+    <div class="modal-content collection-content">
       <h2>COLLECTION</h2>
       <div id="collection-grid"></div>
       <button id="btn-close-collection" class="modal-close-btn">CLOSE</button>

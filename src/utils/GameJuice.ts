@@ -104,11 +104,11 @@ export class GameJuice {
   /** Floating text (like "+60") */
   floatingText(x: number, y: number, text: string, color: string = '#FFD700', fontSize = 22): void {
     const txt = this.scene.add.text(x, y, text, {
-      fontFamily: 'Orbitron',
+      fontFamily: '"Fredoka One", cursive',
       fontSize: `${fontSize}px`,
       color,
       fontStyle: 'bold',
-      stroke: '#000000',
+      stroke: '#1a0e3e',
       strokeThickness: 3,
     });
     txt.setOrigin(0.5);
@@ -139,7 +139,7 @@ export class GameJuice {
 
   /** Gem collection burst with diamond particles */
   gemBurst(x: number, y: number): void {
-    const colors = [COLORS.SELECT_CYAN, COLORS.GOLD, 0xA855F7, 0xFF6B6B, 0x4ECDC4];
+    const colors = [COLORS.SELECT_COLOR, COLORS.GOLD, 0xFF6B6B, 0x4ECDC4, 0x45B7D1];
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.3;
       const dist = 30 + Math.random() * 40;
@@ -306,7 +306,7 @@ export class GameJuice {
     this.scene.time.delayedCall(duration, () => {
       for (const cell of cells) {
         cell.bg.clearTint();
-        cell.letter.setColor('#FFFFFF');
+        cell.letter.setColor('#2a2a4e');
       }
     });
   }
@@ -330,7 +330,7 @@ export class GameJuice {
 
   /** Crystal shower particles for level complete */
   crystalShower(centerX: number, centerY: number): void {
-    const colors = [COLORS.SELECT_CYAN, COLORS.GOLD, 0xA855F7, 0xFF0055, 0x39FF14, 0xBC13FE];
+    const colors = [COLORS.SELECT_COLOR, COLORS.GOLD, 0xFF6B6B, 0x4ECDC4, 0x45B7D1, 0xFFD93D];
 
     for (let i = 0; i < 30; i++) {
       const x = centerX + (Math.random() - 0.5) * 400;

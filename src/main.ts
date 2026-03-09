@@ -18,7 +18,7 @@ async function boot() {
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    backgroundColor: '#0F051D',
+    transparent: true,
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
