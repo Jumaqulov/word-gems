@@ -364,10 +364,19 @@ html, body {
 }
 
 .spin-card {
-  border-color: rgba(255, 215, 0, 0.25);
-  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.35);
+  background: rgba(255, 215, 0, 0.1);
   font-family: inherit;
-  color: inherit;
+  color: #FFD700;
+}
+
+.spin-card .card-label {
+  color: #FFD700;
+}
+
+.spin-card .card-icon {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
 }
 
 .spin-card:hover {
