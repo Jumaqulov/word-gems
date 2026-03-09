@@ -12,7 +12,7 @@ import {
 } from '../utils/LevelSystem';
 import {
   COLORS, SCORING, POWERUP_COSTS, AD_INTERVAL_LEVELS,
-  SPIN_REWARDS, GEM_TYPES, GEM_COLORS,
+  SPIN_REWARDS,
   getCellSizeForGrid, CELL_GAP, IS_MOBILE,
 } from '../consts';
 import { setIcon, ICONS, iconHTML } from '../icons';
@@ -583,11 +583,6 @@ export class GameScene extends Phaser.Scene {
       CrazyGamesManager.addPerfectLevel();
     }
 
-    // Random collection gem
-    const gemId = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)] + '_' +
-                  GEM_COLORS[Math.floor(Math.random() * GEM_COLORS.length)];
-    CrazyGamesManager.addToCollection(gemId);
-
     if (save.streak % 5 === 0 || result.stars === 3) {
       CrazyGamesManager.happytime();
     }
@@ -798,16 +793,6 @@ export class GameScene extends Phaser.Scene {
       document.getElementById('spin-modal')!.style.display = 'none';
     });
 
-    // Collection
-    document.getElementById('btn-collection')?.addEventListener('click', () => {
-      SoundManager.play('click');
-      this.openCollection();
-    });
-
-    document.getElementById('btn-close-collection')?.addEventListener('click', () => {
-      document.getElementById('collection-modal')!.style.display = 'none';
-    });
-
     // Tutorial dismiss
     document.getElementById('btn-tutorial-ok')?.addEventListener('click', () => {
       document.getElementById('tutorial-overlay')!.style.display = 'none';
@@ -843,7 +828,6 @@ export class GameScene extends Phaser.Scene {
     setIcon('icon-streak', 'fire');
     setIcon('icon-gems', 'gem');
     setIcon('icon-settings', 'settings');
-    setIcon('icon-collection', 'chest');
     setIcon('icon-spin', 'spin');
     setIcon('icon-detect', 'detect');
     setIcon('icon-undo', 'undo');
@@ -1110,37 +1094,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   // =========================================
-  // COLLECTION
-  // =========================================
-
-  private openCollection(): void {
-    const grid = document.getElementById('collection-grid')!;
-    grid.innerHTML = '';
-
-    const collected = CrazyGamesManager.saveData.collection;
-    const gemSymbols: Record<string, string> = {
-      Diamond: '\u25C6', Ruby: '\u25C8', Emerald: '\u25C7', Sapphire: '\u25CA', Amethyst: '\u25C9',
-    };
-    const colorMap: Record<string, string> = {
-      Red: '#FF6B6B', Blue: '#45B7D1', Green: '#4ECDC4', Purple: '#A855F7',
-    };
-
-    for (const type of GEM_TYPES) {
-      for (const color of GEM_COLORS) {
-        const id = `${type}_${color}`;
-        const item = document.createElement('div');
-        item.className = 'collection-item' + (collected.includes(id) ? ' collected' : '');
-        item.style.color = colorMap[color] || '#FFFFFF';
-        item.textContent = gemSymbols[type] || '\u25C6';
-        item.title = `${color} ${type}`;
-        grid.appendChild(item);
-      }
-    }
-
-    document.getElementById('collection-modal')!.style.display = 'flex';
-  }
-
-  // =========================================
   // HUD & WORD LIST
   // =========================================
 
@@ -1153,6 +1106,14 @@ export class GameScene extends Phaser.Scene {
     if (levelEl) levelEl.textContent = save.level.toString();
     if (streakEl) streakEl.textContent = save.streak.toString();
     if (gemsEl) gemsEl.textContent = save.gems.toString();
+
+    // Stats panel
+    const wordsEl = document.getElementById('stat-words');
+    const perfectEl = document.getElementById('stat-perfect');
+    const bestStreakEl = document.getElementById('stat-best-streak');
+    if (wordsEl) wordsEl.textContent = save.wordsFound.toString();
+    if (perfectEl) perfectEl.textContent = save.perfectLevels.toString();
+    if (bestStreakEl) bestStreakEl.textContent = save.bestStreak.toString();
   }
 
   private updateWordListUI(): void {

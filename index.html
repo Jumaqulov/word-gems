@@ -68,9 +68,20 @@
     <div id="main-content">
       <!-- Left Panel (Desktop) -->
       <div id="left-panel">
-        <div class="panel-card collection-card" id="btn-collection">
-          <span class="card-icon" id="icon-collection"></span>
-          <span class="card-label">COLLECTION</span>
+        <div class="panel-card stats-card">
+          <div class="stats-title">STATS</div>
+          <div class="stat-row-mini">
+            <span class="stat-mini-label">Words</span>
+            <span id="stat-words" class="stat-mini-value">0</span>
+          </div>
+          <div class="stat-row-mini">
+            <span class="stat-mini-label">Perfect</span>
+            <span id="stat-perfect" class="stat-mini-value">0</span>
+          </div>
+          <div class="stat-row-mini">
+            <span class="stat-mini-label">Best Streak</span>
+            <span id="stat-best-streak" class="stat-mini-value">0</span>
+          </div>
         </div>
         <button id="btn-daily-spin" class="panel-card spin-card">
           <span class="card-icon" id="icon-spin"></span>
@@ -227,16 +238,6 @@
         </div>
       </div>
       <button id="btn-next-level" class="action-btn">NEXT LEVEL</button>
-    </div>
-  </div>
-
-  <!-- Collection Modal -->
-  <div id="collection-modal" class="modal" style="display:none;">
-    <div class="modal-backdrop"></div>
-    <div class="modal-content collection-content">
-      <h2>COLLECTION</h2>
-      <div id="collection-grid"></div>
-      <button id="btn-close-collection" class="modal-close-btn">CLOSE</button>
     </div>
   </div>
 

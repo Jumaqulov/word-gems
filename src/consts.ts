@@ -62,10 +62,6 @@ export const SPIN_REWARDS = [
   { label: 'Free Hint', value: 1, type: 'hint' as const, weight: 15 },
 ];
 
-// Collection
-export const GEM_TYPES = ['Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Amethyst'];
-export const GEM_COLORS = ['Red', 'Blue', 'Green', 'Purple'];
-export const COLLECTION_TOTAL = GEM_TYPES.length * GEM_COLORS.length;
 
 // Save keys
 export const SAVE_KEY = 'wordgems_save';

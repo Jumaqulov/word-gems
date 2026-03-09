@@ -20,6 +20,7 @@ export interface SaveData {
   perfectLevels: number;
   tutorialSeen: boolean;
   hintsUsed: number;
+  bestStreak: number;
 }
 
 const DEFAULT_SAVE: SaveData = {
@@ -40,6 +41,7 @@ const DEFAULT_SAVE: SaveData = {
   perfectLevels: 0,
   tutorialSeen: false,
   hintsUsed: 0,
+  bestStreak: 0,
 };
 
 class CrazyGamesManagerSingleton {
@@ -230,6 +232,9 @@ class CrazyGamesManagerSingleton {
     }
 
     this._saveData.lastPlayDate = today;
+    if (this._saveData.streak > this._saveData.bestStreak) {
+      this._saveData.bestStreak = this._saveData.streak;
+    }
     this.saveGame();
   }
 
@@ -286,13 +291,6 @@ class CrazyGamesManagerSingleton {
   markTutorialSeen(): void {
     this._saveData.tutorialSeen = true;
     this.saveGame();
-  }
-
-  addToCollection(gemId: string): void {
-    if (!this._saveData.collection.includes(gemId)) {
-      this._saveData.collection.push(gemId);
-      this.saveGame();
-    }
   }
 
   trackUsedWords(words: string[]): void {

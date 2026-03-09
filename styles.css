@@ -914,36 +914,44 @@ html, body {
   color: #FF6B6B;
 }
 
-/* ====== COLLECTION ====== */
-.collection-content h2 {
-  color: #2a2a4e;
+/* ====== STATS CARD ====== */
+.stats-card {
+  cursor: default;
 }
 
-#collection-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+.stats-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  text-align: center;
 }
 
-.collection-item {
-  aspect-ratio: 1;
-  border-radius: 12px;
-  border: 2px solid #eee;
-  background: #f8f8ff;
+.stat-row-mini {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  opacity: 0.3;
-  transition: all 0.3s;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.collection-item.collected {
-  opacity: 1;
-  border-color: #4ECDC4;
-  background: rgba(78, 205, 196, 0.08);
-  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.2);
+.stat-row-mini:last-child {
+  border-bottom: none;
+}
+
+.stat-mini-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+}
+
+.stat-mini-value {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 800;
 }
 
 /* ====== RESPONSIVE - MOBILE ====== */
