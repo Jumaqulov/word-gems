@@ -471,14 +471,12 @@ export class GameScene extends Phaser.Scene {
       y: this.gridContainer.y + c.row * cellSize + cellSize / 2,
     }));
 
-    // 1. Colored highlight line
-    const lineGfx = this.juice.animateFoundLine(cellCenters, color, cellSize);
-    this.foundWordGraphics.push(lineGfx);
-
-    // 2. Text glow
+    // 1. Swap cell backgrounds to gem-colored textures + white letters
     for (const cell of placedWord.cells) {
       const cs = this.cells[cell.row][cell.col];
-      cs.letter.setShadow(0, 0, colorHex, 8, false, true);
+      cs.bg.setTexture(`cell-found-${colorIndex}`);
+      cs.letter.setColor('#FFFFFF');
+      cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
     }
 
     // 3. Bounce letters
@@ -637,22 +635,25 @@ export class GameScene extends Phaser.Scene {
   private updateSelectionVisuals(): void {
     const cellSize = this.cellSize;
 
-    // Reset non-found cells
+    // Reset all cells to default
     for (const row of this.cells) {
       for (const cell of row) {
         cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#2a2a4e');
+        cell.letter.setColor('#1e1e40');
         cell.letter.setScale(1);
+        cell.letter.setShadow(0, 0, 'transparent', 0);
       }
     }
 
-    // Re-apply found word colors
+    // Re-apply found word gem textures
     for (const [word, colorIdx] of this.foundWordColors) {
-      const hex = COLORS.FOUND_COLORS_HEX[colorIdx];
       const placed = this.gridData.placedWords.find(pw => pw.word === word);
       if (placed) {
         for (const c of placed.cells) {
-          this.cells[c.row][c.col].letter.setShadow(0, 0, hex, 8, false, true);
+          const cs = this.cells[c.row][c.col];
+          cs.bg.setTexture(`cell-found-${colorIdx}`);
+          cs.letter.setColor('#FFFFFF');
+          cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
         }
       }
     }
@@ -703,18 +704,21 @@ export class GameScene extends Phaser.Scene {
     for (const row of this.cells) {
       for (const cell of row) {
         cell.bg.setTexture('cell-bg');
-        cell.letter.setColor('#2a2a4e');
+        cell.letter.setColor('#1e1e40');
         cell.letter.setScale(1);
+        cell.letter.setShadow(0, 0, 'transparent', 0);
       }
     }
 
-    // Re-apply found word text glow
+    // Re-apply found word gem textures
     for (const [word, colorIdx] of this.foundWordColors) {
-      const hex = COLORS.FOUND_COLORS_HEX[colorIdx];
       const placed = this.gridData.placedWords.find(pw => pw.word === word);
       if (placed) {
         for (const c of placed.cells) {
-          this.cells[c.row][c.col].letter.setShadow(0, 0, hex, 8, false, true);
+          const cs = this.cells[c.row][c.col];
+          cs.bg.setTexture(`cell-found-${colorIdx}`);
+          cs.letter.setColor('#FFFFFF');
+          cs.letter.setShadow(1, 1, 'rgba(0,0,0,0.35)', 3, false, true);
         }
       }
     }

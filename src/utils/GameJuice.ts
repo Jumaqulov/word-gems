@@ -306,7 +306,7 @@ export class GameJuice {
     this.scene.time.delayedCall(duration, () => {
       for (const cell of cells) {
         cell.bg.clearTint();
-        cell.letter.setColor('#2a2a4e');
+        cell.letter.setColor('#1e1e40');
       }
     });
   }

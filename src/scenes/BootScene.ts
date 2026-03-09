@@ -91,6 +91,36 @@ export class BootScene extends Phaser.Scene {
       borderWidth: 2,
       glossy: false,
     });
+
+    // Generate gem-colored cell textures for found words
+    this.generateFoundGemTextures(cellSize, innerSize);
+  }
+
+  /** Generate rich gem-like cell textures for each found word color */
+  private generateFoundGemTextures(cellSize: number, innerSize: number): void {
+    // Each found color gets a gem-like texture: saturated gradient + glossy shine + border
+    const foundConfigs: { color: number; top: number; bottom: number; border: number }[] = [
+      { color: 0xFF6B6B, top: 0xFF7B7B, bottom: 0xE04545, border: 0xCC3333 }, // Red
+      { color: 0x4ECDC4, top: 0x6EDDD6, bottom: 0x35AEA5, border: 0x2A9A91 }, // Teal
+      { color: 0x45B7D1, top: 0x65C7E1, bottom: 0x2E9AB5, border: 0x2088A0 }, // Blue
+      { color: 0x96CEB4, top: 0xA8DAC4, bottom: 0x7AB89A, border: 0x68A586 }, // Green
+      { color: 0xFFD93D, top: 0xFFE066, bottom: 0xE6C020, border: 0xCCAA10 }, // Yellow
+      { color: 0xFF8B5E, top: 0xFFA07A, bottom: 0xE06A3D, border: 0xCC5530 }, // Orange
+      { color: 0xDDA0DD, top: 0xE8B8E8, bottom: 0xC480C4, border: 0xB060B0 }, // Purple
+      { color: 0x87CEEB, top: 0xA0DAFA, bottom: 0x6BB8D8, border: 0x55A0C0 }, // Sky
+    ];
+
+    for (let i = 0; i < foundConfigs.length; i++) {
+      const cfg = foundConfigs[i];
+      this.generateCellTexture(`cell-found-${i}`, cellSize, innerSize, {
+        fillTop: cfg.top,
+        fillBottom: cfg.bottom,
+        border: cfg.border,
+        borderAlpha: 0.8,
+        borderWidth: 2,
+        glossy: true,
+      });
+    }
   }
 
   private generateCellTexture(
