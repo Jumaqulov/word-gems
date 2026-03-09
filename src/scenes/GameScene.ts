@@ -324,12 +324,11 @@ export class GameScene extends Phaser.Scene {
         bg.setDisplaySize(cellSize, cellSize);
         bg.setInteractive({ useHandCursor: false });
 
-        const fontSize = Math.floor((cellSize - CELL_GAP) * 0.45);
+        const fontSize = Math.floor((cellSize - CELL_GAP) * 0.42);
         const letter = this.add.text(x, y, this.gridData.grid[r][c], {
           fontFamily: '"Fredoka One", cursive',
           fontSize: `${fontSize}px`,
-          color: '#2a2a4e',
-          fontStyle: 'bold',
+          color: '#1e1e40',
         });
         letter.setOrigin(0.5);
         letter.setDepth(2);

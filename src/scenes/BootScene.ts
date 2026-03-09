@@ -124,24 +124,9 @@ export class BootScene extends Phaser.Scene {
 
     // Glossy highlight (white shine on top)
     if (opts.glossy) {
-      // Drop shadow (darker area behind the cell)
-      g.fillStyle(0x000000, 0.06);
-      g.fillRoundedRect(offset + 1, offset + 2, innerSize, innerSize, radius);
-
-      // Strong white glossy highlight on top third
-      g.fillStyle(0xFFFFFF, 0.35);
+      // White glossy highlight on top third
+      g.fillStyle(0xFFFFFF, 0.3);
       g.fillRoundedRect(offset + 3, offset + 2, innerSize - 6, innerSize * 0.3, { tl: radius - 2, tr: radius - 2, bl: 0, br: 0 });
-
-      // Softer secondary highlight
-      g.fillStyle(0xFFFFFF, 0.1);
-      g.fillRoundedRect(offset + 4, offset + 3, innerSize - 8, innerSize * 0.2, { tl: radius - 3, tr: radius - 3, bl: 0, br: 0 });
-
-      // Bottom inner shadow
-      g.lineStyle(1, 0x000000, 0.06);
-      g.beginPath();
-      g.arc(offset + radius, offset + innerSize - radius, radius - 1, Math.PI * 0.5, Math.PI, false);
-      g.arc(offset + innerSize - radius, offset + innerSize - radius, radius - 1, 0, Math.PI * 0.5, false);
-      g.strokePath();
     }
 
     g.generateTexture(key, totalSize, totalSize);
