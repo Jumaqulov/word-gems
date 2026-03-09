@@ -10,14 +10,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 async function boot() {
-  // Init CrazyGames SDK
-  try {
-    if (window.CrazyGames?.SDK) {
-      await window.CrazyGames.SDK.init();
-    }
-  } catch (e) {
-    console.warn('CrazyGames SDK init failed (likely local dev):', e);
-  }
+  // SDK init is handled by CrazyGamesManager.init() in BootScene
 
   const isMobile = IS_MOBILE();
 
@@ -29,8 +22,8 @@ async function boot() {
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: isMobile ? 360 : 600,
-      height: isMobile ? 640 : 600,
+      width: isMobile ? 360 : 700,
+      height: isMobile ? 640 : 700,
     },
     scene: [BootScene, GameScene],
     input: {

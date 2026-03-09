@@ -58,6 +58,7 @@ class CrazyGamesManagerSingleton {
   async init(): Promise<void> {
     try {
       if (window.CrazyGames?.SDK) {
+        await window.CrazyGames.SDK.init();
         this.sdk = window.CrazyGames.SDK;
 
         // Listen for audio mute
@@ -166,15 +167,17 @@ class CrazyGamesManagerSingleton {
   saveGame(): void {
     const json = JSON.stringify(this._saveData);
 
-    // Save to SDK data module
-    try {
-      this.sdk?.data.setItem(SAVE_KEY, json);
-    } catch (e) { /* ignore */ }
-
-    // Also save to localStorage as fallback
-    try {
-      localStorage.setItem(SAVE_KEY, json);
-    } catch (e) { /* ignore */ }
+    if (this.sdk) {
+      // Use SDK data module only
+      try {
+        this.sdk.data.setItem(SAVE_KEY, json);
+      } catch (e) { /* ignore */ }
+    } else {
+      // Fallback to localStorage (local dev)
+      try {
+        localStorage.setItem(SAVE_KEY, json);
+      } catch (e) { /* ignore */ }
+    }
   }
 
   loadGame(): void {
@@ -249,6 +252,7 @@ class CrazyGamesManagerSingleton {
   addScore(amount: number): void {
     this._saveData.totalScore += amount;
     EventBus.emit(EVENTS.SCORE_CHANGED, this._saveData.totalScore);
+    this.saveGame();
   }
 
   advanceLevel(): void {
@@ -266,14 +270,17 @@ class CrazyGamesManagerSingleton {
 
   addWordsFound(count: number): void {
     this._saveData.wordsFound += count;
+    this.saveGame();
   }
 
   addPerfectLevel(): void {
     this._saveData.perfectLevels += 1;
+    this.saveGame();
   }
 
   incrementHintsUsed(): void {
     this._saveData.hintsUsed += 1;
+    this.saveGame();
   }
 
   markTutorialSeen(): void {
@@ -293,9 +300,9 @@ class CrazyGamesManagerSingleton {
     for (const w of words) {
       if (!used.includes(w)) used.push(w);
     }
-    // Keep only last 100
-    if (used.length > 100) {
-      this._saveData.usedWords = used.slice(-100);
+    // Keep only last 200
+    if (used.length > 200) {
+      this._saveData.usedWords = used.slice(-200);
     }
     this.saveGame();
   }

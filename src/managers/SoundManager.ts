@@ -44,12 +44,15 @@ class SoundManagerSingleton {
           break;
         case 'found':
           this.playChord([523, 659, 784], 0.25, 0.1);
+          this.vibrate(15);
           break;
         case 'complete':
           this.playArpeggio([523, 587, 659, 784, 1047], 0.1, 0.08);
+          this.vibrate([15, 30, 15]);
           break;
         case 'wrong':
           this.playTone(150, 0.2, 'sawtooth', 0.06);
+          this.vibrate([30, 20, 30]);
           break;
         case 'spin':
           this.playRisingTone(200, 800, 1.5, 0.1);
@@ -59,11 +62,25 @@ class SoundManagerSingleton {
           break;
         case 'gem':
           this.playChord([1200, 1500], 0.1, 0.04);
+          this.vibrate(10);
           break;
       }
     } catch (e) {
       // Ignore audio errors
     }
+  }
+
+  private _vibrationEnabled = true;
+
+  setVibrationEnabled(enabled: boolean): void {
+    this._vibrationEnabled = enabled;
+  }
+
+  private vibrate(pattern: number | number[]): void {
+    if (!this._vibrationEnabled) return;
+    try {
+      navigator.vibrate?.(pattern);
+    } catch { /* ignore */ }
   }
 
   /** Ascending pitch letter select — each letter plays higher note */

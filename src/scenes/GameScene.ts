@@ -765,6 +765,14 @@ export class GameScene extends Phaser.Scene {
       document.getElementById('settings-modal')!.style.display = 'none';
     });
 
+    // How to Play button in settings
+    document.getElementById('btn-how-to-play')?.addEventListener('click', () => {
+      SoundManager.play('click');
+      document.getElementById('settings-modal')!.style.display = 'none';
+      const tutorial = document.getElementById('tutorial-overlay');
+      if (tutorial) tutorial.style.display = 'flex';
+    });
+
     // Sound toggle
     document.getElementById('toggle-sound')?.addEventListener('change', (e) => {
       const checked = (e.target as HTMLInputElement).checked;
@@ -777,6 +785,7 @@ export class GameScene extends Phaser.Scene {
     document.getElementById('toggle-vibration')?.addEventListener('change', (e) => {
       const checked = (e.target as HTMLInputElement).checked;
       CrazyGamesManager.saveData.vibrationEnabled = checked;
+      SoundManager.setVibrationEnabled(checked);
       CrazyGamesManager.saveGame();
     });
 
@@ -843,6 +852,7 @@ export class GameScene extends Phaser.Scene {
       if (toggle) toggle.checked = false;
     }
     if (!save.vibrationEnabled) {
+      SoundManager.setVibrationEnabled(false);
       const toggle = document.getElementById('toggle-vibration') as HTMLInputElement;
       if (toggle) toggle.checked = false;
     }
@@ -1079,8 +1089,12 @@ export class GameScene extends Phaser.Scene {
 
     await new Promise(resolve => setTimeout(resolve, 3200));
 
-    canvas.style.transition = 'none';
-    canvas.style.transform = 'rotate(0deg)';
+    // Reset wheel when modal closes (avoids visible snap-back)
+    const resetWheel = () => {
+      canvas.style.transition = 'none';
+      canvas.style.transform = 'rotate(0deg)';
+    };
+    document.getElementById('btn-spin-collect')?.addEventListener('click', resetWheel, { once: true });
 
     if (reward.type === 'gems') {
       CrazyGamesManager.addGems(reward.value);

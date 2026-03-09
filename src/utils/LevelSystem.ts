@@ -28,8 +28,8 @@ export const ZONES: ZoneConfig[] = [
   {
     name: 'Tutorial',
     levels: [1, 5],
-    gridSize: 6,
-    wordCount: [3, 4],
+    gridSize: 8,
+    wordCount: [4, 6],
     wordPool: ['easy'],
     directions: DIR_HV,
     hasTimer: false,
@@ -39,9 +39,9 @@ export const ZONES: ZoneConfig[] = [
   {
     name: 'Beginner',
     levels: [6, 15],
-    gridSize: 7,
-    wordCount: [4, 5],
-    wordPool: ['easy'],
+    gridSize: 8,
+    wordCount: [5, 7],
+    wordPool: ['easy', 'medium'],
     directions: DIR_HV,
     hasTimer: false,
     timerSeconds: 0,
@@ -51,7 +51,7 @@ export const ZONES: ZoneConfig[] = [
     name: 'Easy',
     levels: [16, 30],
     gridSize: 8,
-    wordCount: [5, 6],
+    wordCount: [6, 7],
     wordPool: ['easy', 'medium'],
     directions: DIR_HV_SOME_D,
     hasTimer: false,
@@ -61,8 +61,8 @@ export const ZONES: ZoneConfig[] = [
   {
     name: 'Intermediate',
     levels: [31, 50],
-    gridSize: 8,
-    wordCount: [5, 7],
+    gridSize: 9,
+    wordCount: [6, 8],
     wordPool: ['easy', 'medium'],
     directions: DIR_ALL,
     hasTimer: false,
@@ -73,7 +73,7 @@ export const ZONES: ZoneConfig[] = [
     name: 'Advanced',
     levels: [51, 75],
     gridSize: 9,
-    wordCount: [6, 8],
+    wordCount: [7, 8],
     wordPool: ['medium', 'hard'],
     directions: DIR_ALL,
     hasTimer: false,
@@ -87,9 +87,9 @@ export const ZONES: ZoneConfig[] = [
     wordCount: [7, 9],
     wordPool: ['medium', 'hard'],
     directions: DIR_ALL,
-    hasTimer: true,
-    timerSeconds: 180,
-    description: 'Race the clock',
+    hasTimer: false,
+    timerSeconds: 0,
+    description: 'Tough puzzles',
   },
   {
     name: 'Expert',
@@ -99,25 +99,25 @@ export const ZONES: ZoneConfig[] = [
     wordPool: ['medium', 'hard'],
     directions: DIR_ALL,
     hasTimer: true,
-    timerSeconds: 150,
-    description: 'Expert challenge',
+    timerSeconds: 180,
+    description: 'Race the clock',
   },
   {
     name: 'Master',
     levels: [151, 200],
-    gridSize: 11,
-    wordCount: [9, 12],
+    gridSize: 10,
+    wordCount: [9, 10],
     wordPool: ['hard'],
     directions: DIR_ALL,
     hasTimer: true,
-    timerSeconds: 120,
+    timerSeconds: 150,
     description: 'Master difficulty',
   },
   {
     name: 'Endless',
     levels: [201, 99999],
-    gridSize: 12,
-    wordCount: [10, 14],
+    gridSize: 10,
+    wordCount: [9, 10],
     wordPool: ['medium', 'hard'],
     directions: DIR_ALL,
     hasTimer: true,
@@ -153,11 +153,7 @@ export function getLevelConfig(level: number): LevelConfig {
     zone.wordCount[0] + zoneProgress * (zone.wordCount[1] - zone.wordCount[0])
   );
 
-  // Endless zone: grid size increases every 50 levels past 200
-  let gridSize = zone.gridSize;
-  if (level > 200) {
-    gridSize = Math.min(14, 12 + Math.floor((level - 200) / 50));
-  }
+  const gridSize = zone.gridSize;
 
   return {
     level,
