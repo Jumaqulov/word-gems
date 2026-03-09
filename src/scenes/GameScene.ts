@@ -352,7 +352,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (!this.isDragging) return;
+      if (!this.isDragging || this.isModalOpen()) return;
 
       // If direction is set, snap to nearest cell along the direction line
       if (this.selectionDirection && this.selectedCells.length >= 1) {
@@ -423,8 +423,16 @@ export class GameScene extends Phaser.Scene {
     return { row, col };
   }
 
+  private isModalOpen(): boolean {
+    const modals = document.querySelectorAll('.modal');
+    for (let i = 0; i < modals.length; i++) {
+      if ((modals[i] as HTMLElement).style.display === 'flex') return true;
+    }
+    return false;
+  }
+
   private onCellPointerDown(row: number, col: number): void {
-    if (this.timedOut) return;
+    if (this.timedOut || this.isModalOpen()) return;
     this.isDragging = true;
     this.selectedCells = [{ row, col }];
     this.selectionDirection = null;
@@ -600,7 +608,7 @@ export class GameScene extends Phaser.Scene {
     SoundManager.play('wrong');
 
     const flashCells = this.selectedCells.map(c => this.cells[c.row][c.col]);
-    this.juice.flashCellsRed(flashCells, 200);
+    this.juice.flashCellsRed(flashCells, 200, this.foundCellKeys);
     this.juice.shake(this.gridContainer, 3, 200);
 
     EventBus.emit(EVENTS.WORD_INVALID);

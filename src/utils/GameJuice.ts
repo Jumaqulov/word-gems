@@ -295,16 +295,19 @@ export class GameJuice {
 
   /** Wrong selection flash — briefly tint cells red */
   flashCellsRed(
-    cells: { bg: Phaser.GameObjects.Image; letter: Phaser.GameObjects.Text }[],
-    duration = 200
+    cells: { bg: Phaser.GameObjects.Image; letter: Phaser.GameObjects.Text; row: number; col: number }[],
+    duration = 200,
+    foundCellKeys?: Set<string>
   ): void {
     for (const cell of cells) {
+      if (foundCellKeys?.has(`${cell.row}:${cell.col}`)) continue;
       cell.bg.setTint(0xFF4444);
       cell.letter.setColor('#FF4444');
     }
 
     this.scene.time.delayedCall(duration, () => {
       for (const cell of cells) {
+        if (foundCellKeys?.has(`${cell.row}:${cell.col}`)) continue;
         cell.bg.clearTint();
         cell.letter.setColor('#1e1e40');
       }
