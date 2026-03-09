@@ -659,9 +659,10 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Highlight selected cells
+    // Highlight selected cells (skip already-found cells)
     for (let i = 0; i < this.selectedCells.length; i++) {
       const { row, col } = this.selectedCells[i];
+      if (this.foundCellKeys.has(`${row}:${col}`)) continue;
       this.cells[row][col].bg.setTexture('cell-selected');
       this.cells[row][col].letter.setColor('#FFFFFF');
       this.cells[row][col].letter.setScale(1.15);
