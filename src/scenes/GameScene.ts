@@ -1061,35 +1061,95 @@ export class GameScene extends Phaser.Scene {
   private drawSpinWheel(): void {
     const canvas = document.getElementById('spin-wheel') as HTMLCanvasElement;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d')!;
-    const cx = 150, cy = 150, r = 140;
 
-    ctx.clearRect(0, 0, 300, 300);
+    // High-DPI support
+    const dpr = window.devicePixelRatio || 1;
+    const size = 300;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.scale(dpr, dpr);
+
+    const cx = size / 2, cy = size / 2, r = 140;
+
+    ctx.clearRect(0, 0, size, size);
 
     const segments = SPIN_REWARDS.length;
     const segAngle = (Math.PI * 2) / segments;
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFD93D'];
+    const darkColors = ['#CC4444', '#2A9A91', '#2088A0', '#CCA010'];
 
     for (let i = 0; i < segments; i++) {
+      const startAngle = i * segAngle - Math.PI / 2;
+      const endAngle = (i + 1) * segAngle - Math.PI / 2;
+
+      // Segment fill with gradient
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, i * segAngle - Math.PI / 2, (i + 1) * segAngle - Math.PI / 2);
+      ctx.arc(cx, cy, r, startAngle, endAngle);
       ctx.closePath();
-      ctx.fillStyle = colors[i % colors.length];
+
+      const midAngle = (startAngle + endAngle) / 2;
+      const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+      grad.addColorStop(0, colors[i % colors.length]);
+      grad.addColorStop(1, darkColors[i % darkColors.length]);
+      ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+
+      // Segment border
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate((i + 0.5) * segAngle - Math.PI / 2);
+      // Text — always horizontal at segment center
+      const reward = SPIN_REWARDS[i];
+      const icon = reward.type === 'gems' ? '💎' : '🎯';
+      const textR = r * 0.62;
+      const tx = cx + Math.cos(midAngle) * textR;
+      const ty = cy + Math.sin(midAngle) * textR;
+
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Icon above text
+      ctx.font = '18px sans-serif';
+      ctx.fillText(icon, tx, ty - 10);
+
+      // Value text below icon
+      ctx.font = 'bold 14px "Fredoka One", cursive';
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 13px "Fredoka One", cursive';
-      ctx.fillText(SPIN_REWARDS[i].label, r * 0.6, 5);
-      ctx.restore();
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      ctx.fillText(reward.label, tx, ty + 10);
+      ctx.shadowColor = 'transparent';
     }
+
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#2d1b69';
+    ctx.fill();
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
 
   private async performSpin(): Promise<void> {
