@@ -162,10 +162,10 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 8px 16px 4px;
-  background: rgba(15, 10, 46, 0.5);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 20px 6px;
+  background: linear-gradient(180deg, rgba(15, 8, 40, 0.7) 0%, rgba(15, 8, 40, 0.3) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   z-index: 10;
   flex-shrink: 0;
 }
@@ -173,10 +173,21 @@ html, body {
 .hud-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  position: relative;
 }
 
-.hud-left, .hud-right {
+.hud-left {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-right {
+  position: absolute;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -186,42 +197,46 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex: 1;
+  gap: 10px;
 }
 
 .game-title {
   font-family: 'Fredoka One', cursive;
-  font-size: 1.3rem;
-  background: linear-gradient(180deg, #FFD700, #FF8C00);
+  font-size: 1.2rem;
+  background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: 0.06em;
-  filter: drop-shadow(0 1px 2px rgba(255, 165, 0, 0.3));
+  letter-spacing: 0.08em;
 }
 
-/* HUD Badges (pill-shaped) */
+/* HUD Badges */
 .hud-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.72rem;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 24px;
   font-weight: 800;
 }
 
+.badge-icon {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
 .badge-label {
-  opacity: 0.85;
-  font-size: 0.65rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  opacity: 0.75;
+  letter-spacing: 0.06em;
 }
 
 .badge-value {
   font-family: 'Fredoka One', cursive;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   transition: transform 0.2s, color 0.2s;
 }
 
@@ -236,41 +251,42 @@ html, body {
 }
 
 .badge-level {
-  background: linear-gradient(135deg, rgba(100, 80, 200, 0.4), rgba(80, 50, 180, 0.3));
-  color: #d0c0ff;
-  border: 1px solid rgba(150, 120, 255, 0.25);
+  background: rgba(255, 255, 255, 0.07);
+  color: #c8bfef;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .badge-streak {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 80, 0, 0.2));
-  color: #ffd0a0;
-  border: 1px solid rgba(255, 160, 50, 0.25);
+  background: rgba(255, 160, 50, 0.12);
+  color: #ffc880;
+  border: 1px solid rgba(255, 160, 50, 0.18);
 }
 
 .badge-coins {
-  background: linear-gradient(135deg, rgba(0, 180, 220, 0.3), rgba(0, 140, 200, 0.2));
-  color: #a0e8ff;
-  border: 1px solid rgba(0, 200, 255, 0.25);
+  background: rgba(78, 205, 196, 0.12);
+  color: #90e8df;
+  border: 1px solid rgba(78, 205, 196, 0.18);
 }
 
 .hud-icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.2s;
 }
 
 .hud-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .hud-icon-btn:active { transform: scale(0.92); }
@@ -278,12 +294,13 @@ html, body {
 /* Zone label */
 .zone-label {
   text-align: center;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: rgba(200, 180, 255, 0.6);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: rgba(200, 185, 255, 0.45);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  padding: 2px 0 4px;
+  letter-spacing: 3px;
+  padding: 3px 0 2px;
 }
 
 /* ====== MAIN CONTENT ====== */
