@@ -58,6 +58,7 @@ export class GameScene extends Phaser.Scene {
 
   // Color cycling for found words
   private foundColorIndex = 0;
+  private spinAngle = 0;
 
   // Track if UI setup done
   private uiSetup = false;
@@ -1083,18 +1084,11 @@ export class GameScene extends Phaser.Scene {
 
     const canvas = document.getElementById('spin-wheel') as HTMLCanvasElement;
     const segAngle = 360 / SPIN_REWARDS.length;
-    const targetAngle = 360 * 5 + (selectedIdx * segAngle + segAngle / 2);
+    this.spinAngle += 360 * 5 + (selectedIdx * segAngle + segAngle / 2);
     canvas.style.transition = 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
-    canvas.style.transform = `rotate(${targetAngle}deg)`;
+    canvas.style.transform = `rotate(${this.spinAngle}deg)`;
 
     await new Promise(resolve => setTimeout(resolve, 3200));
-
-    // Reset wheel when modal closes (avoids visible snap-back)
-    const resetWheel = () => {
-      canvas.style.transition = 'none';
-      canvas.style.transform = 'rotate(0deg)';
-    };
-    document.getElementById('btn-spin-collect')?.addEventListener('click', resetWheel, { once: true });
 
     if (reward.type === 'gems') {
       CrazyGamesManager.addGems(reward.value);
