@@ -70,17 +70,19 @@
       <div id="left-panel">
         <div class="panel-card stats-card">
           <div class="stats-title">STATS</div>
-          <div class="stat-row-mini">
-            <span class="stat-mini-label">Words</span>
-            <span id="stat-words" class="stat-mini-value">0</span>
-          </div>
-          <div class="stat-row-mini">
-            <span class="stat-mini-label">Perfect</span>
-            <span id="stat-perfect" class="stat-mini-value">0</span>
-          </div>
-          <div class="stat-row-mini">
-            <span class="stat-mini-label">Best Streak</span>
-            <span id="stat-best-streak" class="stat-mini-value">0</span>
+          <div class="stats-grid">
+            <div class="stat-cell stat-words-cell">
+              <span class="stat-cell-value" id="stat-words">0</span>
+              <span class="stat-cell-label">Words</span>
+            </div>
+            <div class="stat-cell stat-perfect-cell">
+              <span class="stat-cell-value" id="stat-perfect">0</span>
+              <span class="stat-cell-label">Perfect</span>
+            </div>
+            <div class="stat-cell stat-streak-cell">
+              <span class="stat-cell-value" id="stat-best-streak">0</span>
+              <span class="stat-cell-label">Streak</span>
+            </div>
           </div>
         </div>
         <button id="btn-daily-spin" class="panel-card spin-card">

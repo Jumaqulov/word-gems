@@ -943,42 +943,64 @@ html, body {
 /* ====== STATS CARD ====== */
 .stats-card {
   cursor: default;
+  padding: 8px 6px;
 }
 
 .stats-title {
   font-family: 'Fredoka One', cursive;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.1em;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.12em;
   margin-bottom: 6px;
   text-align: center;
 }
 
-.stat-row-mini {
+.stats-grid {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 4px 0;
+  border-radius: 6px;
 }
 
-.stat-row-mini:last-child {
-  border-bottom: none;
+.stat-cell-value {
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.95rem;
+  line-height: 1.1;
 }
 
-.stat-mini-label {
+.stat-cell-label {
   font-family: 'Nunito', sans-serif;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 600;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
 }
 
-.stat-mini-value {
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 800;
+/* Per-stat colors */
+.stat-words-cell {
+  background: rgba(78, 205, 196, 0.1);
 }
+.stat-words-cell .stat-cell-value { color: #4ECDC4; }
+.stat-words-cell .stat-cell-label { color: #90e8df; }
+
+.stat-perfect-cell {
+  background: rgba(255, 215, 0, 0.08);
+}
+.stat-perfect-cell .stat-cell-value { color: #FFD700; }
+.stat-perfect-cell .stat-cell-label { color: #ffe680; }
+
+.stat-streak-cell {
+  background: rgba(255, 107, 107, 0.1);
+}
+.stat-streak-cell .stat-cell-value { color: #FF6B6B; }
+.stat-streak-cell .stat-cell-label { color: #ffaaaa; }
 
 /* ====== RESPONSIVE - MOBILE ====== */
 @media (max-width: 768px) {
