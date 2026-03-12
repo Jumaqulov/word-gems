@@ -2,6 +2,8 @@
  * Level System — 200+ levels across 9 zones with combo, stars, and timer.
  */
 
+import { SCORING } from '../consts';
+
 // ── Zone definitions ──
 
 export interface ZoneConfig {
@@ -255,14 +257,14 @@ export function calculateLevelScore(
   timedOut: boolean,
   remainingSeconds: number
 ): ScoreResult {
-  const levelBonus = level * 100;
-  const streakBonus = streak * 10;
+  const levelBonus = level * SCORING.LEVEL_BONUS_MULTIPLIER;
+  const streakBonus = streak * SCORING.STREAK_BONUS_MULTIPLIER;
   const comboBonus = Math.floor(wordScoreSum * (comboMultiplier - 1));
-  const perfectBonus = hintsUsed === 0 && !timedOut ? 200 : 0;
-  const timerBonus = remainingSeconds > 0 ? remainingSeconds * 5 : 0;
+  const perfectBonus = hintsUsed === 0 && !timedOut ? SCORING.PERFECT_BONUS : 0;
+  const timerBonus = remainingSeconds > 0 ? remainingSeconds * SCORING.TIMER_BONUS_MULTIPLIER : 0;
 
   const total = wordScoreSum + levelBonus + streakBonus + comboBonus + perfectBonus + timerBonus;
-  const gemsEarned = Math.floor(total / 10);
+  const gemsEarned = Math.floor(total / SCORING.GEM_DIVISOR);
   const stars = getStarRating(hintsUsed, timedOut);
 
   return {

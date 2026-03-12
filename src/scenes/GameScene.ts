@@ -354,7 +354,34 @@ export class GameScene extends Phaser.Scene {
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!this.isDragging || this.isModalOpen()) return;
 
-      // If direction is set, snap to nearest cell along the direction line
+      // If direction not yet set, detect from pointer angle
+      if (!this.selectionDirection && this.selectedCells.length === 1) {
+        const first = this.selectedCells[0];
+        const cellSize = this.cellSize;
+        const centerX = this.gridContainer.x + first.col * cellSize + cellSize / 2;
+        const centerY = this.gridContainer.y + first.row * cellSize + cellSize / 2;
+        const distSq = (pointer.x - centerX) ** 2 + (pointer.y - centerY) ** 2;
+
+        if (distSq > (cellSize * 0.6) ** 2) {
+          const angle = Math.atan2(pointer.y - centerY, pointer.x - centerX);
+          const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+          const dx = Math.round(Math.cos(snapAngle));
+          const dy = Math.round(Math.sin(snapAngle));
+
+          if (dx !== 0 || dy !== 0) {
+            this.selectionDirection = { dx, dy };
+            const targetRow = first.row + dy;
+            const targetCol = first.col + dx;
+            const gridSize = this.gridData.size;
+            if (targetRow >= 0 && targetRow < gridSize && targetCol >= 0 && targetCol < gridSize) {
+              this.onCellPointerOver(targetRow, targetCol);
+              return;
+            }
+          }
+        }
+      }
+
+      // Direction set — snap to direction line
       if (this.selectionDirection && this.selectedCells.length >= 1) {
         const snapped = this.snapToDirectionLine(pointer);
         if (snapped) {
@@ -403,8 +430,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Only snap if within 1.5 cell radius
-    if (bestCell && bestDist < (cellSize * 1.5) ** 2) {
+    // Only snap if within 2 cell radius
+    if (bestCell && bestDist < (cellSize * 2.0) ** 2) {
       return bestCell;
     }
     return null;
@@ -448,11 +475,23 @@ export class GameScene extends Phaser.Scene {
     if (last.row === row && last.col === col) return;
 
     if (this.selectedCells.length === 1) {
-      const dx = Math.sign(col - first.col);
-      const dy = Math.sign(row - first.row);
-      if (dx === 0 && dy === 0) return;
-      if (Math.abs(col - first.col) > 1 || Math.abs(row - first.row) > 1) return;
-      this.selectionDirection = { dx, dy };
+      const absDCol = Math.abs(col - first.col);
+      const absDRow = Math.abs(row - first.row);
+
+      if (absDCol === 0 && absDRow === 0) return;
+
+      if (absDCol > 1 || absDRow > 1) {
+        // Far cell — use angle to snap to nearest 8-direction
+        const angle = Math.atan2(row - first.row, col - first.col);
+        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+        const snappedDx = Math.round(Math.cos(snapAngle));
+        const snappedDy = Math.round(Math.sin(snapAngle));
+        if (snappedDx === 0 && snappedDy === 0) return;
+        this.selectionDirection = { dx: snappedDx, dy: snappedDy };
+      } else {
+        // Adjacent cell — direct direction
+        this.selectionDirection = { dx: Math.sign(col - first.col), dy: Math.sign(row - first.row) };
+      }
     }
 
     if (!this.selectionDirection) return;

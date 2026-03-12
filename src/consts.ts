@@ -38,17 +38,18 @@ export const COLORS = {
 // Scoring
 export const SCORING = {
   WORD_MULTIPLIER: 10,
-  LEVEL_BONUS_MULTIPLIER: 100,
-  STREAK_BONUS_MULTIPLIER: 10,
-  PERFECT_BONUS: 200,
-  GEMS_PER_10_POINTS: 1,
+  LEVEL_BONUS_MULTIPLIER: 20,
+  STREAK_BONUS_MULTIPLIER: 5,
+  PERFECT_BONUS: 100,
+  TIMER_BONUS_MULTIPLIER: 2,
+  GEM_DIVISOR: 25,
 };
 
 // Power-ups
 export const POWERUP_COSTS = {
   DETECT: 50,
   UNDO: 30,
-  AD_REWARD: 100,
+  AD_REWARD: 50,
 };
 
 // Ads
@@ -56,9 +57,9 @@ export const AD_INTERVAL_LEVELS = 5;
 
 // Daily spin rewards
 export const SPIN_REWARDS = [
-  { label: '50 Gems', value: 50, type: 'gems' as const, weight: 40 },
-  { label: '100 Gems', value: 100, type: 'gems' as const, weight: 30 },
-  { label: '200 Gems', value: 200, type: 'gems' as const, weight: 15 },
+  { label: '25 Gems', value: 25, type: 'gems' as const, weight: 40 },
+  { label: '50 Gems', value: 50, type: 'gems' as const, weight: 30 },
+  { label: '100 Gems', value: 100, type: 'gems' as const, weight: 15 },
   { label: 'Free Hint', value: 1, type: 'hint' as const, weight: 15 },
 ];
 
