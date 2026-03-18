@@ -69,6 +69,7 @@ export class GameScene extends Phaser.Scene {
 
   // Track if UI setup done
   private uiSetup = false;
+  private inputHandlersSetup = false;
 
   // Page visibility save
   private visibilityHandler: (() => void) | null = null;
@@ -97,6 +98,8 @@ export class GameScene extends Phaser.Scene {
 
     // Page visibility save
     this.setupPageVisibilitySave();
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown, this);
   }
 
   // =========================================
@@ -104,6 +107,8 @@ export class GameScene extends Phaser.Scene {
   // =========================================
 
   private setupPageVisibilitySave(): void {
+    this.removePageVisibilitySave();
+
     this.visibilityHandler = () => {
       if (document.hidden) {
         CrazyGamesManager.saveGame();
@@ -114,6 +119,24 @@ export class GameScene extends Phaser.Scene {
     };
     document.addEventListener('visibilitychange', this.visibilityHandler);
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
+  }
+
+  private removePageVisibilitySave(): void {
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
+
+    if (this.beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = null;
+    }
+  }
+
+  private handleSceneShutdown(): void {
+    this.cleanupLevel();
+    this.stopComboTick();
+    this.removePageVisibilitySave();
   }
 
   // =========================================
@@ -127,7 +150,7 @@ export class GameScene extends Phaser.Scene {
     this.levelConfig = getLevelConfig(level);
     this.cellSize = getCellSizeForGrid(this.levelConfig.gridSize);
 
-    this.levelWords = selectWordsForLevel(level, save.usedWords);
+    const requestedWords = selectWordsForLevel(level, save.usedWords);
     this.foundWords.clear();
     this.foundWordColors.clear();
     this.levelScore = 0;
@@ -137,7 +160,15 @@ export class GameScene extends Phaser.Scene {
     this.comboState = createComboState();
     this.timedOut = false;
 
-    this.gridData = generateGrid(this.levelWords, this.levelConfig.gridSize, this.levelConfig.directions);
+    this.gridData = generateGrid(requestedWords, this.levelConfig.gridSize, this.levelConfig.directions);
+    this.levelWords = this.gridData.placedWords.map((placedWord) => placedWord.word);
+
+    if (this.levelWords.length < requestedWords.length) {
+      console.warn(
+        `Level ${level} started with ${this.levelWords.length}/${requestedWords.length} placeable words`
+      );
+    }
+
     this.buildGrid();
 
     // Grid entrance animation
@@ -186,6 +217,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.stopTimer();
+    this.stopComboTick();
   }
 
   // =========================================
@@ -296,6 +328,13 @@ export class GameScene extends Phaser.Scene {
 
   private _comboInterval: ReturnType<typeof setInterval> | null = null;
 
+  private stopComboTick(): void {
+    if (this._comboInterval) {
+      clearInterval(this._comboInterval);
+      this._comboInterval = null;
+    }
+  }
+
   // =========================================
   // ZONE UI
   // =========================================
@@ -351,7 +390,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+    if (!this.inputHandlersSetup) {
+      this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!this.isDragging || this.isModalOpen()) return;
 
       // If direction not yet set, detect from pointer angle
@@ -392,9 +432,11 @@ export class GameScene extends Phaser.Scene {
 
       const cell = this.getCellAtPointer(pointer);
       if (cell) this.onCellPointerOver(cell.row, cell.col);
-    });
+      });
 
-    this.input.on('pointerup', () => this.onPointerUp());
+      this.input.on('pointerup', () => this.onPointerUp());
+      this.inputHandlersSetup = true;
+    }
   }
 
   // =========================================
@@ -713,7 +755,7 @@ export class GameScene extends Phaser.Scene {
   ): void {
     const modal = document.getElementById('level-complete-modal')!;
     document.getElementById('complete-level-num')!.textContent = level.toString();
-    document.getElementById('complete-words')!.textContent = `${this.levelWords.length}/${this.levelWords.length}`;
+    document.getElementById('complete-words')!.textContent = `${this.foundWords.size}/${this.levelWords.length}`;
     document.getElementById('complete-score')!.textContent = result.total.toString();
     document.getElementById('complete-gems')!.textContent = result.gemsEarned.toString();
 
@@ -730,6 +772,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     const perfectEl = document.getElementById('complete-perfect')!;
+    const perfectValueEl = perfectEl.querySelector('.complete-value');
+    if (perfectValueEl) perfectValueEl.textContent = `+${SCORING.PERFECT_BONUS}`;
     perfectEl.style.display = result.stars === 3 ? 'flex' : 'none';
 
     modal.style.display = 'flex';
@@ -1056,6 +1100,7 @@ export class GameScene extends Phaser.Scene {
     const success = await CrazyGamesManager.requestRewardedAd();
     if (success && type === 'detect') {
       this.hintsUsedThisLevel++;
+      CrazyGamesManager.incrementHintsUsed();
 
       const unfound = this.levelWords.filter(w => !this.foundWords.has(w));
       if (unfound.length === 0) return;

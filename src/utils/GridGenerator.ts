@@ -24,6 +24,35 @@ export function generateGrid(
   gridSize: number,
   allowedDirs: [number, number][]
 ): GridData {
+  const maxGridAttempts = 12;
+  let bestResult: GridData | null = null;
+
+  for (let attempt = 0; attempt < maxGridAttempts; attempt++) {
+    const result = generateGridAttempt(words, gridSize, allowedDirs);
+
+    if (!bestResult || result.placedWords.length > bestResult.placedWords.length) {
+      bestResult = result;
+    }
+
+    if (result.placedWords.length === words.length) {
+      return result;
+    }
+  }
+
+  if (bestResult && bestResult.placedWords.length < words.length) {
+    console.warn(
+      `Generated partial grid: placed ${bestResult.placedWords.length}/${words.length} words`
+    );
+  }
+
+  return bestResult ?? generateGridAttempt(words, gridSize, allowedDirs);
+}
+
+function generateGridAttempt(
+  words: string[],
+  gridSize: number,
+  allowedDirs: [number, number][]
+): GridData {
   const sortedWords = [...words].sort((a, b) => b.length - a.length);
 
   const grid: string[][] = Array.from({ length: gridSize }, () =>
