@@ -41,9 +41,18 @@ export class BootScene extends Phaser.Scene {
     // Generate at a fixed reference size — GameScene uses setDisplaySize to scale
     const cellSize = 64;
     const innerSize = cellSize - CELL_GAP;
+    const spaciousInnerSize = cellSize - 12;
 
     // Normal cell — light glossy casual style
     this.generateCellTexture('cell-bg', cellSize, innerSize, {
+      fillTop: 0xe4e8f8,
+      fillBottom: 0xd0d8f0,
+      border: COLORS.CELL_BORDER,
+      borderAlpha: 0.5,
+      borderWidth: 1,
+      glossy: true,
+    });
+    this.generateCellTexture('cell-bg-spacious', cellSize, spaciousInnerSize, {
       fillTop: 0xe4e8f8,
       fillBottom: 0xd0d8f0,
       border: COLORS.CELL_BORDER,
@@ -61,9 +70,25 @@ export class BootScene extends Phaser.Scene {
       borderWidth: 1.5,
       glossy: true,
     });
+    this.generateCellTexture('cell-hover-spacious', cellSize, spaciousInnerSize, {
+      fillTop: 0xeef0ff,
+      fillBottom: 0xe0e6f8,
+      border: COLORS.SELECT_COLOR,
+      borderAlpha: 0.5,
+      borderWidth: 1.5,
+      glossy: true,
+    });
 
     // Selected cell (part of valid selection) — vivid teal
     this.generateCellTexture('cell-selected', cellSize, innerSize, {
+      fillTop: 0x7EE8DF,
+      fillBottom: 0x4ECDC4,
+      border: 0x35AEA5,
+      borderAlpha: 0.9,
+      borderWidth: 2.5,
+      glossy: true,
+    });
+    this.generateCellTexture('cell-selected-spacious', cellSize, spaciousInnerSize, {
       fillTop: 0x7EE8DF,
       fillBottom: 0x4ECDC4,
       border: 0x35AEA5,
@@ -81,6 +106,14 @@ export class BootScene extends Phaser.Scene {
       borderWidth: 1,
       glossy: true,
     });
+    this.generateCellTexture('cell-found-spacious', cellSize, spaciousInnerSize, {
+      fillTop: 0xe8ecf8,
+      fillBottom: 0xdce2f2,
+      border: 0xc0c8e0,
+      borderAlpha: 0.3,
+      borderWidth: 1,
+      glossy: true,
+    });
 
     // Wrong cell flash
     this.generateCellTexture('cell-wrong', cellSize, innerSize, {
@@ -91,13 +124,22 @@ export class BootScene extends Phaser.Scene {
       borderWidth: 2,
       glossy: false,
     });
+    this.generateCellTexture('cell-wrong-spacious', cellSize, spaciousInnerSize, {
+      fillTop: 0xffd0d0,
+      fillBottom: 0xffb8b8,
+      border: COLORS.ERROR_RED,
+      borderAlpha: 0.6,
+      borderWidth: 2,
+      glossy: false,
+    });
 
     // Generate gem-colored cell textures for found words
     this.generateFoundGemTextures(cellSize, innerSize);
+    this.generateFoundGemTextures(cellSize, spaciousInnerSize, '-spacious');
   }
 
   /** Generate rich gem-like cell textures for each found word color */
-  private generateFoundGemTextures(cellSize: number, innerSize: number): void {
+  private generateFoundGemTextures(cellSize: number, innerSize: number, suffix = ''): void {
     // Each found color gets a gem-like texture: saturated gradient + glossy shine + border
     const foundConfigs: { color: number; top: number; bottom: number; border: number }[] = [
       { color: 0xFF6B6B, top: 0xFF7B7B, bottom: 0xE04545, border: 0xCC3333 }, // Red
@@ -112,7 +154,7 @@ export class BootScene extends Phaser.Scene {
 
     for (let i = 0; i < foundConfigs.length; i++) {
       const cfg = foundConfigs[i];
-      this.generateCellTexture(`cell-found-${i}`, cellSize, innerSize, {
+      this.generateCellTexture(`cell-found-${i}${suffix}`, cellSize, innerSize, {
         fillTop: cfg.top,
         fillBottom: cfg.bottom,
         border: cfg.border,

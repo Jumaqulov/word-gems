@@ -144,9 +144,22 @@ html, body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 25% 20%, var(--world-overlay-primary) 0%, transparent 55%),
-    radial-gradient(ellipse at 75% 70%, var(--world-overlay-secondary) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, var(--world-glow) 0%, transparent 60%);
+    radial-gradient(
+      ellipse at 24% 18%,
+      color-mix(in srgb, var(--world-overlay-primary) 72%, transparent) 0%,
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 78% 72%,
+      color-mix(in srgb, var(--world-overlay-secondary) 64%, transparent) 0%,
+      transparent 44%
+    ),
+    radial-gradient(
+      ellipse at 50% 44%,
+      color-mix(in srgb, var(--world-glow) 42%, transparent) 0%,
+      transparent 54%
+    );
+  opacity: 0.78;
   pointer-events: none;
   z-index: 0;
 }
@@ -455,9 +468,9 @@ html, body {
   max-height: 100%;
   border-radius: 16px;
   box-shadow:
-    0 0 32px var(--world-glow),
-    0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1.5px solid color-mix(in srgb, var(--world-primary) 18%, rgba(255,255,255,0.08));
+    0 0 16px color-mix(in srgb, var(--world-glow) 45%, transparent),
+    0 12px 28px rgba(0, 0, 0, 0.16);
+  border: 1px solid color-mix(in srgb, var(--world-primary) 14%, rgba(255,255,255,0.08));
 }
 
 /* ====== RIGHT PANEL ====== */

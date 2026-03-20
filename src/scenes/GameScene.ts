@@ -77,6 +77,7 @@ export class GameScene extends Phaser.Scene {
 
   private levelConfig!: LevelConfig;
   private cellSize = 50;
+  private cellDisplaySize = 50;
   private levelWords: string[] = [];
   private foundWords = new Set<string>();
   private foundWordColors = new Map<string, number>();
@@ -173,6 +174,7 @@ export class GameScene extends Phaser.Scene {
     const save = CrazyGamesManager.saveData;
     this.levelConfig = getLevelConfig(level);
     this.cellSize = getCellSizeForGrid(this.levelConfig.gridSize);
+    this.cellDisplaySize = this.getCellDisplaySize();
     SoundManager.setWorldProfile(this.levelConfig.sfxProfile);
 
     const requestedWords = selectWordsForLevel(level, save.usedWords);
@@ -283,21 +285,23 @@ export class GameScene extends Phaser.Scene {
     const totalSize = this.cellSize * this.gridData.size;
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
+    const gridX = Math.round(centerX - totalSize / 2);
+    const gridY = Math.round(centerY - totalSize / 2);
 
-    this.gridContainer = this.add.container(centerX - totalSize / 2, centerY - totalSize / 2);
+    this.gridContainer = this.add.container(gridX, gridY);
     this.gridContainer.setDepth(1);
     this.cells = [];
 
     for (let row = 0; row < this.gridData.size; row++) {
       this.cells[row] = [];
       for (let col = 0; col < this.gridData.size; col++) {
-        const x = col * this.cellSize + this.cellSize / 2;
-        const y = row * this.cellSize + this.cellSize / 2;
-        const bg = this.add.image(x, y, 'cell-bg');
-        bg.setDisplaySize(this.cellSize, this.cellSize);
+        const x = Math.round(col * this.cellSize + this.cellSize / 2);
+        const y = Math.round(row * this.cellSize + this.cellSize / 2);
+        const bg = this.add.image(x, y, this.getCellTextureKey('cell-bg'));
+        bg.setDisplaySize(this.cellDisplaySize, this.cellDisplaySize);
         bg.setInteractive({ useHandCursor: false });
 
-        const fontSize = Math.floor((this.cellSize - CELL_GAP) * 0.42);
+        const fontSize = Math.floor(this.getCellContentSize() * 0.42);
         const letter = this.add.text(x, y, this.gridData.grid[row][col], {
           fontFamily: '"Fredoka One", cursive',
           fontSize: `${fontSize}px`,
@@ -314,6 +318,26 @@ export class GameScene extends Phaser.Scene {
         bg.on('pointerdown', () => this.onCellPointerDown(row, col));
       }
     }
+  }
+
+  private getCellDisplaySize(): number {
+    return this.cellSize;
+  }
+
+  private getCellContentSize(): number {
+    return this.cellSize - (this.useSpaciousCellTextures() ? 12 : CELL_GAP);
+  }
+
+  private useSpaciousCellTextures(): boolean {
+    return this.levelConfig.gridSize >= 9;
+  }
+
+  private getCellTextureKey(baseKey: 'cell-bg' | 'cell-selected' | 'cell-hover' | 'cell-wrong' | 'cell-found'): string {
+    return this.useSpaciousCellTextures() ? `${baseKey}-spacious` : baseKey;
+  }
+
+  private getFoundCellTextureKey(colorIndex: number): string {
+    return this.useSpaciousCellTextures() ? `cell-found-${colorIndex}-spacious` : `cell-found-${colorIndex}`;
   }
 
   private setupInputHandlers(): void {
@@ -598,7 +622,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const { row, col } of placedWord.cells) {
       const cell = this.cells[row][col];
-      cell.bg.setTexture(`cell-found-${colorIndex}`);
+      cell.bg.setTexture(this.getFoundCellTextureKey(colorIndex));
       cell.bg.clearTint();
       cell.bg.setAlpha(1);
       cell.bg.setPosition(cell.baseX, cell.baseY);
@@ -695,7 +719,7 @@ export class GameScene extends Phaser.Scene {
   private applyBaseCellStyle(cell: CellSprite): void {
     if (this.foundCellKeys.has(this.getCellKey(cell.row, cell.col))) return;
 
-    cell.bg.setTexture('cell-bg');
+    cell.bg.setTexture(this.getCellTextureKey('cell-bg'));
     cell.bg.clearTint();
     cell.bg.setAlpha(1);
     cell.bg.setPosition(cell.baseX, cell.baseY);
@@ -741,7 +765,7 @@ export class GameScene extends Phaser.Scene {
     for (const { row, col } of this.selectedCells) {
       if (this.foundCellKeys.has(this.getCellKey(row, col))) continue;
       const cell = this.cells[row][col];
-      cell.bg.setTexture('cell-selected');
+      cell.bg.setTexture(this.getCellTextureKey('cell-selected'));
       cell.bg.setTint(this.levelConfig.visuals.accentTint);
       cell.letter.setColor('#FFFFFF');
       cell.letter.setScale(1.15);
