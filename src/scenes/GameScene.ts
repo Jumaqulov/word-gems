@@ -249,7 +249,7 @@ export class GameScene extends Phaser.Scene {
       this.worldState.cometWord = this.pickWordByPreference(placedWords, 'longest');
     }
 
-    if (mechanic.type === 'castle_lock' && placedWords.length >= 2) {
+    if (mechanic.type === 'castle_lock' && mechanic.lockedWords > 0 && placedWords.length >= 2) {
       this.worldState.lockedWord = this.pickWordByPreference(placedWords, 'longest');
       this.worldState.lockPrerequisite = this.pickWordByPreference(
         placedWords.filter((word) => word !== this.worldState.lockedWord),
@@ -1507,7 +1507,6 @@ export class GameScene extends Phaser.Scene {
     if (this.isWordLocked(word)) return { label: 'LOCKED', className: 'word-locked' };
     if (this.worldState.crackedFrozenWords.has(word)) return { label: 'CRACKED', className: 'word-cracked' };
     if (this.worldState.frozenWords.has(word)) return { label: 'FROZEN', className: 'word-frozen' };
-    if (this.worldState.cometWord === word && !this.worldState.cometClaimed) return { label: 'COMET', className: 'word-comet' };
     return null;
   }
 

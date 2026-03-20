@@ -34,10 +34,10 @@ export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
   space: {
     easy: [
       'STAR', 'MOON', 'MARS', 'VOID', 'NOVA', 'ORBIT', 'COMET', 'ASTRO', 'COSMOS', 'SOLAR', 'LUNAR', 'RING',
-      'GLOW', 'SKY', 'ROVER', 'ION', 'ECHO', 'PULSE',
+      'RADAR', 'SKY', 'ROVER', 'ION', 'ECHO', 'PULSE',
     ],
     medium: [
-      'NEBULA', 'GALAXY', 'SATURN', 'METEOR', 'QUASAR', 'ROCKET', 'GRAVITY', 'ECLIPSE', 'STARDUST', 'AURORA',
+      'NEBULA', 'GALAXY', 'SATURN', 'METEOR', 'QUASAR', 'ROCKET', 'GRAVITY', 'ECLIPSE', 'STARDUST', 'COSMIC',
       'ZENITH', 'PLANET', 'SHUTTLE', 'ASTEROID', 'MODULE', 'VECTOR', 'PULSAR', 'STELLAR',
     ],
     hard: [
@@ -52,7 +52,7 @@ export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
     ],
     medium: [
       'KNIGHT', 'THRONE', 'PORTAL', 'KEEPER', 'ARMORY', 'HERALD', 'SCEPTER', 'CASTLE', 'TURRET', 'BAILEY',
-      'CHAMBER', 'FALCON', 'BROADSWORD', 'COURT', 'RAMPART', 'LANTERN', 'CITADEL', 'REGENT',
+      'CHAMBER', 'WARDEN', 'BROADSWORD', 'COURT', 'RAMPART', 'LANTERN', 'CITADEL', 'REGENT',
     ],
     hard: [
       'FORTRESS', 'STONEKEEP', 'BATTLEMENT', 'TREBUCHET', 'ROYALGUARD', 'BANQUET', 'DRAWBRIDGE',
@@ -61,11 +61,11 @@ export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
   },
   magic: {
     easy: [
-      'RUNE', 'WAND', 'SPELL', 'ORB', 'ELIXIR', 'CHARM', 'GLYPH', 'MYTH', 'AURA', 'SIGIL', 'HEX', 'WISP',
-      'MAGE', 'TOME', 'DUST', 'FAE', 'SPARK', 'VEIL',
+      'RUNE', 'WAND', 'SPELL', 'ORB', 'ELIXIR', 'CHARM', 'GLYPH', 'MYTH', 'MANA', 'SIGIL', 'HEX', 'WISP',
+      'MAGE', 'TOME', 'EMBER', 'FAE', 'SPARK', 'VEIL',
     ],
     medium: [
-      'POTION', 'ARCANE', 'ENCHANT', 'CAULDRON', 'CRYSTAL', 'FAMILIAR', 'PHANTOM', 'RITUAL', 'SORCERY', 'TOTEM',
+      'POTION', 'ARCANE', 'ENCHANT', 'CAULDRON', 'RUNESTONE', 'FAMILIAR', 'PHANTOM', 'RITUAL', 'SORCERY', 'TOTEM',
       'WIZARD', 'BROOM', 'STARFIRE', 'AMULET', 'MIRROR', 'CHANT', 'MAGISTER', 'MYSTIC',
     ],
     hard: [
@@ -76,7 +76,7 @@ export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
   ice: {
     easy: [
       'FROST', 'SNOW', 'ICE', 'GLINT', 'SLED', 'CHILL', 'GLASS', 'CRAG', 'COLD', 'FLAKE', 'MINT', 'HAIL',
-      'BLUE', 'SHIVER', 'DRIFT', 'RIME', 'AURA', 'CRYSTAL',
+      'BLUE', 'SHIVER', 'DRIFT', 'RIME', 'MIST', 'SHARD',
     ],
     medium: [
       'GLACIER', 'BLIZZARD', 'ICICLE', 'TUNDRA', 'AURORA', 'ICEBERG', 'FROZEN', 'SNOWCAP', 'WHITEOUT', 'CAVERN',
@@ -195,10 +195,6 @@ function fillFromFallbackPools(
     ...reusableWorldFallback,
     ...globalFallback,
   ]);
-
-  for (const word of combined) {
-    if (selected.length >= missingCount + selected.length) break;
-  }
 
   const targetCount = selected.length + missingCount;
   for (const word of combined) {
