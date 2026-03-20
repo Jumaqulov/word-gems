@@ -15,21 +15,23 @@ export interface GridData {
   size: number;
 }
 
-/**
- * Generate a word search grid with the given words placed.
- * Accepts allowed directions from LevelConfig.
- */
+export interface GenerateGridOptions {
+  directions: [number, number][];
+  directionWeights?: number[];
+  seedAnchorWord?: boolean;
+}
+
 export function generateGrid(
   words: string[],
   gridSize: number,
-  allowedDirs: [number, number][]
+  optionsOrDirections: GenerateGridOptions | [number, number][]
 ): GridData {
-  const maxGridAttempts = 12;
+  const options = normalizeOptions(optionsOrDirections);
+  const maxGridAttempts = 14;
   let bestResult: GridData | null = null;
 
   for (let attempt = 0; attempt < maxGridAttempts; attempt++) {
-    const result = generateGridAttempt(words, gridSize, allowedDirs);
-
+    const result = generateGridAttempt(words, gridSize, options);
     if (!bestResult || result.placedWords.length > bestResult.placedWords.length) {
       bestResult = result;
     }
@@ -45,39 +47,40 @@ export function generateGrid(
     );
   }
 
-  return bestResult ?? generateGridAttempt(words, gridSize, allowedDirs);
+  return bestResult ?? generateGridAttempt(words, gridSize, options);
+}
+
+function normalizeOptions(optionsOrDirections: GenerateGridOptions | [number, number][]): GenerateGridOptions {
+  return Array.isArray(optionsOrDirections)
+    ? { directions: optionsOrDirections }
+    : optionsOrDirections;
 }
 
 function generateGridAttempt(
   words: string[],
   gridSize: number,
-  allowedDirs: [number, number][]
+  options: GenerateGridOptions
 ): GridData {
-  const sortedWords = [...words].sort((a, b) => b.length - a.length);
-
-  const grid: string[][] = Array.from({ length: gridSize }, () =>
-    Array.from({ length: gridSize }, () => '')
-  );
-
+  const sortedWords = shuffleArray([...words]).sort((a, b) => b.length - a.length);
+  const grid: string[][] = Array.from({ length: gridSize }, () => Array.from({ length: gridSize }, () => ''));
   const placedWords: PlacedWord[] = [];
 
-  // Ensure at least one word is easy to find (horizontal in first/last rows)
-  if (sortedWords.length > 0) {
-    const easyWord = sortedWords[sortedWords.length - 1];
-    const easyPlaced = tryPlaceWordEasy(grid, easyWord, gridSize);
-    if (easyPlaced) {
-      placedWords.push(easyPlaced);
-      sortedWords.pop();
+  if (options.seedAnchorWord && sortedWords.length > 0) {
+    const anchorCandidate = sortedWords[sortedWords.length - 1];
+    const anchored = tryPlaceAnchoredWord(grid, anchorCandidate, gridSize, options);
+    if (anchored) {
+      placedWords.push(anchored);
+      sortedWords.splice(sortedWords.indexOf(anchorCandidate), 1);
     }
   }
 
   for (const word of sortedWords) {
-    // Skip words longer than grid
     if (word.length > gridSize) {
       console.warn(`Word "${word}" too long for ${gridSize}x${gridSize} grid, skipping`);
       continue;
     }
-    const placed = tryPlaceWord(grid, word, gridSize, allowedDirs);
+
+    const placed = tryPlaceWord(grid, word, gridSize, options);
     if (placed) {
       placedWords.push(placed);
     } else {
@@ -86,42 +89,43 @@ function generateGridAttempt(
   }
 
   fillEmptyCells(grid, gridSize);
-
   return { grid, placedWords, size: gridSize };
 }
 
-function tryPlaceWordEasy(grid: string[][], word: string, gridSize: number): PlacedWord | null {
-  if (word.length > gridSize) return null;
+function tryPlaceAnchoredWord(
+  grid: string[][],
+  word: string,
+  gridSize: number,
+  options: GenerateGridOptions
+): PlacedWord | null {
+  const horizontalDirections = options.directions.filter(([dx, dy]) => dy === 0 && dx !== 0);
+  const usableDirections = horizontalDirections.length > 0 ? horizontalDirections : options.directions;
+  const targetRows = [Math.floor(gridSize * 0.25), Math.floor(gridSize * 0.65)];
 
-  const rows = [0, gridSize - 1];
-  for (const row of rows) {
-    const maxCol = gridSize - word.length;
-    const startCol = Math.floor(Math.random() * (maxCol + 1));
-
-    let fits = true;
-    const cells: { row: number; col: number }[] = [];
-    for (let i = 0; i < word.length; i++) {
-      const existing = grid[row][startCol + i];
-      if (existing !== '' && existing !== word[i]) { fits = false; break; }
-      cells.push({ row, col: startCol + i });
-    }
-
-    if (fits) {
-      for (let i = 0; i < word.length; i++) {
-        grid[row][startCol + i] = word[i];
-      }
-      return { word, startRow: row, startCol, dx: 1, dy: 0, cells };
+  for (const row of targetRows) {
+    for (const direction of usableDirections) {
+      const [dx] = direction;
+      const startCol = dx === 1
+        ? Math.floor((gridSize - word.length) / 2)
+        : Math.floor((gridSize + word.length - 1) / 2);
+      const placed = placeWordIfFits(grid, word, gridSize, row, startCol, direction);
+      if (placed) return placed;
     }
   }
+
   return null;
 }
 
-function tryPlaceWord(grid: string[][], word: string, gridSize: number, allowedDirs: [number, number][]): PlacedWord | null {
-  const maxAttempts = 200;
+function tryPlaceWord(
+  grid: string[][],
+  word: string,
+  gridSize: number,
+  options: GenerateGridOptions
+): PlacedWord | null {
+  const maxAttempts = 240;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const dirIdx = Math.floor(Math.random() * allowedDirs.length);
-    const [dx, dy] = allowedDirs[dirIdx];
+    const [dx, dy] = pickDirection(options.directions, options.directionWeights);
 
     const rowMin = dy === -1 ? word.length - 1 : 0;
     const rowMax = dy === 1 ? gridSize - word.length : gridSize - 1;
@@ -133,45 +137,78 @@ function tryPlaceWord(grid: string[][], word: string, gridSize: number, allowedD
     const startRow = rowMin + Math.floor(Math.random() * (rowMax - rowMin + 1));
     const startCol = colMin + Math.floor(Math.random() * (colMax - colMin + 1));
 
-    let fits = true;
-    const cells: { row: number; col: number }[] = [];
-
-    for (let i = 0; i < word.length; i++) {
-      const r = startRow + i * dy;
-      const c = startCol + i * dx;
-
-      if (r < 0 || r >= gridSize || c < 0 || c >= gridSize) {
-        fits = false;
-        break;
-      }
-
-      const existing = grid[r][c];
-      if (existing !== '' && existing !== word[i]) {
-        fits = false;
-        break;
-      }
-
-      cells.push({ row: r, col: c });
-    }
-
-    if (!fits) continue;
-
-    for (let i = 0; i < word.length; i++) {
-      grid[cells[i].row][cells[i].col] = word[i];
-    }
-
-    return { word, startRow, startCol, dx, dy, cells };
+    const placed = placeWordIfFits(grid, word, gridSize, startRow, startCol, [dx, dy]);
+    if (placed) return placed;
   }
 
   return null;
 }
 
+function placeWordIfFits(
+  grid: string[][],
+  word: string,
+  gridSize: number,
+  startRow: number,
+  startCol: number,
+  direction: [number, number]
+): PlacedWord | null {
+  const [dx, dy] = direction;
+  const cells: { row: number; col: number }[] = [];
+
+  for (let i = 0; i < word.length; i++) {
+    const row = startRow + i * dy;
+    const col = startCol + i * dx;
+
+    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) return null;
+
+    const existing = grid[row][col];
+    if (existing !== '' && existing !== word[i]) return null;
+    cells.push({ row, col });
+  }
+
+  for (let i = 0; i < word.length; i++) {
+    grid[cells[i].row][cells[i].col] = word[i];
+  }
+
+  return { word, startRow, startCol, dx, dy, cells };
+}
+
+function pickDirection(
+  directions: [number, number][],
+  weights?: number[]
+): [number, number] {
+  if (!weights || weights.length !== directions.length) {
+    return directions[Math.floor(Math.random() * directions.length)];
+  }
+
+  const totalWeight = weights.reduce((sum, weight) => sum + Math.max(0, weight), 0);
+  if (totalWeight <= 0) {
+    return directions[Math.floor(Math.random() * directions.length)];
+  }
+
+  let roll = Math.random() * totalWeight;
+  for (let i = 0; i < directions.length; i++) {
+    roll -= Math.max(0, weights[i]);
+    if (roll <= 0) return directions[i];
+  }
+
+  return directions[directions.length - 1];
+}
+
 function fillEmptyCells(grid: string[][], gridSize: number): void {
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (grid[r][c] === '') {
-        grid[r][c] = WEIGHTED_LETTERS[Math.floor(Math.random() * WEIGHTED_LETTERS.length)];
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      if (grid[row][col] === '') {
+        grid[row][col] = WEIGHTED_LETTERS[Math.floor(Math.random() * WEIGHTED_LETTERS.length)];
       }
     }
   }
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }

@@ -1,116 +1,216 @@
-import { getLevelConfig } from './LevelSystem';
+import { getLevelConfig, WordDifficulty, WorldId } from './LevelSystem';
 
-export const WORD_DATABASE = {
-  easy: [
-    // 3-4 letter words (100+)
-    'CAT', 'DOG', 'SUN', 'MOON', 'FISH', 'BIRD', 'TREE', 'STAR',
-    'BOOK', 'GAME', 'PLAY', 'LOVE', 'HOME', 'FIRE', 'RAIN', 'SNOW',
-    'CAKE', 'BLUE', 'GOLD', 'PINK', 'FROG', 'BEAR', 'LION', 'KING',
-    'BALL', 'HAND', 'RING', 'COOL', 'FAST', 'WIND', 'JUMP', 'SWIM',
-    'LAKE', 'WAVE', 'SEED', 'LEAF', 'NEST', 'COIN', 'DRUM', 'POEM',
-    'FORT', 'MAZE', 'GIFT', 'SILK', 'HERO', 'PEAK', 'GLOW', 'WISH',
-    'REEF', 'DUST', 'MIST', 'PINE', 'ROSE', 'KITE', 'ROPE', 'LAMP',
-    'DICE', 'HARP', 'JADE', 'OPAL', 'RUBY', 'IRON', 'SHIP', 'WOLF',
-    'BARN', 'BEAD', 'BELL', 'BONE', 'BOWL', 'CLAW', 'CRAB', 'CROW',
-    'DEER', 'DOVE', 'DUSK', 'FERN', 'FLAG', 'FOAM', 'FORK', 'GATE',
-    'GOAT', 'HAZE', 'HILL', 'HOOK', 'IRIS', 'KELP', 'KNOT', 'LARK',
-    'LIME', 'LOOM', 'MACE', 'MOTH', 'MULE', 'NOON', 'PEAR', 'PLUM',
-    'POND', 'PUMA', 'SAGE', 'SAND', 'SLED', 'TOAD', 'TUBE', 'VINE',
-    'WAND', 'YARN', 'YAWN', 'ZEAL', 'ARCH', 'APEX', 'BAND', 'BRIM',
-  ],
-  medium: [
-    // 5-6 letter words (80+)
-    'DRAKE', 'DRAGON', 'PLANET', 'OCEAN', 'MUSIC', 'MAGIC',
-    'SPACE', 'LIGHT', 'POWER', 'STORM', 'FLAME', 'DREAM',
-    'SWORD', 'HEART', 'CLOUD', 'EARTH', 'JEWEL', 'PEARL',
-    'GHOST', 'ROBOT', 'CANDY', 'HONEY', 'RIVER', 'TOWER',
-    'CROWN', 'SPARK', 'FROST', 'BLOOM', 'STONE', 'EAGLE',
-    'CORAL', 'CHARM', 'PRIZE', 'QUEST', 'BLAZE', 'COMET',
-    'SURGE', 'REIGN', 'FORGE', 'HAVEN', 'VAPOR', 'LUNAR',
-    'SOLAR', 'FLARE', 'ORBIT', 'PRISM', 'NEXUS', 'CREST',
-    'TIGER', 'SWIFT', 'BRAVE', 'NOBLE', 'VIVID', 'GRACE',
-    'ATLAS', 'VAULT', 'PULSE', 'SHIFT', 'GLEAM', 'TRACE',
-    'AMBER', 'BEACH', 'BLADE', 'CABIN', 'CHAIN', 'CLIFF',
-    'CRANE', 'DEPTH', 'DREAD', 'EMBER', 'FEAST', 'FLORA',
-    'GLYPH', 'GRAIN', 'GROVE', 'IVORY', 'LATCH', 'MARSH',
-    'ONYX', 'PLUME', 'RAVEN', 'SHARD', 'STEEL', 'THORN',
-    'TORCH', 'UMBRA', 'VIGOR', 'WRAITH', 'SPIRE', 'DELTA',
-    'NEBULA', 'ZENITH',
-  ],
-  hard: [
-    // 7+ letter words (60+)
-    'DIAMOND', 'THUNDER', 'RAINBOW', 'VOLCANO', 'PHOENIX',
-    'MYSTERY', 'WARRIOR', 'EMERALD', 'UNICORN', 'KINGDOM',
-    'COMPASS', 'FORTUNE', 'GLACIER', 'HORIZON', 'LANTERN',
-    'PENGUIN', 'DOLPHIN', 'PANTHER', 'MAMMOTH', 'TORNADO',
-    'CAPTAIN', 'BLOSSOM', 'JOURNEY', 'SPARKLE', 'CRESCENT',
-    'WHISPER', 'STARLIT', 'ANCIENT', 'TREASURE', 'CASCADE',
-    'EXPLORE', 'HARMONY', 'CRIMSON', 'SAPPHIRE', 'ALCHEMY',
-    'ECLIPSE', 'FANTASY', 'TEMPEST', 'CITADEL', 'GRANITE',
-    'OBELISK', 'SPECTRUM', 'LABYRINTH', 'SENTINEL',
-    'PILGRIM', 'SORCERY', 'TRIDENT', 'CHALICE', 'PEGASUS',
-    'AVALANCHE', 'FORTRESS', 'DUNGEON', 'ENCHANT', 'FEATHER',
-    'GALLEON', 'HYDRANT', 'INFERNO', 'JAVELIN', 'KNUCKLE',
-    'LECTERN', 'MONARCH', 'NUCLEUS', 'ORCHARD', 'PHANTOM',
-    'QUARREL', 'RAPTURE', 'SERPENT', 'TRIUMPH', 'BASTION',
-  ],
+type WorldDictionary = Record<WordDifficulty, string[]>;
+
+export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
+  forest: {
+    easy: [
+      'TREE', 'LEAF', 'MOSS', 'FERN', 'BARK', 'PINE', 'DEER', 'OWL', 'NEST', 'VINE', 'BLOOM', 'ROOT',
+      'GLEN', 'ACORN', 'FOX', 'RIVER', 'BERRY', 'TRAIL',
+    ],
+    medium: [
+      'GROVE', 'CEDAR', 'MAPLE', 'THICKET', 'MEADOW', 'RABBIT', 'CANOPY', 'BROOK', 'BADGER', 'SPROUT',
+      'TIMBER', 'WILLOW', 'BRAMBLE', 'PETAL', 'MUSHROOM', 'HICKORY', 'SAPLING', 'WOODLAND',
+    ],
+    hard: [
+      'EVERGREEN', 'WILDFLOWER', 'UNDERGROWTH', 'LUMBERJACK', 'SONGBIRD', 'WATERFALL', 'HEARTWOOD',
+      'BLACKBERRY', 'BIRCHWOOD', 'FIREFLIES', 'WOODPECKER', 'MOONLIT',
+    ],
+  },
+  ocean: {
+    easy: [
+      'WAVE', 'TIDE', 'REEF', 'KELP', 'SEAL', 'GULL', 'SHELL', 'FOAM', 'SURF', 'DEEP', 'PEARL', 'CORAL',
+      'SHOAL', 'WHALE', 'SPRAY', 'OAR', 'COVE', 'TROUT',
+    ],
+    medium: [
+      'LAGOON', 'ANCHOR', 'SEABED', 'DOLPHIN', 'MARLIN', 'CURRENT', 'DRIFT', 'TURTLE', 'HARBOR', 'SQUID',
+      'SEAHORSE', 'TYPHOON', 'ABYSS', 'CLAMOR', 'SEAGLASS', 'WHIRL', 'TIDAL', 'SHIPWRECK',
+    ],
+    hard: [
+      'JELLYFISH', 'STARFISH', 'UNDERTOW', 'LIGHTHOUSE', 'CATAMARAN', 'WATERLINE', 'BLUEWHALE',
+      'SALTWATER', 'STORMTIDE', 'MOONCURRENT', 'OCEANIC', 'BARNACLES',
+    ],
+  },
+  space: {
+    easy: [
+      'STAR', 'MOON', 'MARS', 'VOID', 'NOVA', 'ORBIT', 'COMET', 'ASTRO', 'COSMOS', 'SOLAR', 'LUNAR', 'RING',
+      'GLOW', 'SKY', 'ROVER', 'ION', 'ECHO', 'PULSE',
+    ],
+    medium: [
+      'NEBULA', 'GALAXY', 'SATURN', 'METEOR', 'QUASAR', 'ROCKET', 'GRAVITY', 'ECLIPSE', 'STARDUST', 'AURORA',
+      'ZENITH', 'PLANET', 'SHUTTLE', 'ASTEROID', 'MODULE', 'VECTOR', 'PULSAR', 'STELLAR',
+    ],
+    hard: [
+      'SUPERNOVA', 'CONSTELLATION', 'COSMONAUT', 'TELESCOPE', 'HYPERDRIVE', 'INTERSTELLAR', 'BLACKHOLE',
+      'SPACEPORT', 'WORMHOLE', 'ATMOSPHERE', 'MOONSTONE', 'STARLIGHT',
+    ],
+  },
+  castle: {
+    easy: [
+      'KING', 'CROWN', 'VAULT', 'WALL', 'ARCH', 'BELL', 'MOAT', 'GATE', 'PAGE', 'LORD', 'ROOK', 'BLADE',
+      'SQUIRE', 'TOWER', 'BANNER', 'SEAL', 'HALL', 'DRUM',
+    ],
+    medium: [
+      'KNIGHT', 'THRONE', 'PORTAL', 'KEEPER', 'ARMORY', 'HERALD', 'SCEPTER', 'CASTLE', 'TURRET', 'BAILEY',
+      'CHAMBER', 'FALCON', 'BROADSWORD', 'COURT', 'RAMPART', 'LANTERN', 'CITADEL', 'REGENT',
+    ],
+    hard: [
+      'FORTRESS', 'STONEKEEP', 'BATTLEMENT', 'TREBUCHET', 'ROYALGUARD', 'BANQUET', 'DRAWBRIDGE',
+      'WATCHTOWER', 'HIGHBORN', 'CANDLEHALL', 'IRONCLAD', 'GRANDHALL',
+    ],
+  },
+  magic: {
+    easy: [
+      'RUNE', 'WAND', 'SPELL', 'ORB', 'ELIXIR', 'CHARM', 'GLYPH', 'MYTH', 'AURA', 'SIGIL', 'HEX', 'WISP',
+      'MAGE', 'TOME', 'DUST', 'FAE', 'SPARK', 'VEIL',
+    ],
+    medium: [
+      'POTION', 'ARCANE', 'ENCHANT', 'CAULDRON', 'CRYSTAL', 'FAMILIAR', 'PHANTOM', 'RITUAL', 'SORCERY', 'TOTEM',
+      'WIZARD', 'BROOM', 'STARFIRE', 'AMULET', 'MIRROR', 'CHANT', 'MAGISTER', 'MYSTIC',
+    ],
+    hard: [
+      'ALCHEMY', 'SPELLBOOK', 'MOONCHARM', 'DRAGONFLAME', 'SORCERER', 'HEXSTONE', 'STARSHARD',
+      'LUMINARIA', 'TIMETWIST', 'CELESTIAL', 'MOONWELL', 'ARCANIST',
+    ],
+  },
+  ice: {
+    easy: [
+      'FROST', 'SNOW', 'ICE', 'GLINT', 'SLED', 'CHILL', 'GLASS', 'CRAG', 'COLD', 'FLAKE', 'MINT', 'HAIL',
+      'BLUE', 'SHIVER', 'DRIFT', 'RIME', 'AURA', 'CRYSTAL',
+    ],
+    medium: [
+      'GLACIER', 'BLIZZARD', 'ICICLE', 'TUNDRA', 'AURORA', 'ICEBERG', 'FROZEN', 'SNOWCAP', 'WHITEOUT', 'CAVERN',
+      'SNOWDRIFT', 'POLAR', 'HUSKY', 'CRYSTAL', 'FROSTBITE', 'ICEFALL', 'WINTER', 'COLDWAVE',
+    ],
+    hard: [
+      'AVALANCHE', 'PERMAFROST', 'MOONGLACIER', 'SNOWSTORM', 'SHATTERICE', 'SILVERFROST', 'ICEBOUND',
+      'CRYSTALINE', 'WINTERTIDE', 'FROSTLINE', 'ICECASTLE', 'POLARLIGHT',
+    ],
+  },
+  desert: {
+    easy: [
+      'DUNE', 'SAND', 'OASIS', 'SUN', 'HEAT', 'FALCON', 'DATES', 'GOLD', 'MESA', 'PALM', 'SCARAB', 'CAMEL',
+      'CAVE', 'MIRAGE', 'TRACK', 'DUST', 'GLOW', 'AMBER',
+    ],
+    medium: [
+      'TEMPLE', 'CANYON', 'SCORCH', 'SUNSET', 'VULTURE', 'CARAVAN', 'COYOTE', 'MONSOON', 'RELIC', 'PYRAMID',
+      'SANDSTONE', 'DROUGHT', 'SUNDIAL', 'GEYSER', 'BLAZE', 'HORIZON', 'QUICKSAND', 'SUNSTONE',
+    ],
+    hard: [
+      'SANDSTORM', 'OBELISK', 'SUNCHASER', 'GOLDENHOUR', 'HEATWAVE', 'WANDERER', 'MIRAGEWAY',
+      'ANCIENTRUIN', 'DUSTTRAIL', 'EMBERDUNE', 'STAROASIS', 'MOONTEMPLE',
+    ],
+  },
 };
 
-export type Difficulty = keyof typeof WORD_DATABASE;
-
-/**
- * Select words for a given level using the LevelSystem config.
- */
 export function selectWordsForLevel(level: number, usedWords: string[]): string[] {
   const config = getLevelConfig(level);
-  const zone = config.zone;
-  const totalWords = config.wordCount;
-
-  // Distribute words among pools
-  const pools = zone.wordPool;
   const selected: string[] = [];
   const usedSet = new Set(usedWords);
+  const counts = allocateDifficultyCounts(config.wordCount, config.difficultyWeights);
 
-  if (pools.length === 1) {
-    // Single pool — all words from it
-    pickFromPool(pools[0], totalWords, selected, usedSet);
-  } else if (pools.length === 2) {
-    // Two pools — ratio shifts with level progress within zone
-    const zoneProgress = zone.levels[1] === zone.levels[0]
-      ? 1
-      : (level - zone.levels[0]) / (zone.levels[1] - zone.levels[0]);
+  (['easy', 'medium', 'hard'] as WordDifficulty[]).forEach((difficulty) => {
+    pickFromWorldPool(config.world.id, difficulty, counts[difficulty], selected, usedSet);
+  });
 
-    // Start with more easy, shift to more hard
-    const hardCount = Math.round(totalWords * (0.2 + zoneProgress * 0.5));
-    const easyCount = totalWords - hardCount;
-
-    pickFromPool(pools[0], easyCount, selected, usedSet);
-    pickFromPool(pools[1], hardCount, selected, usedSet);
+  if (selected.length < config.wordCount) {
+    fillFromFallbackPools(config.world.id, config.wordCount - selected.length, selected, usedSet);
   }
 
-  return selected;
+  return selected.slice(0, config.wordCount);
 }
 
-function pickFromPool(pool: Difficulty, count: number, selected: string[], usedSet: Set<string>): void {
-  const available = WORD_DATABASE[pool].filter(
-    w => !selected.includes(w) && !usedSet.has(w)
-  );
+function allocateDifficultyCounts(totalWords: number, weights: { easy: number; medium: number; hard: number }) {
+  const difficulties: WordDifficulty[] = ['easy', 'medium', 'hard'];
+  const raw = difficulties.map((difficulty) => ({
+    difficulty,
+    exact: totalWords * weights[difficulty],
+  }));
 
-  // If not enough unused words, allow reuse
-  const source = available.length >= count
-    ? available
-    : WORD_DATABASE[pool].filter(w => !selected.includes(w));
+  const counts = {
+    easy: Math.floor(raw[0].exact),
+    medium: Math.floor(raw[1].exact),
+    hard: Math.floor(raw[2].exact),
+  };
 
+  let assigned = counts.easy + counts.medium + counts.hard;
+  const remainders = raw
+    .map(({ difficulty, exact }) => ({ difficulty, remainder: exact - Math.floor(exact) }))
+    .sort((a, b) => b.remainder - a.remainder);
+
+  for (const item of remainders) {
+    if (assigned >= totalWords) break;
+    counts[item.difficulty] += 1;
+    assigned += 1;
+  }
+
+  while (assigned < totalWords) {
+    counts.medium += 1;
+    assigned += 1;
+  }
+
+  return counts;
+}
+
+function pickFromWorldPool(
+  worldId: WorldId,
+  difficulty: WordDifficulty,
+  count: number,
+  selected: string[],
+  usedSet: Set<string>
+): void {
+  if (count <= 0) return;
+
+  const primaryPool = WORLD_WORD_DATABASE[worldId][difficulty];
+  const available = primaryPool.filter((word) => !selected.includes(word) && !usedSet.has(word));
+  const reusable = primaryPool.filter((word) => !selected.includes(word));
+  const source = available.length >= count ? available : reusable;
   const shuffled = shuffleArray([...source]);
+
   for (let i = 0; i < count && i < shuffled.length; i++) {
     selected.push(shuffled[i]);
   }
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+function fillFromFallbackPools(
+  worldId: WorldId,
+  missingCount: number,
+  selected: string[],
+  usedSet: Set<string>
+): void {
+  const worldWords = [
+    ...WORLD_WORD_DATABASE[worldId].easy,
+    ...WORLD_WORD_DATABASE[worldId].medium,
+    ...WORLD_WORD_DATABASE[worldId].hard,
+  ];
+
+  const worldFallback = worldWords.filter((word) => !selected.includes(word) && !usedSet.has(word));
+  const reusableWorldFallback = worldWords.filter((word) => !selected.includes(word));
+  const globalFallback = Object.values(WORLD_WORD_DATABASE)
+    .flatMap((dictionary) => [...dictionary.easy, ...dictionary.medium, ...dictionary.hard])
+    .filter((word) => !selected.includes(word));
+
+  const combined = shuffleArray([
+    ...worldFallback,
+    ...reusableWorldFallback,
+    ...globalFallback,
+  ]);
+
+  for (const word of combined) {
+    if (selected.length >= missingCount + selected.length) break;
   }
-  return arr;
+
+  const targetCount = selected.length + missingCount;
+  for (const word of combined) {
+    if (selected.length >= targetCount) break;
+    if (!selected.includes(word)) selected.push(word);
+  }
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
