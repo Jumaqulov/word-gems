@@ -40,7 +40,7 @@ export type WorldMechanicConfig =
   | { type: 'forest_stable'; hint: string }
   | { type: 'ocean_wave'; hint: string; waveCells: [number, number]; amplitude: number }
   | { type: 'space_comet'; hint: string; bonusScore: number }
-  | { type: 'castle_lock'; hint: string; lockedWords: number }
+  | { type: 'castle_lock'; hint: string; hasLockedWord: boolean }
   | { type: 'magic_wildcard'; hint: string; wildcardCells: [number, number] }
   | { type: 'ice_frozen'; hint: string; frozenWords: number }
   | { type: 'desert_gold'; hint: string; goldenCells: [number, number]; gemBonus: number; scoreBonus: number };
@@ -258,7 +258,7 @@ export const WORLDS: WorldConfig[] = [
     mechanic: {
       type: 'castle_lock',
       hint: 'A locked word opens only after its key word is found.',
-      lockedWords: 1,
+      hasLockedWord: true,
     },
     visuals: {
       primary: '#D7A86E',

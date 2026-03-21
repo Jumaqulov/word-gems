@@ -255,7 +255,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (mechanic.type === 'castle_lock' && mechanic.lockedWords > 0 && placedWords.length >= 2) {
+    if (mechanic.type === 'castle_lock' && mechanic.hasLockedWord && placedWords.length >= 2) {
       this.worldState.lockedWord = this.pickWordByPreference(placedWords, 'longest');
       this.worldState.lockPrerequisite = this.pickWordByPreference(
         placedWords.filter((word) => word !== this.worldState.lockedWord),
