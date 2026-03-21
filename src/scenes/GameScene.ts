@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
   private cellSize = 50;
   private cellDisplaySize = 50;
   private levelWords: string[] = [];
+  private bonusWords = new Set<string>();
   private foundWords = new Set<string>();
   private foundWordColors = new Map<string, number>();
   private foundCellKeys = new Set<string>();
@@ -188,6 +189,7 @@ export class GameScene extends Phaser.Scene {
     this.comboState = createComboState();
     this.timedOut = false;
     this.worldState = createWordRuntimeState();
+    this.bonusWords.clear();
 
     this.gridData = generateGrid(requestedWords, this.levelConfig.gridSize, {
       directions: this.levelConfig.directions,
@@ -247,6 +249,10 @@ export class GameScene extends Phaser.Scene {
 
     if (mechanic.type === 'space_comet') {
       this.worldState.cometWord = this.pickWordByPreference(placedWords, 'longest');
+      if (this.worldState.cometWord) {
+        this.bonusWords.add(this.worldState.cometWord);
+        this.levelWords = this.levelWords.filter((word) => word !== this.worldState.cometWord);
+      }
     }
 
     if (mechanic.type === 'castle_lock' && mechanic.lockedWords > 0 && placedWords.length >= 2) {
@@ -539,7 +545,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private findMatchedWord(): string | null {
-    return this.levelWords.find((word) => !this.foundWords.has(word) && this.selectionMatchesWord(word)) ?? null;
+    const matchableWords = [
+      ...this.levelWords,
+      ...[...this.bonusWords].filter((word) => !this.foundWords.has(word)),
+    ];
+    return matchableWords.find((word) => !this.foundWords.has(word) && this.selectionMatchesWord(word)) ?? null;
   }
 
   private selectionMatchesWord(word: string): boolean {
@@ -663,7 +673,7 @@ export class GameScene extends Phaser.Scene {
     this.updateHUD();
     this.bumpHudGems();
 
-    if (this.foundWords.size === this.levelWords.length) {
+    if (this.getFoundRequiredWordCount() === this.levelWords.length) {
       this.stopTimer();
       this.time.delayedCall(600, () => this.onLevelComplete());
     }
@@ -818,9 +828,9 @@ export class GameScene extends Phaser.Scene {
 
     CrazyGamesManager.addScore(result.total);
     CrazyGamesManager.addGems(result.gemsEarned);
-    CrazyGamesManager.trackUsedWords(this.levelWords);
+    CrazyGamesManager.trackUsedWords(this.gridData.placedWords.map((placedWord) => placedWord.word));
     CrazyGamesManager.setLevelStars(level, result.stars);
-    CrazyGamesManager.addWordsFound(this.foundWords.size);
+    CrazyGamesManager.addWordsFound(this.getFoundRequiredWordCount());
     if (result.stars === 3) CrazyGamesManager.addPerfectLevel();
 
     if (save.streak % 5 === 0 || result.stars === 3) {
@@ -856,7 +866,7 @@ export class GameScene extends Phaser.Scene {
   ): void {
     const modal = document.getElementById('level-complete-modal')!;
     document.getElementById('complete-level-num')!.textContent = level.toString();
-    document.getElementById('complete-words')!.textContent = `${this.foundWords.size}/${this.levelWords.length}`;
+    document.getElementById('complete-words')!.textContent = `${this.getFoundRequiredWordCount()}/${this.levelWords.length}`;
     document.getElementById('complete-score')!.textContent = result.total.toString();
     document.getElementById('complete-gems')!.textContent = result.gemsEarned.toString();
 
@@ -1446,7 +1456,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateWordListUI(): void {
-    const allFound = this.foundWords.size === this.levelWords.length;
+    const allFound = this.getFoundRequiredWordCount() === this.levelWords.length;
     const desktopList = document.getElementById('word-list');
     if (desktopList) {
       desktopList.innerHTML = '';
@@ -1500,6 +1510,14 @@ export class GameScene extends Phaser.Scene {
       if (statusTag && !isFound) item.title = statusTag.label;
       mobileList!.appendChild(item);
     });
+  }
+
+  private getFoundRequiredWordCount(): number {
+    let count = 0;
+    for (const word of this.levelWords) {
+      if (this.foundWords.has(word)) count += 1;
+    }
+    return count;
   }
 
   private getWordStatusTag(word: string): WordStatusTag | null {

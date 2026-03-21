@@ -6,15 +6,14 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'dist',
     assetsDir: 'assets',
-    minify: 'terser',
+    minify: 'esbuild',
     chunkSizeWarningLimit: 1600,
-    terserOptions: {
-      compress: { drop_console: true, drop_debugger: true },
-      mangle: { toplevel: true }
-    },
     rollupOptions: {
       output: { manualChunks: { phaser: ['phaser'] } }
     }
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
   },
   server: { host: true }
 });
