@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CrazyGamesManager } from '../managers/CrazyGamesManager';
 import { SoundManager } from '../managers/SoundManager';
+import { BackgroundFXManager } from '../managers/BackgroundFXManager';
 import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
@@ -92,6 +93,7 @@ export class GameScene extends Phaser.Scene {
 
   private worldState: WordRuntimeState = createWordRuntimeState();
   private worldEffectTimer: Phaser.Time.TimerEvent | null = null;
+  private backgroundFX: BackgroundFXManager | null = null;
 
   private comboState!: ComboState;
   private comboInterval: ReturnType<typeof setInterval> | null = null;
@@ -120,6 +122,7 @@ export class GameScene extends Phaser.Scene {
     this.comboState = createComboState();
     this.selectionGraphics = this.add.graphics();
     this.selectionGraphics.setDepth(10);
+    this.backgroundFX = new BackgroundFXManager(this);
 
     this.setupInputHandlers();
     this.startLevel(CrazyGamesManager.saveData.level);
@@ -132,17 +135,24 @@ export class GameScene extends Phaser.Scene {
     this.updateHUD();
     CrazyGamesManager.gameplayStart();
     this.setupPageVisibilitySave();
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.handleSceneResize, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown, this);
   }
 
   private handleSceneShutdown(): void {
     this.cleanupLevel();
     this.removePageVisibilitySave();
+    this.scale.off(Phaser.Scale.Events.RESIZE, this.handleSceneResize, this);
 
     if (this.inputHandlersSetup) {
       this.input.off('pointermove', this.handlePointerMove, this);
       this.input.off('pointerup', this.handlePointerUp, this);
       this.inputHandlersSetup = false;
+    }
+
+    if (this.backgroundFX) {
+      this.backgroundFX.destroy();
+      this.backgroundFX = null;
     }
   }
 
@@ -202,6 +212,7 @@ export class GameScene extends Phaser.Scene {
     this.levelWords = this.gridData.placedWords.map((placedWord) => placedWord.word);
     this.actualGridLetters = this.gridData.grid.map((row) => [...row]);
     this.configureWorldMechanics();
+    this.backgroundFX?.applyWorld(this.levelConfig);
     this.buildGrid();
     this.applyWorldTheme();
     this.startWorldAmbientEffects();
@@ -230,6 +241,7 @@ export class GameScene extends Phaser.Scene {
     this.stopComboTick();
     this.stopIdleAnimation();
     this.stopWorldAmbientEffects();
+    this.backgroundFX?.clear();
     this.tweens.killAll();
     this.time.removeAllEvents();
     this.clearTransientSceneObjects();
@@ -247,6 +259,35 @@ export class GameScene extends Phaser.Scene {
     if (this.selectionGraphics) {
       this.selectionGraphics.clear();
     }
+  }
+
+  update(time: number, delta: number): void {
+    this.backgroundFX?.update(time, delta);
+  }
+
+  public renderGameToText(): string {
+    return JSON.stringify({
+      coordinateSystem: {
+        origin: 'top-left',
+        x: 'right',
+        y: 'down',
+      },
+      level: this.levelConfig?.level ?? null,
+      world: this.levelConfig?.world.id ?? null,
+      board: {
+        size: this.gridData?.size ?? 0,
+        cellSize: this.cellSize,
+      },
+      requiredWords: this.levelWords,
+      bonusWords: [...this.bonusWords],
+      foundWords: [...this.foundWords],
+      status: this.levelConfig ? this.getWorldStatusText() : null,
+      fx: this.backgroundFX?.getDebugSummary() ?? null,
+    });
+  }
+
+  private handleSceneResize(): void {
+    this.backgroundFX?.resize();
   }
 
   private clearTransientSceneObjects(): void {

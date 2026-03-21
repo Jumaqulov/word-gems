@@ -136,6 +136,8 @@ export class BootScene extends Phaser.Scene {
     // Generate gem-colored cell textures for found words
     this.generateFoundGemTextures(cellSize, innerSize);
     this.generateFoundGemTextures(cellSize, spaciousInnerSize, '-spacious');
+
+    this.generateBackgroundFxTextures();
   }
 
   /** Generate rich gem-like cell textures for each found word color */
@@ -218,6 +220,199 @@ export class BootScene extends Phaser.Scene {
     }
 
     g.generateTexture(key, totalSize, totalSize);
+    g.destroy();
+  }
+
+  private generateBackgroundFxTextures(): void {
+    this.generateSoftGlowTexture('bgfx-soft-glow', 160);
+    this.generateSoftStripTexture('bgfx-soft-strip', 280, 88);
+    this.generateLeafTexture('bgfx-leaf', 56, 40);
+    this.generateBubbleTexture('bgfx-bubble', 42);
+    this.generateSparkleTexture('bgfx-sparkle', 34);
+    this.generateRuneTexture('bgfx-rune', 48);
+    this.generateSnowflakeTexture('bgfx-snowflake', 36);
+    this.generateDustTexture('bgfx-dust', 18);
+    this.generateSandTexture('bgfx-sand', 22, 10);
+    this.generateCometTexture('bgfx-comet', 120, 26);
+    this.generateSoftGlowTexture('bgfx-glow-dot', 36);
+  }
+
+  private generateSoftGlowTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillCircle(center, center, size * 0.48);
+    g.fillStyle(0xffffff, 0.14);
+    g.fillCircle(center, center, size * 0.32);
+    g.fillStyle(0xffffff, 0.22);
+    g.fillCircle(center, center, size * 0.18);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateSoftStripTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+    const centerY = height / 2;
+
+    g.fillStyle(0xffffff, 0.05);
+    g.fillEllipse(width / 2, centerY, width, height);
+    g.fillStyle(0xffffff, 0.08);
+    g.fillEllipse(width / 2, centerY, width * 0.82, height * 0.72);
+    g.fillStyle(0xffffff, 0.12);
+    g.fillEllipse(width / 2, centerY, width * 0.58, height * 0.4);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateLeafTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+    const points = [
+      new Phaser.Geom.Point(width * 0.15, height * 0.52),
+      new Phaser.Geom.Point(width * 0.38, height * 0.1),
+      new Phaser.Geom.Point(width * 0.88, height * 0.26),
+      new Phaser.Geom.Point(width * 0.8, height * 0.68),
+      new Phaser.Geom.Point(width * 0.3, height * 0.88),
+    ];
+
+    g.fillStyle(0xffffff, 0.9);
+    g.fillPoints(points, true);
+    g.lineStyle(2, 0xffffff, 0.55);
+    g.beginPath();
+    g.moveTo(width * 0.18, height * 0.62);
+    g.lineTo(width * 0.76, height * 0.28);
+    g.strokePath();
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateBubbleTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillCircle(center, center, size * 0.42);
+    g.lineStyle(2, 0xffffff, 0.36);
+    g.strokeCircle(center, center, size * 0.38);
+    g.fillStyle(0xffffff, 0.28);
+    g.fillCircle(size * 0.37, size * 0.35, size * 0.08);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateSparkleTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.9);
+    g.fillPoints([
+      new Phaser.Geom.Point(center, 0),
+      new Phaser.Geom.Point(center + size * 0.16, center - size * 0.16),
+      new Phaser.Geom.Point(size, center),
+      new Phaser.Geom.Point(center + size * 0.16, center + size * 0.16),
+      new Phaser.Geom.Point(center, size),
+      new Phaser.Geom.Point(center - size * 0.16, center + size * 0.16),
+      new Phaser.Geom.Point(0, center),
+      new Phaser.Geom.Point(center - size * 0.16, center - size * 0.16),
+    ], true);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateRuneTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.lineStyle(2, 0xffffff, 0.72);
+    g.strokeCircle(center, center, size * 0.34);
+    g.beginPath();
+    g.moveTo(center, size * 0.12);
+    g.lineTo(center, size * 0.88);
+    g.moveTo(size * 0.18, center);
+    g.lineTo(size * 0.82, center);
+    g.moveTo(size * 0.28, size * 0.28);
+    g.lineTo(size * 0.72, size * 0.72);
+    g.moveTo(size * 0.72, size * 0.28);
+    g.lineTo(size * 0.28, size * 0.72);
+    g.strokePath();
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateSnowflakeTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.lineStyle(2, 0xffffff, 0.9);
+    for (let arm = 0; arm < 3; arm++) {
+      const angle = (Math.PI / 3) * arm;
+      const dx = Math.cos(angle) * size * 0.34;
+      const dy = Math.sin(angle) * size * 0.34;
+      g.beginPath();
+      g.moveTo(center - dx, center - dy);
+      g.lineTo(center + dx, center + dy);
+      g.strokePath();
+    }
+
+    g.fillStyle(0xffffff, 0.9);
+    g.fillCircle(center, center, 2);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateDustTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.24);
+    g.fillCircle(center, center, size * 0.3);
+    g.fillStyle(0xffffff, 0.12);
+    g.fillCircle(center + 2, center - 1, size * 0.18);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateSandTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.6);
+    g.fillEllipse(width * 0.5, height * 0.5, width * 0.9, height * 0.62);
+    g.fillStyle(0xffffff, 0.28);
+    g.fillEllipse(width * 0.34, height * 0.44, width * 0.3, height * 0.2);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateCometTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.5),
+      new Phaser.Geom.Point(width * 0.72, height * 0.12),
+      new Phaser.Geom.Point(width, height * 0.5),
+      new Phaser.Geom.Point(width * 0.72, height * 0.88),
+    ], true);
+    g.fillStyle(0xffffff, 0.16);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.14, height * 0.5),
+      new Phaser.Geom.Point(width * 0.78, height * 0.24),
+      new Phaser.Geom.Point(width * 0.96, height * 0.5),
+      new Phaser.Geom.Point(width * 0.78, height * 0.76),
+    ], true);
+    g.fillStyle(0xffffff, 0.3);
+    g.fillCircle(width * 0.88, height * 0.5, height * 0.22);
+
+    g.generateTexture(key, width, height);
     g.destroy();
   }
 }

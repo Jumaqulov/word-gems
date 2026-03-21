@@ -3,6 +3,7 @@ export { };
 declare global {
     interface Window {
         game: Phaser.Game | null;
+        render_game_to_text?: () => string;
         CrazyGames: CrazyGamesGlobal;
     }
 
