@@ -5,6 +5,7 @@ import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
 import { GameJuice } from '../utils/GameJuice';
+import { scheduleResponsiveLayout } from '../utils/ResponsiveLayout';
 import {
   calculateLevelScore,
   ComboState,
@@ -106,6 +107,7 @@ export class GameScene extends Phaser.Scene {
   private idleTimer: Phaser.Time.TimerEvent | null = null;
   private uiSetup = false;
   private inputHandlersSetup = false;
+  private isLevelTransitioning = false;
   private visibilityHandler: (() => void) | null = null;
   private beforeUnloadHandler: (() => void) | null = null;
 
@@ -174,7 +176,7 @@ export class GameScene extends Phaser.Scene {
 
     const save = CrazyGamesManager.saveData;
     this.levelConfig = getLevelConfig(level);
-    this.cellSize = getCellSizeForGrid(this.levelConfig.gridSize);
+    this.cellSize = this.calculateCellSize();
     this.cellDisplaySize = this.getCellDisplaySize();
     SoundManager.setWorldProfile(this.levelConfig.sfxProfile);
 
@@ -219,6 +221,7 @@ export class GameScene extends Phaser.Scene {
 
     this.updateComboUI();
     this.startIdleAnimation();
+    scheduleResponsiveLayout();
     EventBus.emit(EVENTS.LEVEL_START, level);
   }
 
@@ -227,6 +230,9 @@ export class GameScene extends Phaser.Scene {
     this.stopComboTick();
     this.stopIdleAnimation();
     this.stopWorldAmbientEffects();
+    this.tweens.killAll();
+    this.time.removeAllEvents();
+    this.clearTransientSceneObjects();
 
     if (this.gridContainer) {
       this.gridContainer.destroy(true);
@@ -241,6 +247,23 @@ export class GameScene extends Phaser.Scene {
     if (this.selectionGraphics) {
       this.selectionGraphics.clear();
     }
+  }
+
+  private clearTransientSceneObjects(): void {
+    const persistentObjects = new Set<Phaser.GameObjects.GameObject>();
+    if (this.gridContainer) persistentObjects.add(this.gridContainer);
+    if (this.selectionGraphics) persistentObjects.add(this.selectionGraphics);
+
+    const transientObjects = this.children.list.filter((object) => {
+      if (persistentObjects.has(object)) return false;
+      const depth = (object as Phaser.GameObjects.GameObject & { depth?: number }).depth ?? 0;
+      return depth >= 50;
+    });
+
+    transientObjects.forEach((object) => {
+      if (!object.active) return;
+      object.destroy();
+    });
   }
 
   private configureWorldMechanics(): void {
@@ -324,6 +347,16 @@ export class GameScene extends Phaser.Scene {
         bg.on('pointerdown', () => this.onCellPointerDown(row, col));
       }
     }
+  }
+
+  private calculateCellSize(): number {
+    if (window.innerWidth > 768) {
+      return getCellSizeForGrid(this.levelConfig.gridSize);
+    }
+
+    const stageSize = Math.min(this.scale.width, this.scale.height);
+    const boardPadding = stageSize >= 440 ? 30 : stageSize >= 400 ? 26 : 22;
+    return Math.max(26, Math.floor((stageSize - boardPadding * 2) / this.levelConfig.gridSize));
   }
 
   private getCellDisplaySize(): number {
@@ -917,6 +950,7 @@ export class GameScene extends Phaser.Scene {
 
     if (worldNameEl) worldNameEl.textContent = this.levelConfig.world.name.toUpperCase();
     if (worldStatusEl) worldStatusEl.textContent = this.getWorldStatusText();
+    scheduleResponsiveLayout();
   }
 
   private getWorldStatusText(): string {
@@ -995,11 +1029,13 @@ export class GameScene extends Phaser.Scene {
   private showTimer(): void {
     const el = document.getElementById('timer-container');
     if (el) el.style.display = 'flex';
+    scheduleResponsiveLayout();
   }
 
   private hideTimer(): void {
     const el = document.getElementById('timer-container');
     if (el) el.style.display = 'none';
+    scheduleResponsiveLayout();
   }
 
   private updateComboUI(): void {
@@ -1039,18 +1075,30 @@ export class GameScene extends Phaser.Scene {
 
   private setupUI(): void {
     this.injectIcons();
+    this.setupMobileWordRackScroll();
 
     document.getElementById('btn-next-level')?.addEventListener('click', async () => {
+      if (this.isLevelTransitioning) return;
+
+      this.isLevelTransitioning = true;
+      const nextLevelButton = document.getElementById('btn-next-level') as HTMLButtonElement | null;
+      nextLevelButton?.setAttribute('disabled', 'true');
       document.getElementById('level-complete-modal')!.style.display = 'none';
       SoundManager.play('click');
 
-      const level = CrazyGamesManager.saveData.level;
-      if (level % AD_INTERVAL_LEVELS === 0) {
-        await CrazyGamesManager.requestMidgameAd();
-      }
+      try {
+        const level = CrazyGamesManager.saveData.level;
+        if (level % AD_INTERVAL_LEVELS === 0) {
+          await CrazyGamesManager.requestMidgameAd();
+        }
 
-      CrazyGamesManager.gameplayStart();
-      this.startLevel(level);
+        await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+        CrazyGamesManager.gameplayStart();
+        this.startLevel(level);
+      } finally {
+        nextLevelButton?.removeAttribute('disabled');
+        this.isLevelTransitioning = false;
+      }
     });
 
     document.getElementById('btn-settings')?.addEventListener('click', () => {
@@ -1130,6 +1178,57 @@ export class GameScene extends Phaser.Scene {
       SoundManager.setVibrationEnabled(false);
       (document.getElementById('toggle-vibration') as HTMLInputElement | null)!.checked = false;
     }
+  }
+
+  private setupMobileWordRackScroll(): void {
+    const mobileList = document.getElementById('mobile-word-list');
+    if (!mobileList || mobileList.dataset.dragScrollBound === '1') return;
+
+    mobileList.dataset.dragScrollBound = '1';
+
+    let activePointerId: number | null = null;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let dragged = false;
+
+    mobileList.addEventListener('pointerdown', (event: PointerEvent) => {
+      activePointerId = event.pointerId;
+      startX = event.clientX;
+      startScrollLeft = mobileList.scrollLeft;
+      dragged = false;
+      mobileList.setPointerCapture?.(event.pointerId);
+    });
+
+    mobileList.addEventListener('pointermove', (event: PointerEvent) => {
+      if (activePointerId !== event.pointerId) return;
+
+      const deltaX = event.clientX - startX;
+      if (!dragged && Math.abs(deltaX) < 3) return;
+
+      dragged = true;
+      mobileList.scrollLeft = startScrollLeft - deltaX;
+      event.preventDefault();
+      event.stopPropagation();
+    }, { passive: false });
+
+    const clearPointer = (event: PointerEvent) => {
+      if (activePointerId !== event.pointerId) return;
+      if (mobileList.hasPointerCapture?.(event.pointerId)) {
+        mobileList.releasePointerCapture(event.pointerId);
+      }
+      activePointerId = null;
+      window.setTimeout(() => {
+        dragged = false;
+      }, 0);
+    };
+
+    mobileList.addEventListener('pointerup', clearPointer);
+    mobileList.addEventListener('pointercancel', clearPointer);
+    mobileList.addEventListener('click', (event) => {
+      if (!dragged) return;
+      event.preventDefault();
+      event.stopPropagation();
+    });
   }
 
   private injectIcons(): void {
@@ -1488,28 +1587,27 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    let mobileList = document.getElementById('mobile-word-list');
-    if (!mobileList) {
-      mobileList = document.createElement('div');
-      mobileList.id = 'mobile-word-list';
-      document.getElementById('main-content')?.insertBefore(mobileList, document.getElementById('main-content')!.firstChild);
+    const mobileList = document.getElementById('mobile-word-list');
+    if (mobileList) {
+      mobileList.innerHTML = '';
+      mobileList.scrollLeft = 0;
+      this.levelWords.forEach((word) => {
+        const item = document.createElement('span');
+        const isFound = this.foundWords.has(word);
+        const statusTag = this.getWordStatusTag(word);
+        item.className = 'mobile-word';
+        if (isFound) {
+          const colorIndex = this.foundWordColors.get(word) ?? 0;
+          item.classList.add('found', `word-color-${colorIndex % COLORS.FOUND_COLORS.length}`);
+        }
+        if (statusTag) item.classList.add(statusTag.className);
+        item.textContent = word;
+        if (statusTag && !isFound) item.title = statusTag.label;
+        mobileList.appendChild(item);
+      });
     }
 
-    mobileList.innerHTML = '';
-    this.levelWords.forEach((word) => {
-      const item = document.createElement('span');
-      const isFound = this.foundWords.has(word);
-      const statusTag = this.getWordStatusTag(word);
-      item.className = 'mobile-word';
-      if (isFound) {
-        const colorIndex = this.foundWordColors.get(word) ?? 0;
-        item.classList.add('found', `word-color-${colorIndex % COLORS.FOUND_COLORS.length}`);
-      }
-      if (statusTag) item.classList.add(statusTag.className);
-      item.textContent = word;
-      if (statusTag && !isFound) item.title = statusTag.label;
-      mobileList!.appendChild(item);
-    });
+    scheduleResponsiveLayout();
   }
 
   private getFoundRequiredWordCount(): number {

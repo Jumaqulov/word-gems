@@ -1,6 +1,7 @@
 {
   "name": "word-gems",
   "version": "1.0.0",
+  "type": "module",
   "description": "Word Search puzzle game for CrazyGames",
   "scripts": {
     "dev": "vite",

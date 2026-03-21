@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 import { IS_MOBILE } from './consts';
+import { initResponsiveLayout } from './utils/ResponsiveLayout';
 
 // Scroll prevention (CrazyGames requirement)
 window.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
@@ -13,6 +14,7 @@ async function boot() {
   // SDK init is handled by CrazyGamesManager.init() in BootScene
 
   const isMobile = IS_MOBILE();
+  initResponsiveLayout();
 
   // Phaser config — match canvas to grid area for perfect centering
   const config: Phaser.Types.Core.GameConfig = {
@@ -22,8 +24,8 @@ async function boot() {
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: isMobile ? 360 : 700,
-      height: isMobile ? 640 : 700,
+      width: isMobile ? 460 : 700,
+      height: isMobile ? 460 : 700,
     },
     scene: [BootScene, GameScene],
     input: {
