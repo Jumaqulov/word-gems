@@ -38,16 +38,20 @@ async function boot() {
   };
 
   window.game = new Phaser.Game(config);
-  window.render_game_to_text = () => {
-    const scene = window.game?.scene.keys.GameScene;
-    if (scene instanceof GameScene) {
-      return scene.renderGameToText();
-    }
+  if (import.meta.env.DEV) {
+    window.render_game_to_text = () => {
+      const scene = window.game?.scene.keys.GameScene;
+      if (scene instanceof GameScene) {
+        return scene.renderGameToText();
+      }
 
-    return JSON.stringify({
-      state: 'loading',
-    });
-  };
+      return JSON.stringify({
+        state: 'loading',
+      });
+    };
+  } else {
+    delete window.render_game_to_text;
+  }
 
   // Add mobile class
   if (isMobile) {

@@ -226,6 +226,13 @@ export class BootScene extends Phaser.Scene {
   private generateBackgroundFxTextures(): void {
     this.generateSoftGlowTexture('bgfx-soft-glow', 160);
     this.generateSoftStripTexture('bgfx-soft-strip', 280, 88);
+    this.generateLightShaftTexture('bgfx-light-shaft', 150, 420);
+    this.generateCausticTexture('bgfx-caustic', 320, 120);
+    this.generateNebulaTexture('bgfx-nebula', 220);
+    this.generateArchGlowTexture('bgfx-arch-glow', 120, 320);
+    this.generateRuneHaloTexture('bgfx-rune-halo', 220);
+    this.generateGlintBandTexture('bgfx-glint-band', 260, 74);
+    this.generateHeatHazeTexture('bgfx-heat-haze', 320, 120);
     this.generateLeafTexture('bgfx-leaf', 56, 40);
     this.generateBubbleTexture('bgfx-bubble', 42);
     this.generateSparkleTexture('bgfx-sparkle', 34);
@@ -262,6 +269,133 @@ export class BootScene extends Phaser.Scene {
     g.fillEllipse(width / 2, centerY, width * 0.82, height * 0.72);
     g.fillStyle(0xffffff, 0.12);
     g.fillEllipse(width / 2, centerY, width * 0.58, height * 0.4);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateLightShaftTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.03);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.34, 0),
+      new Phaser.Geom.Point(width * 0.66, 0),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+    g.fillStyle(0xffffff, 0.06);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.42, 0),
+      new Phaser.Geom.Point(width * 0.58, 0),
+      new Phaser.Geom.Point(width * 0.78, height),
+      new Phaser.Geom.Point(width * 0.22, height),
+    ], true);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateCausticTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+    const rows = [0.28, 0.48, 0.7];
+
+    rows.forEach((ratio, index) => {
+      const y = height * ratio;
+      g.fillStyle(0xffffff, index === 1 ? 0.08 : 0.05);
+      g.fillEllipse(width * 0.28, y, width * 0.28, height * 0.18);
+      g.fillEllipse(width * 0.52, y - height * 0.08, width * 0.36, height * 0.16);
+      g.fillEllipse(width * 0.78, y, width * 0.24, height * 0.14);
+    });
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateNebulaTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const circles = [
+      { x: 0.32, y: 0.4, r: 0.2, a: 0.08 },
+      { x: 0.56, y: 0.34, r: 0.28, a: 0.09 },
+      { x: 0.68, y: 0.56, r: 0.22, a: 0.07 },
+      { x: 0.4, y: 0.66, r: 0.18, a: 0.05 },
+    ];
+
+    circles.forEach((circle) => {
+      g.fillStyle(0xffffff, circle.a);
+      g.fillCircle(size * circle.x, size * circle.y, size * circle.r);
+    });
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateArchGlowTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.06);
+    g.fillEllipse(width * 0.5, height * 0.56, width * 0.92, height * 0.8);
+    g.fillStyle(0xffffff, 0.12);
+    g.fillEllipse(width * 0.5, height * 0.3, width * 0.46, height * 0.24);
+    g.fillStyle(0xffffff, 0.08);
+    g.fillEllipse(width * 0.5, height * 0.64, width * 0.58, height * 0.44);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateRuneHaloTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.lineStyle(3, 0xffffff, 0.16);
+    g.strokeCircle(center, center, size * 0.36);
+    g.lineStyle(2, 0xffffff, 0.12);
+    g.strokeCircle(center, center, size * 0.28);
+    g.lineStyle(1.5, 0xffffff, 0.16);
+    for (let index = 0; index < 8; index++) {
+      const angle = (Math.PI * 2 * index) / 8;
+      const x = center + Math.cos(angle) * size * 0.32;
+      const y = center + Math.sin(angle) * size * 0.32;
+      g.strokeCircle(x, y, size * 0.03);
+    }
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateGlintBandTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.04);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.05, height * 0.7),
+      new Phaser.Geom.Point(width * 0.42, height * 0.18),
+      new Phaser.Geom.Point(width * 0.96, height * 0.28),
+      new Phaser.Geom.Point(width * 0.58, height * 0.82),
+    ], true);
+    g.fillStyle(0xffffff, 0.09);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.2, height * 0.66),
+      new Phaser.Geom.Point(width * 0.46, height * 0.28),
+      new Phaser.Geom.Point(width * 0.82, height * 0.34),
+      new Phaser.Geom.Point(width * 0.56, height * 0.72),
+    ], true);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateHeatHazeTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.025);
+    g.fillEllipse(width * 0.2, height * 0.52, width * 0.34, height * 0.5);
+    g.fillEllipse(width * 0.5, height * 0.46, width * 0.48, height * 0.42);
+    g.fillEllipse(width * 0.82, height * 0.58, width * 0.3, height * 0.36);
+    g.fillStyle(0xffffff, 0.045);
+    g.fillEllipse(width * 0.42, height * 0.54, width * 0.2, height * 0.2);
+    g.fillEllipse(width * 0.68, height * 0.42, width * 0.16, height * 0.16);
 
     g.generateTexture(key, width, height);
     g.destroy();

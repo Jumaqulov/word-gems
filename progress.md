@@ -10,3 +10,11 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - `npm run build` passed successfully after the FX integration.
 - Ran the `$develop-web-game` Playwright client against the local Vite dev server, captured `output/web-game/shot-0.png`, and verified the forest ambient FX stays behind the board with readable cells. `render_game_to_text` also reported the expected world and FX counts.
 - Re-ran the Playwright client after the final dependency changes; the latest forest screenshot still showed subtle leaves/fireflies behind the board with no gameplay occlusion.
+- Follow-up polish pass:
+  - hardened `BackgroundFXManager` so tracked transient objects/timers do not accumulate across long sessions,
+  - switched comet FX to pooled reusable sprites,
+  - made `render_game_to_text` dev-only,
+  - upgraded world composition with signature layers (light shafts, caustics, nebulae, torch glows, rune halo, glint bands, heat haze),
+  - added world-linked HUD/panel accent styling in CSS.
+- Build passed again after the hardening/polish pass.
+- Re-ran the Playwright client; the latest forest screenshot kept the board readable while debug state now reports signature actor counts alongside ambient actor counts.
