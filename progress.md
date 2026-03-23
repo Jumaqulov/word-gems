@@ -44,3 +44,12 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Suggested follow-up if we automate deeper later:
   - add a project-owned `window.advanceTime(ms)` hook instead of relying on the Playwright shim,
   - investigate reliable headless pointer routing for Phaser drag selection before writing gameplay E2E tests.
+
+2026-03-23 UI follow-up
+- Investigated the clipped element under the header in Ice World / timed levels.
+- Root cause: the header-adjacent element was the timer/combo `#game-info-bar`, and the desktop center-column layout let it overlap the header region.
+- Fix: adjusted desktop `#center-column` / `#game-container` layout in `styles.css` so the info bar has a stable row above the square game area and added top spacing beneath the header.
+- Verification:
+  - `npm run build` passed after the layout fix,
+  - measured DOM positions in Playwright and confirmed `#game-info-bar` now starts below `#top-hud`,
+  - verified Phaser canvas content still renders by exporting the game canvas to `output/web-game/ice-canvas-after.png`.
