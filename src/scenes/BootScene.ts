@@ -233,6 +233,17 @@ export class BootScene extends Phaser.Scene {
     this.generateRuneHaloTexture('bgfx-rune-halo', 220);
     this.generateGlintBandTexture('bgfx-glint-band', 260, 74);
     this.generateHeatHazeTexture('bgfx-heat-haze', 320, 120);
+    this.generateForestCanopyTexture('bgfx-forest-canopy', 700, 250);
+    this.generateForestRidgeTexture('bgfx-forest-ridge', 760, 240);
+    this.generateOceanReefTexture('bgfx-ocean-reef', 760, 220);
+    this.generateOceanCurrentTexture('bgfx-ocean-current', 620, 170);
+    this.generateSpacePlanetTexture('bgfx-space-planet', 320);
+    this.generateCastleSilhouetteTexture('bgfx-castle-silhouette', 760, 250);
+    this.generateMagicVeilTexture('bgfx-magic-veil', 620, 320);
+    this.generateIceCrystalTexture('bgfx-ice-crystals', 760, 240);
+    this.generateAuroraTexture('bgfx-aurora', 700, 180);
+    this.generateDesertDunesTexture('bgfx-desert-dunes', 760, 220);
+    this.generateSunDiscTexture('bgfx-sun-disc', 280);
     this.generateLeafTexture('bgfx-leaf', 56, 40);
     this.generateBubbleTexture('bgfx-bubble', 42);
     this.generateSparkleTexture('bgfx-sparkle', 34);
@@ -398,6 +409,287 @@ export class BootScene extends Phaser.Scene {
     g.fillEllipse(width * 0.68, height * 0.42, width * 0.16, height * 0.16);
 
     g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateForestCanopyTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+    const circles = [
+      [0.08, 0.48, 0.2],
+      [0.22, 0.38, 0.24],
+      [0.38, 0.46, 0.26],
+      [0.56, 0.34, 0.22],
+      [0.74, 0.42, 0.24],
+      [0.9, 0.5, 0.18],
+    ] as const;
+
+    g.fillStyle(0xffffff, 0.22);
+    circles.forEach(([x, y, r]) => {
+      g.fillCircle(width * x, height * y, width * r);
+    });
+
+    g.fillStyle(0xffffff, 0.16);
+    g.fillRoundedRect(width * 0.04, height * 0.42, width * 0.92, height * 0.5, 60);
+
+    for (let i = 0; i < 7; i++) {
+      const stemX = width * (0.12 + i * 0.12);
+      const stemHeight = height * (0.2 + (i % 3) * 0.08);
+      g.fillStyle(0xffffff, 0.1);
+      g.fillRoundedRect(stemX, height * 0.62, width * 0.018, stemHeight, 8);
+      g.fillCircle(stemX + width * 0.009, height * 0.62 + stemHeight * 0.12, width * 0.03);
+    }
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateForestRidgeTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.18);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.78),
+      new Phaser.Geom.Point(width * 0.12, height * 0.62),
+      new Phaser.Geom.Point(width * 0.28, height * 0.7),
+      new Phaser.Geom.Point(width * 0.46, height * 0.56),
+      new Phaser.Geom.Point(width * 0.64, height * 0.7),
+      new Phaser.Geom.Point(width * 0.84, height * 0.58),
+      new Phaser.Geom.Point(width, height * 0.74),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    for (let i = 0; i < 9; i++) {
+      const baseX = width * (0.06 + i * 0.105);
+      const treeHeight = height * (0.22 + ((i + 1) % 3) * 0.07);
+      g.fillStyle(0xffffff, 0.18);
+      g.fillTriangle(
+        baseX,
+        height * 0.7,
+        baseX + width * 0.04,
+        height * 0.7 - treeHeight,
+        baseX + width * 0.08,
+        height * 0.7
+      );
+    }
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateOceanReefTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.16);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.82),
+      new Phaser.Geom.Point(width * 0.12, height * 0.64),
+      new Phaser.Geom.Point(width * 0.24, height * 0.74),
+      new Phaser.Geom.Point(width * 0.36, height * 0.58),
+      new Phaser.Geom.Point(width * 0.5, height * 0.76),
+      new Phaser.Geom.Point(width * 0.64, height * 0.62),
+      new Phaser.Geom.Point(width * 0.82, height * 0.8),
+      new Phaser.Geom.Point(width, height * 0.66),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    for (let i = 0; i < 6; i++) {
+      const baseX = width * (0.1 + i * 0.14);
+      const stalkHeight = height * (0.16 + (i % 2) * 0.12);
+      g.fillStyle(0xffffff, 0.14);
+      g.fillRoundedRect(baseX, height * 0.68 - stalkHeight, width * 0.022, stalkHeight, 8);
+      g.fillCircle(baseX + width * 0.012, height * 0.68 - stalkHeight, width * 0.028);
+    }
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateOceanCurrentTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.02, height * 0.62),
+      new Phaser.Geom.Point(width * 0.18, height * 0.36),
+      new Phaser.Geom.Point(width * 0.42, height * 0.48),
+      new Phaser.Geom.Point(width * 0.68, height * 0.24),
+      new Phaser.Geom.Point(width * 0.96, height * 0.42),
+      new Phaser.Geom.Point(width * 0.96, height * 0.7),
+      new Phaser.Geom.Point(width * 0.72, height * 0.54),
+      new Phaser.Geom.Point(width * 0.46, height * 0.82),
+      new Phaser.Geom.Point(width * 0.18, height * 0.64),
+    ], true);
+    g.fillStyle(0xffffff, 0.14);
+    g.fillEllipse(width * 0.56, height * 0.46, width * 0.5, height * 0.34);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateSpacePlanetTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.18);
+    g.fillCircle(center, center, size * 0.28);
+    g.fillStyle(0xffffff, 0.08);
+    g.fillCircle(center - size * 0.06, center - size * 0.04, size * 0.17);
+    g.lineStyle(size * 0.04, 0xffffff, 0.18);
+    g.strokeEllipse(center, center, size * 0.78, size * 0.26);
+    g.lineStyle(size * 0.015, 0xffffff, 0.14);
+    g.strokeEllipse(center, center, size * 0.9, size * 0.18);
+
+    g.generateTexture(key, size, size);
+    g.destroy();
+  }
+
+  private generateCastleSilhouetteTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.18);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.78),
+      new Phaser.Geom.Point(width * 0.1, height * 0.78),
+      new Phaser.Geom.Point(width * 0.1, height * 0.42),
+      new Phaser.Geom.Point(width * 0.16, height * 0.42),
+      new Phaser.Geom.Point(width * 0.16, height * 0.34),
+      new Phaser.Geom.Point(width * 0.22, height * 0.34),
+      new Phaser.Geom.Point(width * 0.22, height * 0.52),
+      new Phaser.Geom.Point(width * 0.4, height * 0.52),
+      new Phaser.Geom.Point(width * 0.4, height * 0.28),
+      new Phaser.Geom.Point(width * 0.46, height * 0.28),
+      new Phaser.Geom.Point(width * 0.46, height * 0.48),
+      new Phaser.Geom.Point(width * 0.62, height * 0.48),
+      new Phaser.Geom.Point(width * 0.62, height * 0.36),
+      new Phaser.Geom.Point(width * 0.68, height * 0.36),
+      new Phaser.Geom.Point(width * 0.68, height * 0.58),
+      new Phaser.Geom.Point(width * 0.84, height * 0.58),
+      new Phaser.Geom.Point(width * 0.84, height * 0.42),
+      new Phaser.Geom.Point(width * 0.9, height * 0.42),
+      new Phaser.Geom.Point(width * 0.9, height * 0.78),
+      new Phaser.Geom.Point(width, height * 0.78),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateMagicVeilTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillEllipse(width * 0.28, height * 0.54, width * 0.42, height * 0.52);
+    g.fillEllipse(width * 0.62, height * 0.44, width * 0.48, height * 0.56);
+    g.fillStyle(0xffffff, 0.12);
+    g.fillEllipse(width * 0.48, height * 0.5, width * 0.56, height * 0.42);
+    g.lineStyle(4, 0xffffff, 0.12);
+    g.strokeEllipse(width * 0.52, height * 0.48, width * 0.42, height * 0.22);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateIceCrystalTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+    const peaks = [
+      [0.04, 0.9, 0.14, 0.28],
+      [0.18, 0.9, 0.08, 0.46],
+      [0.28, 0.9, 0.12, 0.32],
+      [0.42, 0.9, 0.07, 0.52],
+      [0.56, 0.9, 0.14, 0.34],
+      [0.72, 0.9, 0.1, 0.48],
+      [0.86, 0.9, 0.12, 0.36],
+    ] as const;
+
+    peaks.forEach(([x, bottom, halfWidth, top]) => {
+      g.fillStyle(0xffffff, 0.18);
+      g.fillTriangle(
+        width * (x - halfWidth / 2),
+        height * bottom,
+        width * x,
+        height * top,
+        width * (x + halfWidth / 2),
+        height * bottom
+      );
+    });
+
+    g.fillStyle(0xffffff, 0.12);
+    g.fillRoundedRect(0, height * 0.82, width, height * 0.18, 12);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateAuroraTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.06);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.02, height * 0.54),
+      new Phaser.Geom.Point(width * 0.18, height * 0.22),
+      new Phaser.Geom.Point(width * 0.36, height * 0.38),
+      new Phaser.Geom.Point(width * 0.56, height * 0.16),
+      new Phaser.Geom.Point(width * 0.78, height * 0.28),
+      new Phaser.Geom.Point(width * 0.98, height * 0.1),
+      new Phaser.Geom.Point(width * 0.98, height * 0.4),
+      new Phaser.Geom.Point(width * 0.76, height * 0.52),
+      new Phaser.Geom.Point(width * 0.52, height * 0.34),
+      new Phaser.Geom.Point(width * 0.28, height * 0.56),
+      new Phaser.Geom.Point(width * 0.1, height * 0.42),
+    ], true);
+    g.fillStyle(0xffffff, 0.12);
+    g.fillEllipse(width * 0.48, height * 0.34, width * 0.6, height * 0.24);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateDesertDunesTexture(key: string, width: number, height: number): void {
+    const g = this.add.graphics();
+
+    g.fillStyle(0xffffff, 0.18);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.84),
+      new Phaser.Geom.Point(width * 0.16, height * 0.62),
+      new Phaser.Geom.Point(width * 0.34, height * 0.74),
+      new Phaser.Geom.Point(width * 0.56, height * 0.54),
+      new Phaser.Geom.Point(width * 0.76, height * 0.68),
+      new Phaser.Geom.Point(width, height * 0.58),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    g.fillStyle(0xffffff, 0.12);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.94),
+      new Phaser.Geom.Point(width * 0.22, height * 0.76),
+      new Phaser.Geom.Point(width * 0.48, height * 0.88),
+      new Phaser.Geom.Point(width * 0.72, height * 0.7),
+      new Phaser.Geom.Point(width, height * 0.82),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    g.generateTexture(key, width, height);
+    g.destroy();
+  }
+
+  private generateSunDiscTexture(key: string, size: number): void {
+    const g = this.add.graphics();
+    const center = size / 2;
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillCircle(center, center, size * 0.46);
+    g.fillStyle(0xffffff, 0.16);
+    g.fillCircle(center, center, size * 0.28);
+    g.fillStyle(0xffffff, 0.24);
+    g.fillCircle(center, center, size * 0.18);
+
+    g.generateTexture(key, size, size);
     g.destroy();
   }
 

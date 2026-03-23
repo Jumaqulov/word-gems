@@ -194,6 +194,44 @@ export class BackgroundFXManager {
   }
 
   private buildForest(): void {
+    this.addSignatureLayer('bgfx-forest-canopy', {
+      xRatio: 0.5,
+      yRatio: 0.09,
+      width: (viewport) => viewport.width * 1.12,
+      height: (viewport) => viewport.height * 0.28,
+      tint: 0x0f3514,
+      alphaBase: 0.32,
+      alphaSwing: 0.025,
+      alphaSpeed: 0.2,
+      scaleBase: 1,
+      scaleSwing: 0.012,
+      scaleSpeed: 0.18,
+      driftX: 4,
+      driftY: 3,
+      driftSpeed: 0.12,
+      rotationBase: 0,
+      rotationSwing: 0.01,
+      rotationSpeed: 0.08,
+    });
+    this.addSignatureLayer('bgfx-forest-ridge', {
+      xRatio: 0.5,
+      yRatio: 0.9,
+      width: (viewport) => viewport.width * 1.1,
+      height: (viewport) => viewport.height * 0.26,
+      tint: 0x143d18,
+      alphaBase: 0.2,
+      alphaSwing: 0.016,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.01,
+      scaleSpeed: 0.16,
+      driftX: 6,
+      driftY: 2,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.008,
+      rotationSpeed: 0.08,
+    });
     this.addSignatureLayer('bgfx-light-shaft', {
       xRatio: 0.22,
       yRatio: 0.28,
@@ -259,8 +297,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.56,
       height: (viewport) => viewport.height * 0.42,
       tint: 0x9cc85c,
-      alphaBase: 0.035,
-      alphaSwing: 0.012,
+      alphaBase: 0.05,
+      alphaSwing: 0.016,
       alphaSpeed: 0.3,
       scaleBase: 1,
       scaleSwing: 0.025,
@@ -320,14 +358,53 @@ export class BackgroundFXManager {
   }
 
   private buildOcean(): void {
+    this.addSignatureLayer('bgfx-ocean-reef', {
+      xRatio: 0.5,
+      yRatio: 0.9,
+      width: (viewport) => viewport.width * 1.12,
+      height: (viewport) => viewport.height * 0.24,
+      tint: 0x09304a,
+      alphaBase: 0.22,
+      alphaSwing: 0.016,
+      alphaSpeed: 0.2,
+      scaleBase: 1,
+      scaleSwing: 0.012,
+      scaleSpeed: 0.16,
+      driftX: 6,
+      driftY: 3,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.006,
+      rotationSpeed: 0.08,
+    });
+    this.addSignatureLayer('bgfx-ocean-current', {
+      xRatio: 0.44,
+      yRatio: 0.5,
+      width: (viewport) => viewport.width * 0.86,
+      height: (viewport) => viewport.height * 0.22,
+      tint: 0x9af6ff,
+      alphaBase: 0.09,
+      alphaSwing: 0.024,
+      alphaSpeed: 0.24,
+      scaleBase: 1,
+      scaleSwing: 0.018,
+      scaleSpeed: 0.2,
+      driftX: 14,
+      driftY: 8,
+      driftSpeed: 0.14,
+      rotationBase: -0.06,
+      rotationSwing: 0.012,
+      rotationSpeed: 0.1,
+      blendMode: Phaser.BlendModes.ADD,
+    });
     this.addSignatureLayer('bgfx-caustic', {
       xRatio: 0.5,
       yRatio: 0.24,
       width: (viewport) => viewport.width * 0.98,
       height: (viewport) => viewport.height * 0.28,
       tint: 0x7be6ff,
-      alphaBase: 0.08,
-      alphaSwing: 0.022,
+      alphaBase: 0.12,
+      alphaSwing: 0.03,
       alphaSpeed: 0.36,
       scaleBase: 1,
       scaleSwing: 0.03,
@@ -346,8 +423,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.92,
       height: (viewport) => viewport.height * 0.2,
       tint: 0x4ad2f8,
-      alphaBase: 0.052,
-      alphaSwing: 0.018,
+      alphaBase: 0.08,
+      alphaSwing: 0.022,
       alphaSpeed: 0.32,
       scaleBase: 1,
       scaleSwing: 0.026,
@@ -366,8 +443,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.3,
       height: (viewport) => viewport.height * 0.44,
       tint: 0x5fd8ff,
-      alphaBase: 0.045,
-      alphaSwing: 0.014,
+      alphaBase: 0.07,
+      alphaSwing: 0.02,
       alphaSpeed: 0.28,
       scaleBase: 1,
       scaleSwing: 0.035,
@@ -387,7 +464,7 @@ export class BackgroundFXManager {
     for (let index = 0; index < bubbleCount; index++) {
       const actor = this.addAmbientSprite('bgfx-bubble', {
         tint: 0x9ae9ff,
-        alphaBase: Phaser.Math.FloatBetween(0.11, 0.2),
+        alphaBase: Phaser.Math.FloatBetween(0.14, 0.24),
         alphaSwing: Phaser.Math.FloatBetween(0.02, 0.05),
         alphaSpeed: Phaser.Math.FloatBetween(0.4, 0.8),
         scaleBase: Phaser.Math.FloatBetween(0.34, 0.72),
@@ -407,7 +484,7 @@ export class BackgroundFXManager {
     for (let index = 0; index < shimmerCount; index++) {
       this.addAmbientSprite('bgfx-glow-dot', {
         tint: Phaser.Utils.Array.GetRandom([0x84d9ff, 0xbeffff, 0x6be7e0]),
-        alphaBase: Phaser.Math.FloatBetween(0.05, 0.11),
+        alphaBase: Phaser.Math.FloatBetween(0.08, 0.15),
         alphaSwing: Phaser.Math.FloatBetween(0.03, 0.05),
         alphaSpeed: Phaser.Math.FloatBetween(0.8, 1.4),
         scaleBase: Phaser.Math.FloatBetween(0.5, 0.88),
@@ -426,14 +503,33 @@ export class BackgroundFXManager {
   }
 
   private buildSpace(): void {
+    this.addSignatureLayer('bgfx-space-planet', {
+      xRatio: 0.84,
+      yRatio: 0.18,
+      width: (viewport) => Math.min(viewport.width, viewport.height) * 0.46,
+      height: (viewport) => Math.min(viewport.width, viewport.height) * 0.46,
+      tint: 0x7f73ff,
+      alphaBase: 0.18,
+      alphaSwing: 0.02,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.016,
+      scaleSpeed: 0.16,
+      driftX: 8,
+      driftY: 4,
+      driftSpeed: 0.1,
+      rotationBase: 0.14,
+      rotationSwing: 0.018,
+      rotationSpeed: 0.08,
+    });
     this.addSignatureLayer('bgfx-nebula', {
       xRatio: 0.24,
       yRatio: 0.24,
       width: (viewport) => viewport.width * 0.52,
       height: (viewport) => viewport.height * 0.34,
       tint: 0x7866ff,
-      alphaBase: 0.09,
-      alphaSwing: 0.018,
+      alphaBase: 0.11,
+      alphaSwing: 0.024,
       alphaSpeed: 0.22,
       scaleBase: 1,
       scaleSwing: 0.028,
@@ -452,8 +548,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.48,
       height: (viewport) => viewport.height * 0.32,
       tint: 0x6ea7ff,
-      alphaBase: 0.065,
-      alphaSwing: 0.015,
+      alphaBase: 0.08,
+      alphaSwing: 0.02,
       alphaSpeed: 0.2,
       scaleBase: 1,
       scaleSwing: 0.026,
@@ -515,6 +611,25 @@ export class BackgroundFXManager {
   }
 
   private buildCastle(): void {
+    this.addSignatureLayer('bgfx-castle-silhouette', {
+      xRatio: 0.5,
+      yRatio: 0.86,
+      width: (viewport) => viewport.width * 1.08,
+      height: (viewport) => viewport.height * 0.28,
+      tint: 0x1b0f0a,
+      alphaBase: 0.26,
+      alphaSwing: 0.018,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.012,
+      scaleSpeed: 0.16,
+      driftX: 4,
+      driftY: 2,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.008,
+      rotationSpeed: 0.08,
+    });
     this.addSignatureLayer('bgfx-arch-glow', {
       xRatio: 0.07,
       yRatio: 0.3,
@@ -561,8 +676,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.56,
       height: (viewport) => viewport.height * 0.48,
       tint: 0xc49163,
-      alphaBase: 0.03,
-      alphaSwing: 0.01,
+      alphaBase: 0.048,
+      alphaSwing: 0.014,
       alphaSpeed: 0.24,
       scaleBase: 1,
       scaleSwing: 0.02,
@@ -621,14 +736,34 @@ export class BackgroundFXManager {
   }
 
   private buildMagic(): void {
+    this.addSignatureLayer('bgfx-magic-veil', {
+      xRatio: 0.5,
+      yRatio: 0.48,
+      width: (viewport) => viewport.width * 0.88,
+      height: (viewport) => viewport.height * 0.38,
+      tint: 0xc68cff,
+      alphaBase: 0.11,
+      alphaSwing: 0.028,
+      alphaSpeed: 0.22,
+      scaleBase: 1,
+      scaleSwing: 0.018,
+      scaleSpeed: 0.18,
+      driftX: 6,
+      driftY: 6,
+      driftSpeed: 0.12,
+      rotationBase: 0,
+      rotationSwing: 0.012,
+      rotationSpeed: 0.08,
+      blendMode: Phaser.BlendModes.ADD,
+    });
     this.addSignatureLayer('bgfx-rune-halo', {
       xRatio: 0.5,
       yRatio: 0.48,
       width: (viewport) => Math.min(viewport.width, viewport.height) * 0.9,
       height: (viewport) => Math.min(viewport.width, viewport.height) * 0.9,
       tint: 0xd4c0ff,
-      alphaBase: 0.075,
-      alphaSwing: 0.022,
+      alphaBase: 0.1,
+      alphaSwing: 0.028,
       alphaSpeed: 0.26,
       scaleBase: 1,
       scaleSwing: 0.03,
@@ -647,8 +782,8 @@ export class BackgroundFXManager {
       width: (viewport) => Math.min(viewport.width, viewport.height) * 0.54,
       height: (viewport) => Math.min(viewport.width, viewport.height) * 0.54,
       tint: 0x79dcff,
-      alphaBase: 0.042,
-      alphaSwing: 0.014,
+      alphaBase: 0.06,
+      alphaSwing: 0.02,
       alphaSpeed: 0.3,
       scaleBase: 1,
       scaleSwing: 0.025,
@@ -740,14 +875,53 @@ export class BackgroundFXManager {
   }
 
   private buildIce(): void {
+    this.addSignatureLayer('bgfx-ice-crystals', {
+      xRatio: 0.5,
+      yRatio: 0.9,
+      width: (viewport) => viewport.width * 1.08,
+      height: (viewport) => viewport.height * 0.24,
+      tint: 0x8fdfff,
+      alphaBase: 0.22,
+      alphaSwing: 0.018,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.012,
+      scaleSpeed: 0.16,
+      driftX: 6,
+      driftY: 2,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.008,
+      rotationSpeed: 0.08,
+    });
+    this.addSignatureLayer('bgfx-aurora', {
+      xRatio: 0.54,
+      yRatio: 0.16,
+      width: (viewport) => viewport.width * 1.02,
+      height: (viewport) => viewport.height * 0.2,
+      tint: 0xd6ffff,
+      alphaBase: 0.09,
+      alphaSwing: 0.026,
+      alphaSpeed: 0.24,
+      scaleBase: 1,
+      scaleSwing: 0.016,
+      scaleSpeed: 0.18,
+      driftX: 10,
+      driftY: 5,
+      driftSpeed: 0.12,
+      rotationBase: -0.05,
+      rotationSwing: 0.01,
+      rotationSpeed: 0.08,
+      blendMode: Phaser.BlendModes.ADD,
+    });
     this.addSignatureLayer('bgfx-glint-band', {
       xRatio: 0.52,
       yRatio: 0.22,
       width: (viewport) => viewport.width * 1.04,
       height: (viewport) => viewport.height * 0.18,
       tint: 0xdff7ff,
-      alphaBase: 0.07,
-      alphaSwing: 0.018,
+      alphaBase: 0.1,
+      alphaSwing: 0.024,
       alphaSpeed: 0.28,
       scaleBase: 1,
       scaleSwing: 0.025,
@@ -766,8 +940,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.92,
       height: (viewport) => viewport.height * 0.12,
       tint: 0xb8ecff,
-      alphaBase: 0.048,
-      alphaSwing: 0.014,
+      alphaBase: 0.072,
+      alphaSwing: 0.02,
       alphaSpeed: 0.25,
       scaleBase: 1,
       scaleSwing: 0.02,
@@ -786,8 +960,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.24,
       height: (viewport) => viewport.height * 0.3,
       tint: 0xeafaff,
-      alphaBase: 0.035,
-      alphaSwing: 0.01,
+      alphaBase: 0.05,
+      alphaSwing: 0.015,
       alphaSpeed: 0.22,
       scaleBase: 1,
       scaleSwing: 0.02,
@@ -827,7 +1001,7 @@ export class BackgroundFXManager {
     for (let index = 0; index < glimmerCount; index++) {
       this.addAmbientSprite('bgfx-glow-dot', {
         tint: Phaser.Utils.Array.GetRandom([0xb8f3ff, 0xeafbff, 0x9fe2ff]),
-        alphaBase: Phaser.Math.FloatBetween(0.05, 0.09),
+        alphaBase: Phaser.Math.FloatBetween(0.07, 0.12),
         alphaSwing: Phaser.Math.FloatBetween(0.02, 0.05),
         alphaSpeed: Phaser.Math.FloatBetween(0.9, 1.4),
         scaleBase: Phaser.Math.FloatBetween(0.28, 0.55),
@@ -846,14 +1020,53 @@ export class BackgroundFXManager {
   }
 
   private buildDesert(): void {
+    this.addSignatureLayer('bgfx-sun-disc', {
+      xRatio: 0.84,
+      yRatio: 0.2,
+      width: (viewport) => Math.min(viewport.width, viewport.height) * 0.32,
+      height: (viewport) => Math.min(viewport.width, viewport.height) * 0.32,
+      tint: 0xffdd8a,
+      alphaBase: 0.12,
+      alphaSwing: 0.02,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.014,
+      scaleSpeed: 0.16,
+      driftX: 5,
+      driftY: 4,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.006,
+      rotationSpeed: 0.06,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+    this.addSignatureLayer('bgfx-desert-dunes', {
+      xRatio: 0.5,
+      yRatio: 0.9,
+      width: (viewport) => viewport.width * 1.12,
+      height: (viewport) => viewport.height * 0.24,
+      tint: 0x7a4314,
+      alphaBase: 0.24,
+      alphaSwing: 0.018,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.012,
+      scaleSpeed: 0.16,
+      driftX: 7,
+      driftY: 2,
+      driftSpeed: 0.1,
+      rotationBase: 0,
+      rotationSwing: 0.008,
+      rotationSpeed: 0.08,
+    });
     this.addSignatureLayer('bgfx-heat-haze', {
       xRatio: 0.54,
       yRatio: 0.36,
       width: (viewport) => viewport.width * 1.08,
       height: (viewport) => viewport.height * 0.22,
       tint: 0xf6d89a,
-      alphaBase: 0.06,
-      alphaSwing: 0.016,
+      alphaBase: 0.085,
+      alphaSwing: 0.022,
       alphaSpeed: 0.24,
       scaleBase: 1,
       scaleSwing: 0.02,
@@ -872,8 +1085,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.98,
       height: (viewport) => viewport.height * 0.15,
       tint: 0xe7b763,
-      alphaBase: 0.042,
-      alphaSwing: 0.012,
+      alphaBase: 0.06,
+      alphaSwing: 0.017,
       alphaSpeed: 0.22,
       scaleBase: 1,
       scaleSwing: 0.02,
@@ -892,8 +1105,8 @@ export class BackgroundFXManager {
       width: (viewport) => viewport.width * 0.28,
       height: (viewport) => viewport.height * 0.42,
       tint: 0xffe3a3,
-      alphaBase: 0.032,
-      alphaSwing: 0.01,
+      alphaBase: 0.05,
+      alphaSwing: 0.015,
       alphaSpeed: 0.18,
       scaleBase: 1,
       scaleSwing: 0.018,
@@ -932,7 +1145,7 @@ export class BackgroundFXManager {
     for (let index = 0; index < goldDustCount; index++) {
       this.addAmbientSprite('bgfx-glow-dot', {
         tint: Phaser.Utils.Array.GetRandom([0xf7d977, 0xffe9a6, 0xf4bf57]),
-        alphaBase: Phaser.Math.FloatBetween(0.04, 0.08),
+        alphaBase: Phaser.Math.FloatBetween(0.06, 0.1),
         alphaSwing: Phaser.Math.FloatBetween(0.025, 0.045),
         alphaSpeed: Phaser.Math.FloatBetween(0.8, 1.5),
         scaleBase: Phaser.Math.FloatBetween(0.22, 0.42),
@@ -1287,7 +1500,7 @@ export class BackgroundFXManager {
     actor.sprite.alpha = Phaser.Math.Clamp(
       actor.alphaBase + Math.sin(actor.phase * actor.alphaSpeed) * actor.alphaSwing,
       0,
-      0.34
+      0.38
     );
 
     const scale = actor.scaleBase + Math.sin(actor.phase * actor.scaleSpeed) * actor.scaleSwing;
@@ -1303,7 +1516,7 @@ export class BackgroundFXManager {
     actor.sprite.alpha = Phaser.Math.Clamp(
       actor.alphaBase + Math.sin(actor.phase * actor.alphaSpeed) * actor.alphaSwing,
       0,
-      0.18
+      0.38
     );
     actor.sprite.rotation = actor.rotationBase + Math.sin(actor.phase * actor.rotationSpeed) * actor.rotationSwing;
 
@@ -1326,7 +1539,7 @@ export class BackgroundFXManager {
     actor.sprite.alpha = Phaser.Math.Clamp(
       actor.alphaBase + Math.sin(actor.phase * actor.alphaSpeed) * actor.alphaSwing,
       0,
-      0.22
+      0.28
     );
 
     const scale = actor.scaleBase + Math.sin(actor.phase * actor.scaleSpeed) * actor.scaleSwing;
