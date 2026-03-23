@@ -225,7 +225,7 @@
   </div>
 
   <!-- Level Complete Modal -->
-  <div id="level-complete-modal" class="modal" style="display:none;">
+  <div id="level-complete-modal" class="modal" data-static="true" style="display:none;">
     <div class="modal-backdrop"></div>
     <div class="modal-content level-complete-content">
       <h2>LEVEL <span id="complete-level-num">1</span> COMPLETE!</h2>
@@ -248,7 +248,34 @@
           <span class="complete-value">+200</span>
         </div>
       </div>
-      <button id="btn-next-level" class="action-btn">NEXT LEVEL</button>
+      <div class="completion-actions">
+        <button id="btn-complete-daily-spin" class="action-btn completion-action-btn completion-spin-btn">DAILY SPIN</button>
+        <button id="btn-next-level" class="action-btn completion-action-btn">NEXT LEVEL</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="time-up-modal" class="modal" data-static="true" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content time-up-content">
+      <h2>TIME'S UP</h2>
+      <p class="modal-subtitle">The level was not cleared before the timer ended.</p>
+      <div class="complete-stats">
+        <div class="complete-stat">
+          <span class="complete-label">Level</span>
+          <span id="time-up-level-num" class="complete-value">1</span>
+        </div>
+        <div class="complete-stat">
+          <span class="complete-label">Words Found</span>
+          <span id="time-up-words" class="complete-value">0/0</span>
+        </div>
+        <div class="complete-stat">
+          <span class="complete-label">Run Score</span>
+          <span id="time-up-score" class="complete-value">0</span>
+        </div>
+      </div>
+      <p class="time-up-note">Retry to beat the timer and unlock the next level.</p>
+      <button id="btn-retry-level" class="action-btn danger-action-btn">RETRY</button>
     </div>
   </div>
 

@@ -53,3 +53,117 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - `npm run build` passed after the layout fix,
   - measured DOM positions in Playwright and confirmed `#game-info-bar` now starts below `#top-hud`,
   - verified Phaser canvas content still renders by exporting the game canvas to `output/web-game/ice-canvas-after.png`.
+
+2026-03-23 word-list UI follow-up
+- Investigated the right-panel `Find Words` jitter caused by frozen-word badges stretching individual word rows.
+- Reworked word status presentation:
+  - removed the desktop badge chip from `GameScene.updateWordListUI()`,
+  - added stable-width word rows with internal status styling in `styles.css`,
+  - restyled `frozen`, `cracked`, and `locked` states so the word itself carries the state via subtle icon + texture instead of an external pill badge.
+- Regression checks:
+  - `npm run build` passed after the restyle,
+  - Playwright word-list inspection confirmed all desktop rows in the Ice panel now have the same width and no `.word-state` badge nodes remain,
+  - captured focused right-panel screenshots for frozen, locked, and cracked states to visually verify the new treatment without panel drift.
+
+2026-03-23 timer fail-state follow-up
+- Reworked timed-level resolution so timeout is no longer treated as a low-score completion:
+  - added a scene-level resolution state (`active` / `success` / `timeout`) to block gameplay-side interactions once a run is decided,
+  - success still goes through the existing level-complete modal,
+  - timeout now routes to a dedicated `Time's Up` modal with retry instead of calling the normal completion flow.
+- Added `#time-up-modal` in `index.html` and matching fail-state styling in `styles.css` so the UX reads as a real failure without changing the overall modal design language.
+- Retry now restarts the current level in place and leaves progression unchanged; timeout no longer triggers `advanceLevel()` or the level-complete modal.
+- Verification:
+  - `npm run build` passed after the timeout-flow change,
+  - re-ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - browser checks confirmed timeout leaves `saveData.level` unchanged, keeps the level-complete modal hidden, shows the `Time's Up` modal, and retry reloads the same timed level.
+- Headless note:
+  - direct Phaser `delayedCall()` timing was flaky in the ad-hoc headless probe, so timeout verification used the actual timeout handler for logic assertions and then invoked the modal method directly to capture the fail-state UI reliably.
+
+2026-03-23 ice frozen gating follow-up
+- Investigated the Ice World bug where a cracked frozen word could still be cleared immediately on the next trace even if the rest of the required words were still unsolved.
+- Fix:
+  - updated `GameScene.handlePreFoundMechanics()` so cracked frozen words stay blocked until every non-frozen required word is found,
+  - added explicit frozen-word blocked feedback (`FIND X MORE WORDS`) instead of silently letting the second trace succeed,
+  - made hint/detect logic avoid frozen words until only frozen words remain,
+  - clear solved frozen words out of the temporary frozen/cracked sets so the status text does not linger in a stale state.
+- UX text updates:
+  - Ice world hint now explains that frozen words clear only after the other words are found,
+  - world-status text now tells the player how many regular words are still needed before a cracked word can thaw.
+- Verification:
+  - `npm run build` passed after the mechanic fix,
+  - re-ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - browser-level checks confirmed the frozen word now cracks on the first trace, stays cracked and unresolved on the second trace while other words remain, becomes hintable only after the non-frozen words are cleared, and then resolves normally on the final trace.
+
+2026-03-23 level-complete modal follow-up
+- Investigated the regression where clicking outside the level-complete modal hid it and left the board in a cleared-but-stuck visual state.
+- Fix:
+  - marked `#level-complete-modal` as a static modal so the shared backdrop handler no longer dismisses it on outside clicks,
+  - gave the `NEXT LEVEL` CTA its own darker world-aware style so the button reads clearly in pale themes like Ice World.
+- Verification:
+  - `npm run build` passed after the modal/UI tweak,
+  - re-ran the `$develop-web-game` Playwright client,
+  - browser checks confirmed an outside click leaves the level-complete modal open and the updated button renders with a darker themed gradient.
+
+2026-03-23 header alignment follow-up
+- Investigated the desktop HUD row alignment after the top-shell polish pass.
+- Fix:
+  - normalized the desktop top-row bands so `.hud-left`, `.hud-badges-row`, and `.hud-right` all share the same `40px` vertical slot,
+  - removed the extra desktop badge-row vertical padding so the title, badges, and settings button now sit on the same visual center line.
+- Verification:
+  - `npm run build` passed after the header tweak,
+  - re-ran the `$develop-web-game` Playwright client,
+  - browser inspection confirmed the desktop HUD row now reports the same height/center for the left, center, and right header blocks.
+
+2026-03-23 level-complete daily spin CTA follow-up
+- Added a secondary `DAILY SPIN` CTA to the level-complete modal so the reward flow is reachable directly from the win state instead of only from the side rail.
+- Fix:
+  - grouped the level-complete actions into a stacked CTA block,
+  - styled the new Daily Spin button with the same completion-button shape/shadow language while giving it a warm reward-toned gradient distinct from `NEXT LEVEL`,
+  - wired the button into the existing daily-spin modal flow and allowed it to open from the resolved success state,
+  - mirrored daily-spin availability on the completion CTA so it disables and switches to `SPIN TOMORROW` once the reward has already been claimed.
+- Verification:
+  - `npm run build` passed after the completion-CTA change,
+  - re-ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - browser checks confirmed the level-complete card now renders both CTAs at equal width, the new `DAILY SPIN` button opens the spin modal from the completion state, and the complete modal stays mounted underneath that flow.
+
+2026-03-23 save/load audit
+- Audited the persistence layer in `CrazyGamesManager` and verified the game uses CrazyGames SDK data storage when the SDK is available, with `localStorage` only as the local fallback path.
+- Codepath findings:
+  - `saveGame()` and `loadGame()` are wired and the save payload includes level, gems, score, streak, daily spin cooldown, free hints, settings toggles, stars, words found, perfect count, tutorial flag, and best streak.
+  - `GameScene` also triggers saves on page hide / unload, and settings/tutorial/daily-spin/level-complete flows all write through the manager.
+- Browser verification:
+  - fresh-profile boot immediately created an SDK-backed save with level `1`, streak `1`, and `tutorialSeen: false`,
+  - closing the tutorial, disabling sound/vibration, claiming a daily spin reward, reloading, and reopening the browser all restored the expected persisted state,
+  - screenshots and JSON artifacts for the audit are in `output/web-game/` (`save-load-*.png`, `save-load-check.json`, `save-load-sdk-check.json`).
+- Important bug found:
+  - level progression is saved too early on win because `GameScene.onLevelComplete()` calls `CrazyGamesManager.advanceLevel()` immediately after scheduling the completion modal instead of waiting for the `NEXT LEVEL` CTA,
+  - practical result: if the player refreshes or closes the game after winning but before pressing `NEXT LEVEL`, the next session resumes on the next level anyway.
+
+2026-03-23 save/load progression fix
+- Fixed the win-flow persistence bug without reopening a reward-dupe loophole.
+- Fix:
+  - added a saved `pendingCompletion` payload to `CrazyGamesManager` so a finished level can be remembered as a waiting completion state,
+  - `onLevelComplete()` now saves the completion summary and rewards/stars immediately, but does not advance the saved level yet,
+  - `GameScene.startLevel()` restores the completion modal after reload/restart when a pending completion exists for the current level,
+  - `NEXT LEVEL` now becomes the commit point that clears `pendingCompletion`, advances the saved level, and starts the next board.
+- Verification:
+  - `npm run build` passed after the persistence-flow change,
+  - re-ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - targeted browser checks confirmed:
+    - after winning, save data keeps `level: 1` and stores a `pendingCompletion`,
+    - after reload, the same level-complete modal is restored instead of silently advancing,
+    - after pressing `NEXT LEVEL`, save data changes to `level: 2`, clears `pendingCompletion`, and the game opens level 2,
+    - after a full browser restart, the session still resumes on level 2 with no pending modal.
+
+2026-03-23 frozen last-word thaw fix
+- Investigated the Ice World edge case where an untouched frozen word still refused to complete even when it was the only required word left.
+- Fix:
+  - updated `handlePreFoundMechanics()` so a frozen word now resolves immediately when `getRemainingNonFrozenRequiredWordCount()` is already `0`,
+  - kept the earlier gate intact for the normal case: if regular words still remain, the first trace still only cracks the frozen word and blocks completion,
+  - removed the now-unused helper that only supported the older cracked-word check path.
+- Verification:
+  - `npm run build` passed after the mechanic adjustment,
+  - re-ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - targeted browser checks confirmed:
+    - tracing a frozen word early still returns `blocked` and marks it `cracked`,
+    - when the frozen word is the last remaining target, the first trace now returns `resolve`, marks the word found, removes its frozen state, and shows `ALL FOUND!`.

@@ -100,6 +100,7 @@ export class GameScene extends Phaser.Scene {
   private timerSeconds = 0;
   private timerEvent: Phaser.Time.TimerEvent | null = null;
   private timedOut = false;
+  private resolutionState: 'active' | 'success' | 'timeout' = 'active';
 
   private isDragging = false;
   private selectedCells: { row: number; col: number }[] = [];
@@ -183,6 +184,7 @@ export class GameScene extends Phaser.Scene {
 
   private startLevel(level: number): void {
     this.cleanupLevel();
+    this.hideResolutionModals();
 
     const save = CrazyGamesManager.saveData;
     this.levelConfig = getLevelConfig(level);
@@ -200,6 +202,7 @@ export class GameScene extends Phaser.Scene {
     this.foundColorIndex = 0;
     this.comboState = createComboState();
     this.timedOut = false;
+    this.resolutionState = 'active';
     this.worldState = createWordRuntimeState();
     this.bonusWords.clear();
 
@@ -234,6 +237,7 @@ export class GameScene extends Phaser.Scene {
     this.startIdleAnimation();
     scheduleResponsiveLayout();
     EventBus.emit(EVENTS.LEVEL_START, level);
+    this.restorePendingCompletionIfNeeded(level);
   }
 
   private cleanupLevel(): void {
@@ -517,7 +521,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onCellPointerDown(row: number, col: number): void {
-    if (this.timedOut || this.isModalOpen()) return;
+    if (this.isGameplayLocked() || this.timedOut || this.isModalOpen()) return;
     this.isDragging = true;
     this.selectedCells = [{ row, col }];
     this.selectionDirection = null;
@@ -649,9 +653,20 @@ export class GameScene extends Phaser.Scene {
       return 'blocked';
     }
 
-    if (this.worldState.frozenWords.has(word) && !this.worldState.crackedFrozenWords.has(word)) {
-      this.crackFrozenWord(word);
-      return 'blocked';
+    if (this.worldState.frozenWords.has(word)) {
+      const canClearFrozenWordNow = this.getRemainingNonFrozenRequiredWordCount() === 0;
+      if (!this.worldState.crackedFrozenWords.has(word)) {
+        if (canClearFrozenWordNow) {
+          return 'resolve';
+        }
+        this.crackFrozenWord(word);
+        return 'blocked';
+      }
+
+      if (!canClearFrozenWordNow) {
+        this.showFrozenWordBlockedFeedback(word);
+        return 'blocked';
+      }
     }
 
     return 'resolve';
@@ -688,7 +703,34 @@ export class GameScene extends Phaser.Scene {
     this.updateWorldUI();
   }
 
+  private showFrozenWordBlockedFeedback(word: string): void {
+    const placedWord = this.getPlacedWord(word);
+    if (!placedWord) return;
+
+    SoundManager.play('wrong');
+    this.juice.shake(this.gridContainer, 2, 180);
+
+    const remaining = this.getRemainingNonFrozenRequiredWordCount();
+    const midPoint = placedWord.cells[Math.floor(placedWord.cells.length / 2)];
+    const text = remaining > 1 ? `FIND ${remaining} MORE WORDS` : 'FIND 1 MORE WORD';
+
+    this.juice.floatingText(
+      this.gridContainer.x + midPoint.col * this.cellSize + this.cellSize / 2,
+      this.gridContainer.y + midPoint.row * this.cellSize + this.cellSize / 2 - 18,
+      text,
+      '#DDF7FF',
+      18
+    );
+
+    this.updateWorldUI();
+  }
+
   private onWordFound(word: string): void {
+    if (this.worldState.frozenWords.has(word)) {
+      this.worldState.crackedFrozenWords.delete(word);
+      this.worldState.frozenWords.delete(word);
+    }
+
     this.foundWords.add(word);
     const colorIndex = this.foundColorIndex % COLORS.FOUND_COLORS.length;
     const color = COLORS.FOUND_COLORS[colorIndex];
@@ -748,11 +790,19 @@ export class GameScene extends Phaser.Scene {
     this.bumpHudGems();
 
     if (this.getFoundRequiredWordCount() === this.levelWords.length) {
-      this.stopTimer();
-      this.time.delayedCall(600, () => this.onLevelComplete());
+      this.resolveLevelSuccess();
     }
 
     EventBus.emit(EVENTS.WORD_FOUND, word);
+  }
+
+  private resolveLevelSuccess(): void {
+    if (this.resolutionState !== 'active') return;
+
+    this.resolutionState = 'success';
+    this.stopTimer();
+    this.stopComboTick();
+    this.time.delayedCall(600, () => void this.onLevelComplete());
   }
 
   private handlePostFoundMechanics(
@@ -871,6 +921,15 @@ export class GameScene extends Phaser.Scene {
     this.selectionGraphics.clear();
   }
 
+  private hideResolutionModals(): void {
+    document.getElementById('level-complete-modal')?.style.setProperty('display', 'none');
+    document.getElementById('time-up-modal')?.style.setProperty('display', 'none');
+  }
+
+  private isGameplayLocked(): boolean {
+    return this.resolutionState !== 'active' || this.isLevelTransitioning;
+  }
+
   private bumpHudGems(): void {
     const el = document.getElementById('hud-gems');
     if (!el) return;
@@ -880,6 +939,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private async onLevelComplete(): Promise<void> {
+    if (this.resolutionState !== 'success' || this.timedOut) return;
+
     CrazyGamesManager.gameplayStop();
     const save = CrazyGamesManager.saveData;
     const level = save.level;
@@ -906,13 +967,22 @@ export class GameScene extends Phaser.Scene {
     CrazyGamesManager.setLevelStars(level, result.stars);
     CrazyGamesManager.addWordsFound(this.getFoundRequiredWordCount());
     if (result.stars === 3) CrazyGamesManager.addPerfectLevel();
+    CrazyGamesManager.setPendingCompletion({
+      level,
+      result: {
+        total: result.total,
+        gemsEarned: result.gemsEarned,
+        stars: result.stars,
+      },
+      foundWords: this.getFoundRequiredWordCount(),
+      totalWords: this.levelWords.length,
+    });
 
     if (save.streak % 5 === 0 || result.stars === 3) {
       CrazyGamesManager.happytime();
     }
 
     this.time.delayedCall(800, () => this.showLevelCompleteModal(level, result));
-    CrazyGamesManager.advanceLevel();
   }
 
   private animateGridExit(): void {
@@ -936,11 +1006,14 @@ export class GameScene extends Phaser.Scene {
 
   private showLevelCompleteModal(
     level: number,
-    result: { total: number; gemsEarned: number; stars: number }
+    result: { total: number; gemsEarned: number; stars: number },
+    summary?: { foundWords: number; totalWords: number }
   ): void {
     const modal = document.getElementById('level-complete-modal')!;
+    const foundWords = summary?.foundWords ?? this.getFoundRequiredWordCount();
+    const totalWords = summary?.totalWords ?? this.levelWords.length;
     document.getElementById('complete-level-num')!.textContent = level.toString();
-    document.getElementById('complete-words')!.textContent = `${this.getFoundRequiredWordCount()}/${this.levelWords.length}`;
+    document.getElementById('complete-words')!.textContent = `${foundWords}/${totalWords}`;
     document.getElementById('complete-score')!.textContent = result.total.toString();
     document.getElementById('complete-gems')!.textContent = result.gemsEarned.toString();
 
@@ -959,7 +1032,54 @@ export class GameScene extends Phaser.Scene {
     const perfectValueEl = perfectEl.querySelector('.complete-value');
     if (perfectValueEl) perfectValueEl.textContent = `+${SCORING.PERFECT_BONUS}`;
     perfectEl.style.display = result.stars === 3 ? 'flex' : 'none';
+    this.updateCompletionDailySpinButton();
     modal.style.display = 'flex';
+  }
+
+  private restorePendingCompletionIfNeeded(level: number): void {
+    const pendingCompletion = CrazyGamesManager.saveData.pendingCompletion;
+    if (!pendingCompletion || pendingCompletion.level !== level) return;
+
+    this.resolutionState = 'success';
+    this.timedOut = false;
+    this.stopTimer();
+    this.stopComboTick();
+    CrazyGamesManager.gameplayStop();
+
+    this.time.delayedCall(0, () => {
+      this.showLevelCompleteModal(pendingCompletion.level, pendingCompletion.result, {
+        foundWords: pendingCompletion.foundWords,
+        totalWords: pendingCompletion.totalWords,
+      });
+    });
+  }
+
+  private updateCompletionDailySpinButton(): void {
+    const button = document.getElementById('btn-complete-daily-spin') as HTMLButtonElement | null;
+    if (!button) return;
+
+    if (CrazyGamesManager.canDailySpin()) {
+      button.textContent = 'DAILY SPIN';
+      button.removeAttribute('disabled');
+    } else {
+      button.textContent = 'SPIN TOMORROW';
+      button.setAttribute('disabled', 'true');
+    }
+  }
+
+  private showTimeUpModal(): void {
+    if (this.resolutionState !== 'timeout') return;
+
+    const level = CrazyGamesManager.saveData.level;
+    const modal = document.getElementById('time-up-modal');
+    const levelEl = document.getElementById('time-up-level-num');
+    const wordsEl = document.getElementById('time-up-words');
+    const scoreEl = document.getElementById('time-up-score');
+
+    if (levelEl) levelEl.textContent = level.toString();
+    if (wordsEl) wordsEl.textContent = `${this.getFoundRequiredWordCount()}/${this.levelWords.length}`;
+    if (scoreEl) scoreEl.textContent = this.levelScore.toString();
+    if (modal) modal.style.display = 'flex';
   }
 
   private applyWorldTheme(): void {
@@ -1009,7 +1129,14 @@ export class GameScene extends Phaser.Scene {
       case 'magic_wildcard':
         return `${mechanic.hint} ${this.worldState.wildcardCellKeys.size} rune cell${this.worldState.wildcardCellKeys.size > 1 ? 's are' : ' is'} active.`;
       case 'ice_frozen':
-        return this.worldState.crackedFrozenWords.size > 0 ? 'Cracked words need one more solve.' : mechanic.hint;
+        if (this.worldState.crackedFrozenWords.size > 0) {
+          const remaining = this.getRemainingNonFrozenRequiredWordCount();
+          if (remaining > 0) {
+            return `Finish ${remaining} more word${remaining > 1 ? 's' : ''} before thawing the cracked word${this.worldState.crackedFrozenWords.size > 1 ? 's' : ''}.`;
+          }
+          return 'Cracked frozen words can now be cleared.';
+        }
+        return mechanic.hint;
       case 'desert_gold': {
         const remaining = [...this.worldState.goldenCellKeys].filter((key) => !this.worldState.collectedGoldenCellKeys.has(key)).length;
         return remaining > 0 ? `${remaining} golden cell${remaining > 1 ? 's' : ''} still shimmer.` : 'All golden cells collected.';
@@ -1043,11 +1170,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onTimerExpired(): void {
+    if (this.resolutionState !== 'active') return;
+
     this.stopTimer();
+    this.stopComboTick();
+    this.resolutionState = 'timeout';
     this.timedOut = true;
+    this.isDragging = false;
+    this.clearSelection();
+    CrazyGamesManager.gameplayStop();
     this.juice.screenFlash(COLORS.ERROR_RED, 400);
     SoundManager.play('wrong');
-    this.time.delayedCall(600, () => this.onLevelComplete());
+    this.time.delayedCall(600, () => this.showTimeUpModal());
   }
 
   private updateTimerUI(): void {
@@ -1118,6 +1252,25 @@ export class GameScene extends Phaser.Scene {
     this.injectIcons();
     this.setupMobileWordRackScroll();
 
+    document.getElementById('btn-retry-level')?.addEventListener('click', async () => {
+      if (this.isLevelTransitioning) return;
+
+      this.isLevelTransitioning = true;
+      const retryButton = document.getElementById('btn-retry-level') as HTMLButtonElement | null;
+      retryButton?.setAttribute('disabled', 'true');
+      document.getElementById('time-up-modal')!.style.display = 'none';
+      SoundManager.play('click');
+
+      try {
+        await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+        CrazyGamesManager.gameplayStart();
+        this.startLevel(CrazyGamesManager.saveData.level);
+      } finally {
+        retryButton?.removeAttribute('disabled');
+        this.isLevelTransitioning = false;
+      }
+    });
+
     document.getElementById('btn-next-level')?.addEventListener('click', async () => {
       if (this.isLevelTransitioning) return;
 
@@ -1128,21 +1281,32 @@ export class GameScene extends Phaser.Scene {
       SoundManager.play('click');
 
       try {
-        const level = CrazyGamesManager.saveData.level;
-        if (level % AD_INTERVAL_LEVELS === 0) {
+        const currentLevel = CrazyGamesManager.saveData.pendingCompletion?.level ?? CrazyGamesManager.saveData.level;
+        const nextLevel = currentLevel + 1;
+        CrazyGamesManager.clearPendingCompletion();
+        CrazyGamesManager.advanceLevel();
+
+        if (nextLevel % AD_INTERVAL_LEVELS === 0) {
           await CrazyGamesManager.requestMidgameAd();
         }
 
         await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
         CrazyGamesManager.gameplayStart();
-        this.startLevel(level);
+        this.startLevel(nextLevel);
       } finally {
         nextLevelButton?.removeAttribute('disabled');
         this.isLevelTransitioning = false;
       }
     });
 
+    document.getElementById('btn-complete-daily-spin')?.addEventListener('click', () => {
+      if (this.isLevelTransitioning) return;
+      SoundManager.play('click');
+      this.openDailySpin(true);
+    });
+
     document.getElementById('btn-settings')?.addEventListener('click', () => {
+      if (this.isGameplayLocked()) return;
       SoundManager.play('click');
       document.getElementById('settings-modal')!.style.display = 'flex';
     });
@@ -1173,19 +1337,23 @@ export class GameScene extends Phaser.Scene {
     });
 
     document.getElementById('btn-detect')?.addEventListener('click', () => {
+      if (this.isGameplayLocked()) return;
       SoundManager.play('click');
       this.useDetect();
     });
     document.getElementById('btn-undo')?.addEventListener('click', () => {
+      if (this.isGameplayLocked()) return;
       SoundManager.play('click');
       this.useUndo();
     });
     document.getElementById('btn-ad-gems')?.addEventListener('click', () => {
+      if (this.isGameplayLocked()) return;
       SoundManager.play('click');
       this.watchAdForGems();
     });
 
     const spinHandler = () => {
+      if (this.isGameplayLocked()) return;
       SoundManager.play('click');
       this.openDailySpin();
     };
@@ -1206,7 +1374,9 @@ export class GameScene extends Phaser.Scene {
 
     document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', () => {
-        (backdrop.parentElement as HTMLElement).style.display = 'none';
+        const modal = backdrop.parentElement as HTMLElement | null;
+        if (!modal || modal.dataset.static === 'true') return;
+        modal.style.display = 'none';
       });
     });
 
@@ -1291,7 +1461,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private useDetect(): void {
-    if (this.timedOut) return;
+    if (this.isGameplayLocked() || this.timedOut) return;
     const save = CrazyGamesManager.saveData;
 
     if (save.freeHints > 0) {
@@ -1372,10 +1542,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getHintableWords(): string[] {
-    return this.levelWords.filter((word) => !this.foundWords.has(word) && !this.isWordLocked(word));
+    return this.levelWords.filter((word) =>
+      !this.foundWords.has(word)
+      && !this.isWordLocked(word)
+      && (!this.worldState.frozenWords.has(word) || this.getRemainingNonFrozenRequiredWordCount() === 0)
+    );
   }
 
   private useUndo(): void {
+    if (this.isGameplayLocked() || this.timedOut) return;
     if (!this.isDragging) return;
     if (!CrazyGamesManager.spendGems(POWERUP_COSTS.UNDO)) return;
 
@@ -1386,6 +1561,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private async watchAdForGems(): Promise<void> {
+    if (this.isGameplayLocked() || this.timedOut) return;
     if (this.adUsedThisLevel) return;
     const success = await CrazyGamesManager.requestRewardedAd();
     if (!success) return;
@@ -1401,6 +1577,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private async offerAdForPowerup(type: 'detect'): Promise<void> {
+    if (this.isGameplayLocked() || this.timedOut) return;
     const success = await CrazyGamesManager.requestRewardedAd();
     if (!success) return;
 
@@ -1433,7 +1610,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private openDailySpin(): void {
+  private openDailySpin(allowResolved = false): void {
+    if (this.isGameplayLocked() && !allowResolved) return;
     const modal = document.getElementById('spin-modal')!;
     const button = document.getElementById('btn-spin')!;
     const result = document.getElementById('spin-result')!;
@@ -1450,6 +1628,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.drawSpinWheel();
+    this.updateCompletionDailySpinButton();
     modal.style.display = 'flex';
   }
 
@@ -1570,6 +1749,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     CrazyGamesManager.markDailySpin();
+    this.updateCompletionDailySpinButton();
     button.style.display = 'none';
     document.getElementById('spin-reward-text')!.textContent = `${reward.label}!`;
     document.getElementById('spin-result')!.style.display = 'block';
@@ -1611,12 +1791,23 @@ export class GameScene extends Phaser.Scene {
           item.classList.add('found', `word-color-${colorIndex % COLORS.FOUND_COLORS.length}`);
         }
         if (statusTag) item.classList.add(statusTag.className);
+        item.title = statusTag && !isFound ? `${word} - ${statusTag.label}` : word;
+        item.setAttribute('aria-label', item.title);
 
-        item.innerHTML = `
-          <span class="word-check">${isFound ? ICONS.checkFilled : ICONS.checkEmpty}</span>
-          <span class="word-text">${word}</span>
-          ${statusTag && !isFound ? `<span class="word-state ${statusTag.className}">${statusTag.label}</span>` : ''}
-        `;
+        const check = document.createElement('span');
+        check.className = 'word-check';
+        check.innerHTML = isFound ? ICONS.checkFilled : ICONS.checkEmpty;
+
+        const wordBody = document.createElement('span');
+        wordBody.className = 'word-body';
+
+        const wordText = document.createElement('span');
+        wordText.className = 'word-text';
+        wordText.textContent = word;
+        wordText.dataset.word = word;
+
+        wordBody.appendChild(wordText);
+        item.append(check, wordBody);
         desktopList.appendChild(item);
       });
 
@@ -1643,7 +1834,9 @@ export class GameScene extends Phaser.Scene {
         }
         if (statusTag) item.classList.add(statusTag.className);
         item.textContent = word;
-        if (statusTag && !isFound) item.title = statusTag.label;
+        item.dataset.word = word;
+        item.title = statusTag && !isFound ? `${word} - ${statusTag.label}` : word;
+        item.setAttribute('aria-label', item.title);
         mobileList.appendChild(item);
       });
     }
@@ -1655,6 +1848,16 @@ export class GameScene extends Phaser.Scene {
     let count = 0;
     for (const word of this.levelWords) {
       if (this.foundWords.has(word)) count += 1;
+    }
+    return count;
+  }
+
+  private getRemainingNonFrozenRequiredWordCount(): number {
+    let count = 0;
+    for (const word of this.levelWords) {
+      if (this.foundWords.has(word)) continue;
+      if (this.worldState.frozenWords.has(word)) continue;
+      count += 1;
     }
     return count;
   }

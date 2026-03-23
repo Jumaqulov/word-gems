@@ -325,7 +325,7 @@ export const WORLDS: WorldConfig[] = [
   {
     id: 'ice',
     name: 'Ice World',
-    description: 'Frozen words crack once before they clear.',
+    description: 'Frozen words crack once, then thaw only after the other words are found.',
     levels: [51, 60],
     gridSize: [10, 10],
     wordCount: [7, 9],
@@ -347,7 +347,7 @@ export const WORLDS: WorldConfig[] = [
     timer: { enabled: true, startSeconds: 185, endSeconds: 155 },
     mechanic: {
       type: 'ice_frozen',
-      hint: 'Frozen words crack on the first solve and clear on the second.',
+      hint: 'Frozen words crack first, then clear after the other words are found.',
       frozenWords: 1,
     },
     visuals: {

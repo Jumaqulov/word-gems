@@ -21,6 +21,16 @@ export interface SaveData {
   tutorialSeen: boolean;
   hintsUsed: number;
   bestStreak: number;
+  pendingCompletion: {
+    level: number;
+    result: {
+      total: number;
+      gemsEarned: number;
+      stars: number;
+    };
+    foundWords: number;
+    totalWords: number;
+  } | null;
 }
 
 const DEFAULT_SAVE: SaveData = {
@@ -42,6 +52,7 @@ const DEFAULT_SAVE: SaveData = {
   tutorialSeen: false,
   hintsUsed: 0,
   bestStreak: 0,
+  pendingCompletion: null,
 };
 
 class CrazyGamesManagerSingleton {
@@ -313,6 +324,17 @@ class CrazyGamesManagerSingleton {
 
   markDailySpin(): void {
     this._saveData.dailySpinTimestamp = Date.now();
+    this.saveGame();
+  }
+
+  setPendingCompletion(pendingCompletion: NonNullable<SaveData['pendingCompletion']>): void {
+    this._saveData.pendingCompletion = pendingCompletion;
+    this.saveGame();
+  }
+
+  clearPendingCompletion(): void {
+    if (!this._saveData.pendingCompletion) return;
+    this._saveData.pendingCompletion = null;
     this.saveGame();
   }
 }
