@@ -167,3 +167,23 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - targeted browser checks confirmed:
     - tracing a frozen word early still returns `blocked` and marks it `cracked`,
     - when the frozen word is the last remaining target, the first trace now returns `resolve`, marks the word found, removes its frozen state, and shows `ALL FOUND!`.
+
+2026-03-24 daily spin button polish
+- Investigated the daily spin modal CTA looking washed out / disabled even when available.
+- Fix:
+  - added a dedicated `#btn-spin` reward CTA style in `styles.css` instead of relying on the generic world-tinted `.action-btn`,
+  - increased contrast with a brighter cyan-to-blue gradient, explicit border, stronger drop shadow, and text shadow,
+  - added clearer hover/press depth plus a separate disabled treatment so the enabled state reads as obviously clickable.
+- Follow-up polish:
+  - replaced the hardcoded blue palette with theme-linked `--world-*` color mixes so the button now changes with the active world,
+  - switched the CTA label to a darker theme-derived text color and softened the top highlight so `SPIN!` reads cleanly against the button fill.
+  - extended the same theme-aware CTA styling to `#btn-spin-collect` so the reward-state button matches the main spin button instead of falling back to the washed-out generic action style.
+- Verification:
+  - `npm run build` passed after the button polish,
+  - re-ran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - ran a targeted Playwright modal probe and saved artifacts to `output/web-game/spin-button-polish.png` and `output/web-game/spin-button-polish-check.json`,
+  - probe confirmed the modal opens, `#btn-spin` is visible with text `SPIN!`, `disabled: false`, `cursor: pointer`, the new layered gradient background, and no console/page errors,
+  - a follow-up theme probe confirmed the computed `backgroundImage`, `color`, and `borderColor` all change when the `--world-*` variables change (`changed: true`).
+- Latest follow-up note:
+  - per user request, the `COLLECT` button style update was applied without running another button-specific test pass.
+  - per user request, the unavailable `COME BACK TOMORROW` disabled state was also restyled for stronger contrast and a clearer info-card look without running another button-specific test pass.
