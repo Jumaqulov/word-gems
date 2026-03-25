@@ -187,3 +187,13 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Latest follow-up note:
   - per user request, the `COLLECT` button style update was applied without running another button-specific test pass.
   - per user request, the unavailable `COME BACK TOMORROW` disabled state was also restyled for stronger contrast and a clearer info-card look without running another button-specific test pass.
+  - refreshed the daily spin modal background so the card no longer sits on a flat white fill: added theme-tinted gradient layers to `.spin-modal-content` plus a soft stage/glow panel behind the wheel.
+  - `npm run build` passed after the background pass, the `$develop-web-game` client ran against a local static server, and a targeted modal probe captured `output/web-game/spin-modal-background-polish.png` / `spin-modal-background-polish-check.json` with `errorCount: 0`.
+  - redesign follow-up after user feedback: pushed the spin modal away from the plain-card look into a more reward-stage presentation with a patterned shell, a brighter framed panel behind the wheel, soft ray bursts, and small sparkle accents around the spinner.
+  - fixed a title rendering issue introduced during the redesign by switching the heading badge away from inline flex and giving it a safer line-height.
+  - verification: `npm run build` passed again, the `$develop-web-game` smoke check still ran cleanly, and the refreshed screenshot/probe artifacts are in `output/web-game/spin-modal-redesign.png` and `output/web-game/spin-modal-redesign-check.json` with `errorCount: 0`.
+  - redesign follow-up after more user feedback: replaced the pale card treatment with a darker gem-vault / reward-chamber direction so the wheel sits inside a more dramatic spotlighted frame instead of a soft pastel panel.
+  - updated the spin title badge, wheel chamber, and lower podium layers to use deeper world-linked tones with luminous accents and stronger contrast around the spinner.
+  - verification: `npm run build` passed after the dark reward-chamber pass, the `$develop-web-game` smoke check still ran cleanly, and the refreshed screenshot/probe artifacts were overwritten at `output/web-game/spin-modal-redesign.png` / `output/web-game/spin-modal-redesign-check.json` with `errorCount: 0`.
+  - cleanup follow-up: removed the extra stacked square layers behind the wheel so the spinner now sits on one main rounded chamber instead of multiple nested boxes.
+  - verification: `npm run build` passed after the frame cleanup, the `$develop-web-game` smoke check still ran cleanly, and the latest artifacts are `output/web-game/spin-modal-frame-cleanup.png` / `output/web-game/spin-modal-frame-cleanup-check.json` with `errorCount: 0`.

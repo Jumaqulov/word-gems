@@ -1371,12 +1371,99 @@ html, body {
 
 /* ====== DAILY SPIN MODAL ====== */
 .spin-modal-content {
+  position: relative;
   text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% -8%, color-mix(in srgb, var(--world-secondary) 28%, rgba(255, 255, 255, 0.22)) 0%, transparent 34%),
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--world-accent) 18%, transparent) 0%, transparent 28%),
+    radial-gradient(circle at 84% 74%, color-mix(in srgb, var(--world-primary) 18%, transparent) 0%, transparent 28%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0) 0 18px,
+      color-mix(in srgb, var(--world-secondary) 4%, transparent) 18px 32px
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--world-bg-top) 86%, #050a12 14%) 0%,
+      color-mix(in srgb, var(--world-bg-mid) 82%, #10253f 18%) 50%,
+      color-mix(in srgb, var(--world-bg-bottom) 88%, #060913 12%) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--world-secondary) 22%, rgba(255, 255, 255, 0.14));
+  box-shadow:
+    0 30px 82px rgba(5, 8, 18, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.spin-modal-content::before,
+.spin-modal-content::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spin-modal-content::before {
+  inset: 94px 42px 176px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--world-glow) 34%, rgba(255, 255, 255, 0.08)) 0%, transparent 72%);
+  border: none;
+  box-shadow: none;
+  opacity: 0.82;
+}
+
+.spin-modal-content::after {
+  inset: auto -16% -62px;
+  height: 210px;
+  border-radius: 58% 58% 0 0 / 100% 100% 0 0;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--world-accent) 22%, rgba(255, 255, 255, 0.12)) 0%, transparent 52%),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--world-primary) 10%, transparent) 0 16px,
+      transparent 16px 32px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--world-bg-mid) 74%, rgba(255, 255, 255, 0.08)) 0%,
+      color-mix(in srgb, var(--world-bg-bottom) 84%, rgba(255, 255, 255, 0.02)) 100%
+    );
+  border-top: 1px solid color-mix(in srgb, var(--world-secondary) 18%, rgba(255, 255, 255, 0.12));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 -10px 28px rgba(5, 9, 18, 0.12);
+  opacity: 0.94;
+  transform: rotate(-2deg);
+}
+
+.spin-modal-content > * {
+  position: relative;
+  z-index: 1;
 }
 
 .spin-modal-content h2 {
+  display: inline-block;
   font-size: 1.5rem;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
+  padding: 6px 18px 8px;
+  border-radius: 999px;
+  line-height: 1.18;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--world-bg-top) 76%, rgba(255, 255, 255, 0.08)) 0%,
+      color-mix(in srgb, var(--world-bg-mid) 68%, rgba(255, 255, 255, 0.04)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--world-secondary) 28%, rgba(255, 255, 255, 0.14));
+  box-shadow:
+    0 14px 30px rgba(5, 9, 18, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: color-mix(in srgb, var(--world-secondary) 58%, white 42%);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--world-secondary) 22%, transparent);
+  z-index: 2;
 }
 
 #btn-spin,
@@ -1456,10 +1543,48 @@ html, body {
   margin: 0 auto 20px;
 }
 
+#spin-wheel-container::before {
+  content: '';
+  position: absolute;
+  inset: -22px -18px -12px;
+  border-radius: 42px;
+  background:
+    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--world-glow) 48%, rgba(255, 255, 255, 0.2)) 0%, transparent 54%),
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.16) 14%, transparent 26%, transparent 74%, rgba(255, 255, 255, 0.14) 86%, transparent 100%),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--world-bg-mid) 68%, rgba(255, 255, 255, 0.14)) 0%,
+      color-mix(in srgb, var(--world-bg-top) 52%, var(--world-accent) 48%) 56%,
+      color-mix(in srgb, var(--world-bg-bottom) 76%, rgba(255, 255, 255, 0.12)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--world-secondary) 22%, rgba(255, 255, 255, 0.18));
+  box-shadow:
+    0 22px 40px color-mix(in srgb, var(--world-glow) 28%, rgba(17, 24, 39, 0.16)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  z-index: 0;
+}
+
+#spin-wheel-container::after {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  background:
+    radial-gradient(circle at 16% 28%, color-mix(in srgb, var(--world-secondary) 72%, white 8%) 0 5px, transparent 6px),
+    radial-gradient(circle at 82% 22%, color-mix(in srgb, var(--world-primary) 68%, white 8%) 0 4px, transparent 5px),
+    radial-gradient(circle at 88% 64%, color-mix(in srgb, var(--world-accent) 74%, white 8%) 0 6px, transparent 7px),
+    radial-gradient(circle at 18% 78%, color-mix(in srgb, var(--world-primary) 54%, white 10%) 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 92%, color-mix(in srgb, var(--world-secondary) 48%, white 12%) 0 3px, transparent 4px);
+  opacity: 0.96;
+  pointer-events: none;
+  z-index: 0;
+}
+
 #spin-wheel {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  position: relative;
+  z-index: 1;
   box-shadow:
     0 0 0 4px rgba(255, 255, 255, 0.8),
     0 0 0 8px rgba(45, 27, 105, 0.3),
