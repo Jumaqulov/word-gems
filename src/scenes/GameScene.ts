@@ -1032,7 +1032,6 @@ export class GameScene extends Phaser.Scene {
     const perfectValueEl = perfectEl.querySelector('.complete-value');
     if (perfectValueEl) perfectValueEl.textContent = `+${SCORING.PERFECT_BONUS}`;
     perfectEl.style.display = result.stars === 3 ? 'flex' : 'none';
-    this.updateCompletionDailySpinButton();
     modal.style.display = 'flex';
   }
 
@@ -1052,19 +1051,6 @@ export class GameScene extends Phaser.Scene {
         totalWords: pendingCompletion.totalWords,
       });
     });
-  }
-
-  private updateCompletionDailySpinButton(): void {
-    const button = document.getElementById('btn-complete-daily-spin') as HTMLButtonElement | null;
-    if (!button) return;
-
-    if (CrazyGamesManager.canDailySpin()) {
-      button.textContent = 'DAILY SPIN';
-      button.removeAttribute('disabled');
-    } else {
-      button.textContent = 'SPIN TOMORROW';
-      button.setAttribute('disabled', 'true');
-    }
   }
 
   private showTimeUpModal(): void {
@@ -1297,12 +1283,6 @@ export class GameScene extends Phaser.Scene {
         nextLevelButton?.removeAttribute('disabled');
         this.isLevelTransitioning = false;
       }
-    });
-
-    document.getElementById('btn-complete-daily-spin')?.addEventListener('click', () => {
-      if (this.isLevelTransitioning) return;
-      SoundManager.play('click');
-      this.openDailySpin(true);
     });
 
     document.getElementById('btn-settings')?.addEventListener('click', () => {
@@ -1610,8 +1590,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private openDailySpin(allowResolved = false): void {
-    if (this.isGameplayLocked() && !allowResolved) return;
+  private openDailySpin(): void {
+    if (this.isGameplayLocked()) return;
     const modal = document.getElementById('spin-modal')!;
     const button = document.getElementById('btn-spin')!;
     const result = document.getElementById('spin-result')!;
@@ -1628,7 +1608,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.drawSpinWheel();
-    this.updateCompletionDailySpinButton();
     modal.style.display = 'flex';
   }
 
@@ -1749,7 +1728,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     CrazyGamesManager.markDailySpin();
-    this.updateCompletionDailySpinButton();
     button.style.display = 'none';
     document.getElementById('spin-reward-text')!.textContent = `${reward.label}!`;
     document.getElementById('spin-result')!.style.display = 'block';

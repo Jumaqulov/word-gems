@@ -1657,25 +1657,6 @@ html, body {
   gap: 10px;
 }
 
-.completion-spin-btn {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, #ffd55f 56%, var(--world-primary) 44%),
-      color-mix(in srgb, #ffb238 38%, #7b4a11 62%)
-    );
-  border-color: color-mix(in srgb, #ffe38f 34%, #805013 66%);
-  box-shadow:
-    0 10px 24px rgba(185, 118, 24, 0.28),
-    inset 0 1px 0 rgba(255, 251, 214, 0.24);
-}
-
-.completion-spin-btn:hover {
-  box-shadow:
-    0 12px 28px rgba(185, 118, 24, 0.34),
-    inset 0 1px 0 rgba(255, 251, 214, 0.28);
-}
-
 .time-up-content {
   max-width: 420px;
   background:
