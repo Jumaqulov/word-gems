@@ -200,3 +200,48 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - level-complete follow-up: removed the `DAILY SPIN` / `SPIN TOMORROW` CTA from the level-complete modal so the success flow now ends with only the `NEXT LEVEL` action.
   - cleaned up the related implementation by deleting the unused completion-spin button markup, its dedicated CSS variant, and the scene-side button update / click handler logic.
   - verification: `npm run build` passed, the `$develop-web-game` smoke check still ran cleanly, and a targeted modal probe confirmed `hasDailySpinButton: false`, `nextLevelCount: 1`, and `errorCount: 0` in `output/web-game/level-complete-no-daily-spin-check.json`.
+
+2026-03-25 scenic background follow-up
+- Reworked the world-background art direction away from generic drifting glow/strip FX and toward lightweight scenic silhouettes generated once in `BootScene`.
+- Updated the generated scenic textures for forest/ocean/castle/magic/ice/desert so each world now reads more like a location backdrop instead of abstract blobs.
+- Rebalanced `BackgroundFXManager` presets around low-cost scenic layers:
+  - forest now uses canopy + layered tree ridges + one subtle light shaft with only a couple of fireflies,
+  - ocean/castle/magic/ice/desert all had moving actor counts reduced and several generic glow/strip layers removed,
+  - space kept its identity but now uses fewer stars and only one comet pool entry.
+- Forest-specific polish:
+  - softened the top canopy side trunks so the scene no longer reads like a dark box behind the board,
+  - raised the ridge visibility to make the forest silhouette read more clearly as a background scene.
+- Verification:
+  - `npm run build` passed after the scenic overhaul,
+  - re-ran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - captured and visually checked `output/web-game/forest-world-scenic-bg.png` with no console/page errors in `forest-world-scenic-bg-check.json`,
+  - dev-mode `render_game_to_text` check reported the forest preset down at `signatureActors: 4`, `ambientActors: 2`, `orbitActors: 0`, confirming the new setup is intentionally lightweight.
+
+2026-03-26 forest readability correction
+- User feedback: the first scenic forest pass either looked abstract or later became too empty, so the background no longer read as a forest scene.
+- Fix:
+  - rebuilt `generateForestCanopyTexture()` into a clear forest-frame silhouette with visible side trunks, branch masses, and top canopy,
+  - strengthened `generateForestRidgeTexture()` tree shapes so the treeline reads at gameplay scale,
+  - updated `BackgroundFXManager.buildForest()` to use one canopy layer plus three clearer treeline depth layers instead of the nearly invisible plain-green pass.
+- Verification:
+  - `npm run build` passed after the forest correction,
+  - reran the `$develop-web-game` Playwright client against a local static server,
+  - visually checked `output/web-game/shot-0.png` and `output/web-game/forest-world-final-pass.png` to confirm the forest now shows visible trunks/canopy/treeline around the board.
+
+2026-03-26 forest cleanup follow-up
+- User feedback: remove the currently visible custom elements from the forest background.
+- Fix:
+  - stripped `BackgroundFXManager.buildForest()` back to a clean preset with no extra canopy / treeline / shaft / firefly actors.
+- Verification:
+  - `npm run build` passed after the cleanup,
+  - reran the `$develop-web-game` Playwright client against a local static server,
+  - visually checked `output/web-game/shot-0.png` to confirm the forest board now sits on the clean world backdrop without the added silhouette elements.
+
+2026-03-26 global background element removal
+- User feedback: remove the added background elements not just from Forest World, but from the other themes too.
+- Fix:
+  - made `BackgroundFXManager.applyWorld()` stop invoking the per-world scenic/decor builders entirely, so all worlds now keep only the clean theme backdrop with no extra runtime background actors.
+- Verification:
+  - `npm run build` passed after the global removal,
+  - reran the `$develop-web-game` Playwright client against a local static server,
+  - visually checked `output/web-game/shot-0.png` to confirm the current world renders without the extra background elements.

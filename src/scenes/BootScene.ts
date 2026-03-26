@@ -414,30 +414,58 @@ export class BootScene extends Phaser.Scene {
 
   private generateForestCanopyTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
-    const circles = [
-      [0.08, 0.48, 0.2],
-      [0.22, 0.38, 0.24],
-      [0.38, 0.46, 0.26],
-      [0.56, 0.34, 0.22],
-      [0.74, 0.42, 0.24],
-      [0.9, 0.5, 0.18],
-    ] as const;
+    const drawTrunk = (
+      x: number,
+      y: number,
+      trunkWidth: number,
+      trunkHeight: number,
+      alpha: number
+    ): void => {
+      g.fillStyle(0xffffff, alpha);
+      g.fillRoundedRect(x, y, trunkWidth, trunkHeight, 24);
+      g.fillStyle(0xffffff, alpha * 0.32);
+      g.fillRoundedRect(x + trunkWidth * 0.18, y, trunkWidth * 0.18, trunkHeight, 14);
+    };
+    const drawLeafMass = (centerX: number, centerY: number, size: number, alpha: number): void => {
+      g.fillStyle(0xffffff, alpha);
+      g.fillCircle(centerX, centerY, size * 0.34);
+      g.fillCircle(centerX - size * 0.24, centerY + size * 0.03, size * 0.26);
+      g.fillCircle(centerX + size * 0.26, centerY + size * 0.02, size * 0.24);
+      g.fillCircle(centerX - size * 0.12, centerY - size * 0.18, size * 0.24);
+      g.fillCircle(centerX + size * 0.12, centerY - size * 0.18, size * 0.24);
+    };
 
-    g.fillStyle(0xffffff, 0.22);
-    circles.forEach(([x, y, r]) => {
-      g.fillCircle(width * x, height * y, width * r);
-    });
+    drawTrunk(width * 0.035, height * 0.12, width * 0.065, height * 0.86, 0.16);
+    drawTrunk(width * 0.12, height * 0.26, width * 0.045, height * 0.72, 0.1);
+    drawTrunk(width * 0.9, height * 0.1, width * 0.06, height * 0.88, 0.15);
+    drawTrunk(width * 0.84, height * 0.24, width * 0.042, height * 0.74, 0.1);
 
-    g.fillStyle(0xffffff, 0.16);
-    g.fillRoundedRect(width * 0.04, height * 0.42, width * 0.92, height * 0.5, 60);
+    drawLeafMass(width * 0.12, height * 0.18, width * 0.28, 0.18);
+    drawLeafMass(width * 0.24, height * 0.16, width * 0.22, 0.16);
+    drawLeafMass(width * 0.82, height * 0.16, width * 0.24, 0.17);
+    drawLeafMass(width * 0.7, height * 0.18, width * 0.2, 0.14);
 
-    for (let i = 0; i < 7; i++) {
-      const stemX = width * (0.12 + i * 0.12);
-      const stemHeight = height * (0.2 + (i % 3) * 0.08);
-      g.fillStyle(0xffffff, 0.1);
-      g.fillRoundedRect(stemX, height * 0.62, width * 0.018, stemHeight, 8);
-      g.fillCircle(stemX + width * 0.009, height * 0.62 + stemHeight * 0.12, width * 0.03);
-    }
+    g.fillStyle(0xffffff, 0.11);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.05, height * 0.42),
+      new Phaser.Geom.Point(width * 0.16, height * 0.28),
+      new Phaser.Geom.Point(width * 0.28, height * 0.32),
+      new Phaser.Geom.Point(width * 0.36, height * 0.46),
+      new Phaser.Geom.Point(width * 0.26, height * 0.52),
+      new Phaser.Geom.Point(width * 0.14, height * 0.5),
+    ], true);
+    g.fillPoints([
+      new Phaser.Geom.Point(width * 0.96, height * 0.4),
+      new Phaser.Geom.Point(width * 0.84, height * 0.26),
+      new Phaser.Geom.Point(width * 0.7, height * 0.32),
+      new Phaser.Geom.Point(width * 0.62, height * 0.46),
+      new Phaser.Geom.Point(width * 0.72, height * 0.54),
+      new Phaser.Geom.Point(width * 0.86, height * 0.5),
+    ], true);
+
+    g.fillStyle(0xffffff, 0.08);
+    g.fillRoundedRect(width * 0.02, height * 0.78, width * 0.18, height * 0.1, 36);
+    g.fillRoundedRect(width * 0.8, height * 0.78, width * 0.18, height * 0.1, 36);
 
     g.generateTexture(key, width, height);
     g.destroy();
@@ -445,33 +473,101 @@ export class BootScene extends Phaser.Scene {
 
   private generateForestRidgeTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
+    const drawPine = (centerX: number, baseY: number, size: number, alpha: number): void => {
+      g.fillStyle(0xffffff, alpha);
+      g.fillTriangle(
+        centerX - size * 0.28,
+        baseY,
+        centerX,
+        baseY - size * 0.52,
+        centerX + size * 0.28,
+        baseY
+      );
+      g.fillTriangle(
+        centerX - size * 0.22,
+        baseY - size * 0.16,
+        centerX,
+        baseY - size * 0.72,
+        centerX + size * 0.22,
+        baseY - size * 0.16
+      );
+      g.fillTriangle(
+        centerX - size * 0.16,
+        baseY - size * 0.32,
+        centerX,
+        baseY - size * 0.9,
+        centerX + size * 0.16,
+        baseY - size * 0.32
+      );
+      g.fillRoundedRect(centerX - size * 0.035, baseY - size * 0.1, size * 0.07, size * 0.18, 4);
+    };
+    const drawOak = (centerX: number, baseY: number, size: number, alpha: number): void => {
+      g.fillStyle(0xffffff, alpha * 0.82);
+      g.fillRoundedRect(centerX - size * 0.05, baseY - size * 0.24, size * 0.1, size * 0.26, 5);
+      g.fillStyle(0xffffff, alpha);
+      g.fillCircle(centerX, baseY - size * 0.38, size * 0.2);
+      g.fillCircle(centerX - size * 0.16, baseY - size * 0.32, size * 0.14);
+      g.fillCircle(centerX + size * 0.16, baseY - size * 0.32, size * 0.14);
+      g.fillCircle(centerX, baseY - size * 0.54, size * 0.13);
+    };
 
-    g.fillStyle(0xffffff, 0.18);
+    g.fillStyle(0xffffff, 0.08);
     g.fillPoints([
-      new Phaser.Geom.Point(0, height * 0.78),
-      new Phaser.Geom.Point(width * 0.12, height * 0.62),
-      new Phaser.Geom.Point(width * 0.28, height * 0.7),
-      new Phaser.Geom.Point(width * 0.46, height * 0.56),
-      new Phaser.Geom.Point(width * 0.64, height * 0.7),
-      new Phaser.Geom.Point(width * 0.84, height * 0.58),
+      new Phaser.Geom.Point(0, height * 0.7),
+      new Phaser.Geom.Point(width * 0.1, height * 0.58),
+      new Phaser.Geom.Point(width * 0.24, height * 0.64),
+      new Phaser.Geom.Point(width * 0.42, height * 0.5),
+      new Phaser.Geom.Point(width * 0.62, height * 0.62),
+      new Phaser.Geom.Point(width * 0.82, height * 0.48),
+      new Phaser.Geom.Point(width, height * 0.6),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    g.fillStyle(0xffffff, 0.12);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.8),
+      new Phaser.Geom.Point(width * 0.14, height * 0.64),
+      new Phaser.Geom.Point(width * 0.3, height * 0.72),
+      new Phaser.Geom.Point(width * 0.48, height * 0.58),
+      new Phaser.Geom.Point(width * 0.66, height * 0.7),
+      new Phaser.Geom.Point(width * 0.86, height * 0.6),
       new Phaser.Geom.Point(width, height * 0.74),
       new Phaser.Geom.Point(width, height),
       new Phaser.Geom.Point(0, height),
     ], true);
 
-    for (let i = 0; i < 9; i++) {
-      const baseX = width * (0.06 + i * 0.105);
-      const treeHeight = height * (0.22 + ((i + 1) % 3) * 0.07);
-      g.fillStyle(0xffffff, 0.18);
-      g.fillTriangle(
-        baseX,
-        height * 0.7,
-        baseX + width * 0.04,
-        height * 0.7 - treeHeight,
-        baseX + width * 0.08,
-        height * 0.7
-      );
-    }
+    g.fillStyle(0xffffff, 0.18);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.9),
+      new Phaser.Geom.Point(width * 0.18, height * 0.76),
+      new Phaser.Geom.Point(width * 0.36, height * 0.84),
+      new Phaser.Geom.Point(width * 0.54, height * 0.68),
+      new Phaser.Geom.Point(width * 0.72, height * 0.8),
+      new Phaser.Geom.Point(width * 0.9, height * 0.72),
+      new Phaser.Geom.Point(width, height * 0.82),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    ([
+      [0.06, 0.82, 76, 0.14],
+      [0.15, 0.8, 112, 0.18],
+      [0.28, 0.84, 88, 0.16],
+      [0.42, 0.78, 126, 0.2],
+      [0.56, 0.84, 96, 0.17],
+      [0.7, 0.8, 118, 0.19],
+      [0.84, 0.83, 84, 0.15],
+      [0.94, 0.82, 70, 0.13],
+    ] as const).forEach(([xRatio, yRatio, size, alpha], index) => {
+      const centerX = width * xRatio;
+      const baseY = height * yRatio;
+      if (index % 3 === 1) {
+        drawOak(centerX, baseY, size, alpha);
+      } else {
+        drawPine(centerX, baseY, size, alpha);
+      }
+    });
 
     g.generateTexture(key, width, height);
     g.destroy();
@@ -479,28 +575,74 @@ export class BootScene extends Phaser.Scene {
 
   private generateOceanReefTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
+    const drawCoral = (centerX: number, baseY: number, heightValue: number, alpha: number): void => {
+      g.fillStyle(0xffffff, alpha);
+      g.fillRoundedRect(centerX - width * 0.012, baseY - heightValue, width * 0.024, heightValue, 8);
+      g.fillRoundedRect(centerX - width * 0.046, baseY - heightValue * 0.78, width * 0.018, heightValue * 0.52, 8);
+      g.fillRoundedRect(centerX + width * 0.028, baseY - heightValue * 0.7, width * 0.018, heightValue * 0.46, 8);
+      g.fillCircle(centerX - width * 0.038, baseY - heightValue * 0.78, width * 0.022);
+      g.fillCircle(centerX + width * 0.04, baseY - heightValue * 0.68, width * 0.024);
+    };
+    const drawKelp = (centerX: number, baseY: number, heightValue: number, alpha: number): void => {
+      g.fillStyle(0xffffff, alpha);
+      g.fillEllipse(centerX - width * 0.014, baseY - heightValue * 0.74, width * 0.034, heightValue * 0.42);
+      g.fillEllipse(centerX + width * 0.012, baseY - heightValue * 0.48, width * 0.032, heightValue * 0.36);
+      g.fillEllipse(centerX - width * 0.008, baseY - heightValue * 0.2, width * 0.028, heightValue * 0.3);
+    };
 
-    g.fillStyle(0xffffff, 0.16);
+    g.fillStyle(0xffffff, 0.08);
     g.fillPoints([
-      new Phaser.Geom.Point(0, height * 0.82),
-      new Phaser.Geom.Point(width * 0.12, height * 0.64),
-      new Phaser.Geom.Point(width * 0.24, height * 0.74),
-      new Phaser.Geom.Point(width * 0.36, height * 0.58),
-      new Phaser.Geom.Point(width * 0.5, height * 0.76),
-      new Phaser.Geom.Point(width * 0.64, height * 0.62),
-      new Phaser.Geom.Point(width * 0.82, height * 0.8),
-      new Phaser.Geom.Point(width, height * 0.66),
+      new Phaser.Geom.Point(0, height * 0.74),
+      new Phaser.Geom.Point(width * 0.18, height * 0.56),
+      new Phaser.Geom.Point(width * 0.34, height * 0.68),
+      new Phaser.Geom.Point(width * 0.54, height * 0.52),
+      new Phaser.Geom.Point(width * 0.76, height * 0.64),
+      new Phaser.Geom.Point(width, height * 0.48),
       new Phaser.Geom.Point(width, height),
       new Phaser.Geom.Point(0, height),
     ], true);
 
-    for (let i = 0; i < 6; i++) {
-      const baseX = width * (0.1 + i * 0.14);
-      const stalkHeight = height * (0.16 + (i % 2) * 0.12);
-      g.fillStyle(0xffffff, 0.14);
-      g.fillRoundedRect(baseX, height * 0.68 - stalkHeight, width * 0.022, stalkHeight, 8);
-      g.fillCircle(baseX + width * 0.012, height * 0.68 - stalkHeight, width * 0.028);
-    }
+    g.fillStyle(0xffffff, 0.12);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.86),
+      new Phaser.Geom.Point(width * 0.12, height * 0.68),
+      new Phaser.Geom.Point(width * 0.28, height * 0.8),
+      new Phaser.Geom.Point(width * 0.44, height * 0.62),
+      new Phaser.Geom.Point(width * 0.62, height * 0.78),
+      new Phaser.Geom.Point(width * 0.8, height * 0.6),
+      new Phaser.Geom.Point(width, height * 0.72),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    g.fillStyle(0xffffff, 0.18);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.96),
+      new Phaser.Geom.Point(width * 0.18, height * 0.8),
+      new Phaser.Geom.Point(width * 0.36, height * 0.9),
+      new Phaser.Geom.Point(width * 0.56, height * 0.74),
+      new Phaser.Geom.Point(width * 0.78, height * 0.86),
+      new Phaser.Geom.Point(width, height * 0.76),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    ([
+      [0.1, 0.82, 68, 0.12],
+      [0.24, 0.78, 58, 0.15],
+      [0.38, 0.84, 74, 0.14],
+      [0.56, 0.76, 64, 0.16],
+      [0.72, 0.82, 70, 0.14],
+      [0.88, 0.78, 56, 0.13],
+    ] as const).forEach(([xRatio, yRatio, size, alpha], index) => {
+      const centerX = width * xRatio;
+      const baseY = height * yRatio;
+      if (index % 2 === 0) {
+        drawCoral(centerX, baseY, size, alpha);
+      } else {
+        drawKelp(centerX, baseY, size, alpha);
+      }
+    });
 
     g.generateTexture(key, width, height);
     g.destroy();
@@ -548,6 +690,18 @@ export class BootScene extends Phaser.Scene {
   private generateCastleSilhouetteTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
 
+    g.fillStyle(0xffffff, 0.08);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.86),
+      new Phaser.Geom.Point(width * 0.16, height * 0.72),
+      new Phaser.Geom.Point(width * 0.38, height * 0.8),
+      new Phaser.Geom.Point(width * 0.58, height * 0.66),
+      new Phaser.Geom.Point(width * 0.82, height * 0.78),
+      new Phaser.Geom.Point(width, height * 0.7),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
     g.fillStyle(0xffffff, 0.18);
     g.fillPoints([
       new Phaser.Geom.Point(0, height * 0.78),
@@ -574,6 +728,22 @@ export class BootScene extends Phaser.Scene {
       new Phaser.Geom.Point(0, height),
     ], true);
 
+    ([
+      [0.18, 0.54, 0.026],
+      [0.44, 0.44, 0.03],
+      [0.66, 0.5, 0.024],
+      [0.86, 0.56, 0.022],
+    ] as const).forEach(([xRatio, topRatio, windowWidth]) => {
+      g.fillStyle(0xffffff, 0.08);
+      g.fillRoundedRect(
+        width * xRatio,
+        height * topRatio,
+        width * windowWidth,
+        height * 0.09,
+        6
+      );
+    });
+
     g.generateTexture(key, width, height);
     g.destroy();
   }
@@ -582,12 +752,32 @@ export class BootScene extends Phaser.Scene {
     const g = this.add.graphics();
 
     g.fillStyle(0xffffff, 0.08);
-    g.fillEllipse(width * 0.28, height * 0.54, width * 0.42, height * 0.52);
-    g.fillEllipse(width * 0.62, height * 0.44, width * 0.48, height * 0.56);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.78),
+      new Phaser.Geom.Point(width * 0.18, height * 0.56),
+      new Phaser.Geom.Point(width * 0.32, height * 0.7),
+      new Phaser.Geom.Point(width * 0.5, height * 0.48),
+      new Phaser.Geom.Point(width * 0.68, height * 0.66),
+      new Phaser.Geom.Point(width * 0.84, height * 0.54),
+      new Phaser.Geom.Point(width, height * 0.68),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
     g.fillStyle(0xffffff, 0.12);
-    g.fillEllipse(width * 0.48, height * 0.5, width * 0.56, height * 0.42);
-    g.lineStyle(4, 0xffffff, 0.12);
-    g.strokeEllipse(width * 0.52, height * 0.48, width * 0.42, height * 0.22);
+    g.fillTriangle(width * 0.08, height * 0.84, width * 0.16, height * 0.32, width * 0.24, height * 0.84);
+    g.fillTriangle(width * 0.72, height * 0.84, width * 0.82, height * 0.24, width * 0.92, height * 0.84);
+    g.fillTriangle(width * 0.32, height * 0.86, width * 0.38, height * 0.42, width * 0.44, height * 0.86);
+    g.fillTriangle(width * 0.56, height * 0.86, width * 0.62, height * 0.38, width * 0.68, height * 0.86);
+
+    g.fillStyle(0xffffff, 0.16);
+    g.fillRoundedRect(width * 0.42, height * 0.42, width * 0.16, height * 0.34, 24);
+    g.fillStyle(0xffffff, 0.08);
+    g.fillRoundedRect(width * 0.454, height * 0.5, width * 0.092, height * 0.26, 14);
+    g.lineStyle(5, 0xffffff, 0.14);
+    g.strokeEllipse(width * 0.5, height * 0.56, width * 0.26, height * 0.4);
+    g.lineStyle(3, 0xffffff, 0.1);
+    g.strokeEllipse(width * 0.5, height * 0.56, width * 0.16, height * 0.26);
 
     g.generateTexture(key, width, height);
     g.destroy();
@@ -596,17 +786,29 @@ export class BootScene extends Phaser.Scene {
   private generateIceCrystalTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
     const peaks = [
-      [0.04, 0.9, 0.14, 0.28],
-      [0.18, 0.9, 0.08, 0.46],
-      [0.28, 0.9, 0.12, 0.32],
-      [0.42, 0.9, 0.07, 0.52],
-      [0.56, 0.9, 0.14, 0.34],
-      [0.72, 0.9, 0.1, 0.48],
-      [0.86, 0.9, 0.12, 0.36],
+      [0.08, 0.92, 0.16, 0.34, 0.12],
+      [0.22, 0.92, 0.1, 0.5, 0.08],
+      [0.34, 0.92, 0.14, 0.28, 0.14],
+      [0.5, 0.92, 0.09, 0.46, 0.09],
+      [0.64, 0.92, 0.16, 0.3, 0.14],
+      [0.8, 0.92, 0.12, 0.42, 0.1],
+      [0.92, 0.92, 0.1, 0.36, 0.08],
     ] as const;
 
-    peaks.forEach(([x, bottom, halfWidth, top]) => {
-      g.fillStyle(0xffffff, 0.18);
+    g.fillStyle(0xffffff, 0.08);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.84),
+      new Phaser.Geom.Point(width * 0.18, height * 0.62),
+      new Phaser.Geom.Point(width * 0.38, height * 0.76),
+      new Phaser.Geom.Point(width * 0.58, height * 0.56),
+      new Phaser.Geom.Point(width * 0.78, height * 0.72),
+      new Phaser.Geom.Point(width, height * 0.58),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
+    peaks.forEach(([x, bottom, halfWidth, top, alpha]) => {
+      g.fillStyle(0xffffff, alpha);
       g.fillTriangle(
         width * (x - halfWidth / 2),
         height * bottom,
@@ -615,9 +817,18 @@ export class BootScene extends Phaser.Scene {
         width * (x + halfWidth / 2),
         height * bottom
       );
+      g.fillStyle(0xffffff, alpha * 0.7);
+      g.fillTriangle(
+        width * x,
+        height * top,
+        width * x,
+        height * bottom,
+        width * (x + halfWidth / 2),
+        height * bottom
+      );
     });
 
-    g.fillStyle(0xffffff, 0.12);
+    g.fillStyle(0xffffff, 0.14);
     g.fillRoundedRect(0, height * 0.82, width, height * 0.18, 12);
 
     g.generateTexture(key, width, height);
@@ -651,6 +862,17 @@ export class BootScene extends Phaser.Scene {
   private generateDesertDunesTexture(key: string, width: number, height: number): void {
     const g = this.add.graphics();
 
+    g.fillStyle(0xffffff, 0.08);
+    g.fillPoints([
+      new Phaser.Geom.Point(0, height * 0.74),
+      new Phaser.Geom.Point(width * 0.18, height * 0.54),
+      new Phaser.Geom.Point(width * 0.42, height * 0.68),
+      new Phaser.Geom.Point(width * 0.66, height * 0.48),
+      new Phaser.Geom.Point(width, height * 0.62),
+      new Phaser.Geom.Point(width, height),
+      new Phaser.Geom.Point(0, height),
+    ], true);
+
     g.fillStyle(0xffffff, 0.18);
     g.fillPoints([
       new Phaser.Geom.Point(0, height * 0.84),
@@ -673,6 +895,13 @@ export class BootScene extends Phaser.Scene {
       new Phaser.Geom.Point(width, height),
       new Phaser.Geom.Point(0, height),
     ], true);
+
+    g.fillStyle(0xffffff, 0.1);
+    g.fillRoundedRect(width * 0.18, height * 0.62, width * 0.018, height * 0.18, 6);
+    g.fillRoundedRect(width * 0.16, height * 0.68, width * 0.06, height * 0.016, 6);
+    g.fillRoundedRect(width * 0.68, height * 0.58, width * 0.022, height * 0.2, 6);
+    g.fillRoundedRect(width * 0.66, height * 0.66, width * 0.066, height * 0.016, 6);
+    g.fillRoundedRect(width * 0.7, height * 0.62, width * 0.05, height * 0.016, 6);
 
     g.generateTexture(key, width, height);
     g.destroy();
