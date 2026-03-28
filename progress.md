@@ -346,3 +346,63 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - reran the `$develop-web-game` Playwright client against the local static server,
   - visually inspected the refreshed screenshot and confirmed the board now reads as a lighter gem/glass play surface instead of a dark table,
   - saved the latest board-focused artifact as `output/web-game/grid-stage-glass-pass.png`.
+
+2026-03-28 grid letter clarity pass
+- User feedback: after the board-direction correction, the stage itself looked good, but the letters and their surrounding tiles still read too soft and hazy.
+- Fix:
+  - brightened the shared base/hover tile textures in `BootScene`, strengthened their border alpha, and sharpened the inner face highlights so each letter box reads more clearly against the lighter board,
+  - added reusable readable-letter styling in `GameScene` with a crisp stroke plus tighter shadow so normal letters, selected letters, and found/special letters all keep a cleaner edge,
+  - nudged the base tile tint slightly closer to white in `GameScene` so the boxes separate better from the glass board while still staying theme-aware.
+- Verification:
+  - `npm run build` passed after the clarity pass,
+  - reran the `$develop-web-game` Playwright client against the local static server after restarting the local `http.server`,
+  - visually inspected the refreshed board screenshot and confirmed the letters now read darker/crisper and the tile boxes stand out more cleanly from the board,
+  - saved the latest board-focused artifact as `output/web-game/grid-letter-clarity-pass.png`.
+
+2026-03-28 grid letter chip variant
+- User feedback: the first clarity pass still felt too ordinary, so the letters/tiles needed a more distinct style rather than just sharper contrast.
+- Fix:
+  - pushed the shared tile texture toward a premium chip style by adding stronger theme-tinted cap/base bands, clearer inner colored edging, and subtle side rails in `BootScene`,
+  - shifted normal tile tinting in `GameScene` a bit closer to each world's primary color so the boxes feel intentionally themed instead of plain white,
+  - changed normal letter treatment from a generic white outline toward a darker fill with a world-tinted edge, keeping readability while giving the glyphs more character.
+- Verification:
+  - `npm run build` passed after the chip-style pass,
+  - reran the `$develop-web-game` Playwright client against the local static server after restarting `http.server`,
+  - visually inspected the refreshed screenshot and confirmed the letter cells now read more like themed puzzle chips than plain white keyboard keys,
+  - saved the latest board-focused artifact as `output/web-game/grid-letter-chip-pass.png`.
+
+2026-03-28 grid letter token variant
+- User feedback: another direction was needed beyond the chip-style tiles.
+- Fix:
+  - replaced the chip-rim emphasis in `BootScene` with a softer premium-token construction: a centered letter stage, small corner facets, and cleaner lower lip treatment so each cell feels like a polished game token,
+  - eased the normal tile tint in `GameScene` back toward a cleaner bright surface and adjusted the letter styling to a darker fill with a lighter neutral edge so the token center stays readable,
+  - kept the stronger selected/found readability while shifting the default idle state into a more distinct visual family from the previous chip pass.
+- Verification:
+  - `npm run build` passed after the token-style pass,
+  - reran the `$develop-web-game` Playwright client against the local static server on port `4301`,
+  - visually inspected the refreshed screenshot and confirmed the idle tiles now read more like premium tokens with a center stage instead of chip-rim cards,
+  - saved the latest board-focused artifact as `output/web-game/grid-letter-token-pass.png`.
+
+2026-03-28 grid letter weight + separation follow-up
+- User feedback: in the new token direction the letters had become too bold, while the boxes still needed to separate more clearly from one another.
+- Fix:
+  - reduced the default letter emphasis in `GameScene` by removing the forced bold idle style, lowering the idle scale slightly, and keeping bold/sturdier strokes only for selected/found/special states,
+  - increased the idle tile separation by shrinking the default tile scale a touch and brightening the idle tint so more slot/background gap becomes visible between cells,
+  - strengthened the shared tile edge definition in `BootScene` with a deeper seat shadow and a clearer extra rim stroke so each token reads as its own object.
+- Verification:
+  - `npm run build` passed after the follow-up pass,
+  - reran the `$develop-web-game` Playwright client against the local static server on port `4301`,
+  - visually inspected the refreshed gameplay screenshot and confirmed the idle letters now feel lighter while the cell boxes separate more cleanly from one another,
+  - saved the latest board-focused artifact as `output/web-game/grid-letter-separation-pass.png`.
+
+2026-03-28 grid bright clarity correction
+- User feedback: recent variants had drifted into weaker, duller directions; the user wanted the grid to become clearly readable and brighter again, including much stronger found-word marking.
+- Fix:
+  - redirected `generateCellTexture()` in `BootScene` away from the token/chip experiments and into a brighter high-contrast glossy tile with stronger borders, clearer inner face, and a saturated lower band that reads well across worlds,
+  - boosted the selected texture and all found-word gem texture palettes so successful paths pop harder instead of blending into the board,
+  - updated `GameScene` so idle cells use a whiter tint and stronger separation, idle letters stay dark and readable without feeling too bold, and found cells scale up slightly with clearer white lettering for immediate recognition.
+- Verification:
+  - `npm run build` passed after the bright-clarity correction,
+  - reran the `$develop-web-game` Playwright client; because the tutorial timing remained inconsistent for direct gameplay captures, also used a small supplemental Playwright snapshot to inspect gameplay and a forced found-word state after the required client run,
+  - visually inspected `output/web-game/grid-bright-clarity-preview.png` and confirmed the idle board is brighter and easier to parse,
+  - visually inspected `output/web-game/grid-bright-found-preview.png` and confirmed found words now read much more clearly on the board and in the side list.

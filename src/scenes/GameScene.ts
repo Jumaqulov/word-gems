@@ -557,6 +557,27 @@ export class GameScene extends Phaser.Scene {
     );
   }
 
+  private colorValueToCss(color: number): string {
+    return `#${color.toString(16).padStart(6, '0')}`;
+  }
+
+  private applyReadableLetterStyle(
+    letter: Phaser.GameObjects.Text,
+    color: string,
+    strokeColor: string,
+    shadowColor: string,
+    options?: {
+      fontStyle?: string;
+      strokeWidth?: number;
+      shadowOffsetY?: number;
+    }
+  ): void {
+    letter.setColor(color);
+    letter.setFontStyle(options?.fontStyle ?? '');
+    letter.setStroke(strokeColor, options?.strokeWidth ?? 1);
+    letter.setShadow(0, options?.shadowOffsetY ?? 1, shadowColor, 2, false, true);
+  }
+
   private calculateCellSize(): number {
     if (window.innerWidth > 768) {
       return getCellSizeForGrid(this.levelConfig.gridSize);
@@ -915,11 +936,15 @@ export class GameScene extends Phaser.Scene {
       cell.bg.clearTint();
       cell.bg.setAlpha(1);
       cell.bg.setPosition(cell.baseX, cell.baseY);
+      cell.bg.setScale(1.04);
       cell.letter.setText(this.actualGridLetters[row][col]);
       cell.letter.setPosition(cell.baseX, cell.baseY);
-      cell.letter.setColor('#FFFFFF');
-      cell.letter.setFontStyle('bold');
-      cell.letter.setShadow(1, 1, 'rgba(0,0,0,0.3)', 2, false, true);
+      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', 'rgba(24, 52, 78, 0.78)', 'rgba(0, 0, 0, 0.22)', {
+        fontStyle: 'bold',
+        strokeWidth: 2,
+        shadowOffsetY: 2,
+      });
+      cell.letter.setScale(1.08);
       this.foundCellKeys.add(this.getCellKey(row, col));
     }
 
@@ -1016,39 +1041,61 @@ export class GameScene extends Phaser.Scene {
   private applyBaseCellStyle(cell: CellSprite): void {
     if (this.foundCellKeys.has(this.getCellKey(cell.row, cell.col))) return;
 
+    const primaryColor = this.hexToColorValue(this.levelConfig.visuals.primary);
+    const secondaryColor = this.hexToColorValue(this.levelConfig.visuals.secondary);
+    const letterBase = this.mixColor(this.hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, 0.18);
+    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, 0.08);
     cell.bg.setTexture(this.getCellTextureKey('cell-bg'));
     cell.bg.clearTint();
     cell.bg.setAlpha(1);
     cell.bg.setPosition(cell.baseX, cell.baseY);
-    cell.bg.setScale(1);
+    cell.bg.setScale(0.94);
 
     cell.letter.setText(this.gridData.grid[cell.row][cell.col]);
     cell.letter.setPosition(cell.baseX, cell.baseY);
-    cell.letter.setScale(1);
+    cell.letter.setScale(0.94);
     cell.letter.setAlpha(1);
-    cell.letter.setColor(this.levelConfig.visuals.letterColor);
-    cell.letter.setFontStyle('bold');
-    cell.letter.setShadow(0, 2, 'rgba(10, 18, 24, 0.16)', 2, false, true);
+    this.applyReadableLetterStyle(
+      cell.letter,
+      this.colorValueToCss(letterBase),
+      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, 0.12)),
+      'rgba(8, 18, 28, 0.12)',
+      {
+        strokeWidth: 1,
+      }
+    );
 
-    cell.bg.setTint(this.levelConfig.visuals.cellTint);
+    cell.bg.setTint(baseTint);
 
     const cellKey = this.getCellKey(cell.row, cell.col);
     if (this.worldState.goldenCellKeys.has(cellKey) && !this.worldState.collectedGoldenCellKeys.has(cellKey)) {
       cell.bg.setTint(this.levelConfig.visuals.bonusTint);
-      cell.letter.setColor('#FFF8DE');
-      cell.letter.setShadow(0, 0, 'rgba(255, 223, 115, 0.9)', 8);
+      this.applyReadableLetterStyle(cell.letter, '#FFF8DE', 'rgba(137, 99, 21, 0.84)', 'rgba(255, 223, 115, 0.74)', {
+        fontStyle: 'bold',
+        strokeWidth: 2,
+        shadowOffsetY: 2,
+      });
+      cell.letter.setScale(1);
     }
 
     if (this.worldState.wildcardCellKeys.has(cellKey)) {
       cell.bg.setTint(this.levelConfig.visuals.accentTint);
-      cell.letter.setColor('#FFF7FF');
-      cell.letter.setShadow(0, 0, this.levelConfig.visuals.secondary, 8);
+      this.applyReadableLetterStyle(cell.letter, '#FFF7FF', 'rgba(91, 52, 113, 0.78)', 'rgba(255, 255, 255, 0.38)', {
+        fontStyle: 'bold',
+        strokeWidth: 2,
+        shadowOffsetY: 2,
+      });
+      cell.letter.setScale(1);
     }
 
     if (this.isCellInFrozenWord(cell.row, cell.col)) {
       cell.bg.setTint(this.isCellInCrackedFrozenWord(cell.row, cell.col) ? 0xd2f2ff : 0xb5e3ff);
-      cell.letter.setColor('#F1FCFF');
-      cell.letter.setShadow(0, 0, 'rgba(183, 244, 255, 0.8)', 6);
+      this.applyReadableLetterStyle(cell.letter, '#F1FCFF', 'rgba(47, 107, 132, 0.76)', 'rgba(183, 244, 255, 0.78)', {
+        fontStyle: 'bold',
+        strokeWidth: 2,
+        shadowOffsetY: 2,
+      });
+      cell.letter.setScale(1);
     }
   }
 
@@ -1064,8 +1111,13 @@ export class GameScene extends Phaser.Scene {
       const cell = this.cells[row][col];
       cell.bg.setTexture(this.getCellTextureKey('cell-selected'));
       cell.bg.setTint(this.levelConfig.visuals.accentTint);
-      cell.letter.setColor('#FFFFFF');
-      cell.letter.setScale(1.15);
+      cell.bg.setScale(1.03);
+      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', 'rgba(12, 82, 88, 0.9)', 'rgba(0, 0, 0, 0.24)', {
+        fontStyle: 'bold',
+        strokeWidth: 2,
+        shadowOffsetY: 2,
+      });
+      cell.letter.setScale(1.09);
     }
 
     this.selectionGraphics.clear();
