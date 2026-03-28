@@ -310,3 +310,39 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - `npm run build` passed after the stronger solved-state pass,
   - reran the `$develop-web-game` Playwright client against a local static server,
   - refreshed `output/web-game/right-panel-found-preview.png` and visually confirmed solved rows now separate clearly from unresolved entries.
+
+2026-03-28 grid board stage polish
+- User feedback: the central letter board still looked too plain and did not feel exciting enough compared with the improved HUD.
+- Fix:
+  - added a themed stage behind the grid in `GameScene`, including a framed board shell, soft glow, slot sockets behind each tile, and subtle corner ornaments so the letters sit inside a real play surface instead of floating on the background,
+  - upgraded shared cell texture generation in `BootScene` with a softer base shadow, inner carved face, stronger glossy facets, and a lower lip so every letter tile reads as a polished physical piece,
+  - kept the board treatment theme-aware by deriving the stage colors from the active world's visual palette instead of hardcoding a separate look.
+- Verification:
+  - `npm run build` passed after the board/tile polish,
+  - reran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - visually inspected the refreshed gameplay capture and confirmed the board now feels framed, deeper, and more premium without reducing legibility,
+  - saved the latest board-focused artifact as `output/web-game/grid-stage-polish.png`.
+
+2026-03-28 grid board hero pass
+- User feedback: the first board-stage improvement was good, but the letter area still needed a more premium, more exciting hero treatment.
+- Fix:
+  - evolved the board shell into a richer layered tray with a darker outer bezel, deeper inset well, top and bottom accent caps, and a more obvious center inlay so the playfield reads as a special puzzle altar instead of a simple frame,
+  - added low-cost decorative texture layers using the existing generated FX textures (`bgfx-arch-glow`, `bgfx-rune-halo`, `bgfx-glint-band`) plus soft connector rails between rows/columns to make the board feel designed around the grid,
+  - strengthened the default letter styling with a subtle depth shadow and bold weight so the tiles feel more collectible and better anchored to the upgraded stage.
+- Verification:
+  - `npm run build` passed after the hero-pass adjustments,
+  - reran the `$develop-web-game` Playwright client against the local static server,
+  - visually inspected the refreshed board screenshot and confirmed the grid now has a stronger centerpiece presence without harming readability,
+  - saved the latest board-focused artifact as `output/web-game/grid-stage-hero-pass.png`.
+
+2026-03-28 grid board direction correction
+- User feedback: the darker hero-pass board read too much like a billiards table and missed the intended game feel.
+- Fix:
+  - replaced the heavy dark tray direction with a lighter crystal/glass board treatment built from pale layered surfaces instead of dark bezels and rail-like accents,
+  - removed the cap/rail styling that created the table impression, and switched to softer internal facets, luminous panel layers, and small gem-chip corner accents,
+  - kept the board theme-aware while biasing its palette toward the world's light cell colors so the grid feels like a polished puzzle slab rather than furniture.
+- Verification:
+  - `npm run build` passed after the direction correction,
+  - reran the `$develop-web-game` Playwright client against the local static server,
+  - visually inspected the refreshed screenshot and confirmed the board now reads as a lighter gem/glass play surface instead of a dark table,
+  - saved the latest board-focused artifact as `output/web-game/grid-stage-glass-pass.png`.

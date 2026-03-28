@@ -364,6 +364,7 @@ export class GameScene extends Phaser.Scene {
 
     this.gridContainer = this.add.container(gridX, gridY);
     this.gridContainer.setDepth(1);
+    this.createGridStage(totalSize);
     this.cells = [];
 
     for (let row = 0; row < this.gridData.size; row++) {
@@ -392,6 +393,168 @@ export class GameScene extends Phaser.Scene {
         bg.on('pointerdown', () => this.onCellPointerDown(row, col));
       }
     }
+  }
+
+  private createGridStage(totalSize: number): void {
+    const isDesktop = window.innerWidth > 768;
+    const stagePadding = Math.round(this.cellSize * (isDesktop ? 0.68 : 0.58));
+    const stageWidth = totalSize + stagePadding * 2;
+    const stageHeight = totalSize + stagePadding * 2;
+    const stageX = -stagePadding;
+    const stageY = -stagePadding;
+    const outerRadius = Math.max(24, Math.round(this.cellSize * 0.38));
+    const innerRadius = Math.max(18, outerRadius - 8);
+    const coreRadius = Math.max(12, innerRadius - 6);
+
+    const primary = this.hexToColorValue(this.levelConfig.visuals.primary);
+    const secondary = this.hexToColorValue(this.levelConfig.visuals.secondary);
+    const accent = this.levelConfig.visuals.accentTint;
+    const cellTint = this.levelConfig.visuals.cellTint;
+    const bgMid = this.hexToColorValue(this.levelConfig.visuals.backgroundMid);
+    const bgBottom = this.hexToColorValue(this.levelConfig.visuals.backgroundBottom);
+    const shellColor = this.mixColor(cellTint, primary, 0.18);
+    const rimColor = this.mixColor(bgMid, cellTint, 0.48);
+    const panelFace = this.mixColor(cellTint, secondary, 0.34);
+    const panelInner = this.mixColor(primary, cellTint, 0.34);
+    const panelCore = this.mixColor(panelInner, secondary, 0.24);
+    const slotShadow = this.mixColor(bgBottom, bgMid, 0.26);
+    const slotBase = this.mixColor(cellTint, panelInner, 0.22);
+    const slotGlow = this.mixColor(secondary, cellTint, 0.42);
+    const facetColor = this.mixColor(primary, secondary, 0.42);
+    const gemChipColor = this.mixColor(accent, secondary, 0.34);
+
+    const stageGlow = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-soft-glow');
+    stageGlow.setDisplaySize(stageWidth * 1.18, stageHeight * 1.14);
+    stageGlow.setTint(accent);
+    stageGlow.setAlpha(0.24);
+
+    const stageBloom = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-soft-glow');
+    stageBloom.setDisplaySize(stageWidth * 0.9, stageHeight * 0.84);
+    stageBloom.setTint(secondary);
+    stageBloom.setAlpha(0.14);
+
+    const stageHalo = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-rune-halo');
+    stageHalo.setDisplaySize(stageWidth * 0.64, stageWidth * 0.64);
+    stageHalo.setTint(secondary);
+    stageHalo.setAlpha(0.05);
+
+    const stageShadow = this.add.graphics();
+    stageShadow.fillStyle(bgBottom, 0.16);
+    stageShadow.fillRoundedRect(stageX + 6, stageY + 14, stageWidth, stageHeight, outerRadius + 6);
+
+    const stageFrame = this.add.graphics();
+    stageFrame.fillStyle(shellColor, 0.24);
+    stageFrame.fillRoundedRect(stageX, stageY, stageWidth, stageHeight, outerRadius);
+    stageFrame.fillStyle(rimColor, 0.22);
+    stageFrame.fillRoundedRect(stageX + 6, stageY + 6, stageWidth - 12, stageHeight - 12, outerRadius - 4);
+    stageFrame.fillStyle(panelFace, 0.24);
+    stageFrame.fillRoundedRect(stageX + 18, stageY + 18, stageWidth - 36, stageHeight - 36, innerRadius);
+    stageFrame.fillStyle(panelInner, 0.18);
+    stageFrame.fillRoundedRect(stageX + 28, stageY + 28, stageWidth - 56, stageHeight - 56, coreRadius);
+    stageFrame.fillStyle(panelCore, 0.1);
+    stageFrame.fillRoundedRect(stageX + 28, stageY + 28, stageWidth - 56, Math.max(56, stageHeight * 0.26), {
+      tl: coreRadius,
+      tr: coreRadius,
+      bl: 12,
+      br: 12,
+    });
+    stageFrame.lineStyle(2, this.mixColor(primary, secondary, 0.5), 0.18);
+    stageFrame.strokeRoundedRect(stageX + 1, stageY + 1, stageWidth - 2, stageHeight - 2, outerRadius);
+    stageFrame.lineStyle(1, 0xffffff, 0.2);
+    stageFrame.strokeRoundedRect(stageX + 8, stageY + 8, stageWidth - 16, stageHeight - 16, outerRadius - 6);
+    stageFrame.lineStyle(1, facetColor, 0.12);
+    stageFrame.strokeRoundedRect(stageX + 20, stageY + 20, stageWidth - 40, stageHeight - 40, innerRadius - 2);
+
+    const stageTopBand = this.add.image(totalSize / 2, stageY + stagePadding * 0.7, 'bgfx-glint-band');
+    stageTopBand.setDisplaySize(stageWidth * 0.56, Math.max(32, stagePadding * 0.8));
+    stageTopBand.setTint(secondary);
+    stageTopBand.setAlpha(0.16);
+
+    const stageGlassBand = this.add.image(totalSize / 2, totalSize / 2 + this.cellSize * 0.1, 'bgfx-glint-band');
+    stageGlassBand.setDisplaySize(stageWidth * 0.62, Math.max(42, this.cellSize * 0.6));
+    stageGlassBand.setTint(primary);
+    stageGlassBand.setAlpha(0.08);
+
+    const facetGraphics = this.add.graphics();
+    facetGraphics.fillStyle(0xffffff, 0.06);
+    facetGraphics.fillTriangle(stageX + 24, stageY + 28, stageX + stageWidth * 0.34, stageY + 28, stageX + 24, stageY + stageHeight * 0.3);
+    facetGraphics.fillTriangle(stageX + stageWidth - 24, stageY + 28, stageX + stageWidth - 24, stageY + stageHeight * 0.3, stageX + stageWidth * 0.66, stageY + 28);
+    facetGraphics.fillTriangle(stageX + 24, stageY + stageHeight - 28, stageX + stageWidth * 0.34, stageY + stageHeight - 28, stageX + 24, stageY + stageHeight * 0.7);
+    facetGraphics.fillTriangle(stageX + stageWidth - 24, stageY + stageHeight - 28, stageX + stageWidth - 24, stageY + stageHeight * 0.7, stageX + stageWidth * 0.66, stageY + stageHeight - 28);
+    facetGraphics.lineStyle(1, facetColor, 0.14);
+    facetGraphics.lineBetween(stageX + 36, stageY + 34, stageX + stageWidth * 0.46, stageY + stageHeight * 0.46);
+    facetGraphics.lineBetween(stageX + stageWidth - 36, stageY + 34, stageX + stageWidth * 0.54, stageY + stageHeight * 0.46);
+    facetGraphics.lineBetween(stageX + 36, stageY + stageHeight - 34, stageX + stageWidth * 0.46, stageY + stageHeight * 0.54);
+    facetGraphics.lineBetween(stageX + stageWidth - 36, stageY + stageHeight - 34, stageX + stageWidth * 0.54, stageY + stageHeight * 0.54);
+
+    const slotGraphics = this.add.graphics();
+    const slotSize = this.cellDisplaySize + Math.max(2, Math.round(this.cellSize * 0.08));
+    const slotRadius = Math.max(10, Math.round(slotSize * 0.2));
+
+    for (let row = 0; row < this.gridData.size; row++) {
+      for (let col = 0; col < this.gridData.size; col++) {
+        const x = Math.round(col * this.cellSize + this.cellSize / 2 - slotSize / 2);
+        const y = Math.round(row * this.cellSize + this.cellSize / 2 - slotSize / 2 + Math.max(2, this.cellSize * 0.05));
+
+        slotGraphics.fillStyle(slotShadow, 0.12);
+        slotGraphics.fillRoundedRect(x, y + 2, slotSize, slotSize, slotRadius);
+        slotGraphics.fillStyle(slotBase, 0.18);
+        slotGraphics.fillRoundedRect(x + 1, y + 1, slotSize - 2, slotSize - 2, slotRadius - 1);
+        slotGraphics.fillStyle(slotGlow, 0.12);
+        slotGraphics.fillRoundedRect(x + 3, y + 3, slotSize - 6, slotSize * 0.24, slotRadius - 3);
+        slotGraphics.lineStyle(1, slotGlow, 0.12);
+        slotGraphics.strokeRoundedRect(x + 1, y + 1, slotSize - 2, slotSize - 2, slotRadius - 1);
+        slotGraphics.lineStyle(1, 0xffffff, 0.08);
+        slotGraphics.strokeRoundedRect(x + 4, y + 4, slotSize - 8, slotSize - 8, slotRadius - 4);
+      }
+    }
+
+    const gemChips = this.add.graphics();
+    const chipSize = Math.max(10, Math.round(this.cellSize * 0.16));
+    const cornerPoints = [
+      { x: stageX + 24, y: stageY + 24 },
+      { x: stageX + stageWidth - 24, y: stageY + 24 },
+      { x: stageX + 24, y: stageY + stageHeight - 24 },
+      { x: stageX + stageWidth - 24, y: stageY + stageHeight - 24 },
+    ];
+    const drawDiamond = (x: number, y: number, size: number, color: number, alpha: number) => {
+      gemChips.fillStyle(color, alpha);
+      gemChips.fillTriangle(x, y - size, x + size, y, x, y + size);
+      gemChips.fillTriangle(x, y - size, x - size, y, x, y + size);
+      gemChips.lineStyle(1, 0xffffff, alpha * 0.8);
+      gemChips.lineBetween(x, y - size, x + size * 0.45, y);
+      gemChips.lineBetween(x, y - size, x - size * 0.45, y);
+    };
+    cornerPoints.forEach(({ x, y }) => {
+      drawDiamond(x, y, chipSize, gemChipColor, 0.18);
+    });
+
+    this.gridContainer.add([
+      stageGlow,
+      stageBloom,
+      stageHalo,
+      stageShadow,
+      stageFrame,
+      stageTopBand,
+      stageGlassBand,
+      facetGraphics,
+      slotGraphics,
+      gemChips,
+    ]);
+  }
+
+  private hexToColorValue(hex: string): number {
+    return Phaser.Display.Color.HexStringToColor(hex).color;
+  }
+
+  private mixColor(colorA: number, colorB: number, amount: number): number {
+    const a = Phaser.Display.Color.ValueToColor(colorA);
+    const b = Phaser.Display.Color.ValueToColor(colorB);
+    return Phaser.Display.Color.GetColor(
+      Math.round(Phaser.Math.Linear(a.red, b.red, amount)),
+      Math.round(Phaser.Math.Linear(a.green, b.green, amount)),
+      Math.round(Phaser.Math.Linear(a.blue, b.blue, amount))
+    );
   }
 
   private calculateCellSize(): number {
@@ -864,8 +1027,8 @@ export class GameScene extends Phaser.Scene {
     cell.letter.setScale(1);
     cell.letter.setAlpha(1);
     cell.letter.setColor(this.levelConfig.visuals.letterColor);
-    cell.letter.setFontStyle('');
-    cell.letter.setShadow(0, 0, 'transparent', 0);
+    cell.letter.setFontStyle('bold');
+    cell.letter.setShadow(0, 2, 'rgba(10, 18, 24, 0.16)', 2, false, true);
 
     cell.bg.setTint(this.levelConfig.visuals.cellTint);
 

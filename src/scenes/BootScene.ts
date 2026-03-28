@@ -182,7 +182,14 @@ export class BootScene extends Phaser.Scene {
   ): void {
     const g = this.add.graphics();
     const offset = (totalSize - innerSize) / 2;
-    const radius = 10;
+    const radius = 12;
+    const inset = Math.max(3, Math.round(innerSize * 0.08));
+    const faceWidth = innerSize - inset * 2;
+    const faceHeight = innerSize - inset * 2;
+
+    // Soft seat shadow so the tile feels like a placed piece
+    g.fillStyle(0x000000, 0.08);
+    g.fillRoundedRect(offset + 2, offset + 4, innerSize - 2, innerSize - 1, radius);
 
     // Top half (lighter)
     g.fillStyle(opts.fillTop, 1);
@@ -196,24 +203,46 @@ export class BootScene extends Phaser.Scene {
     g.lineStyle(opts.borderWidth, opts.border, opts.borderAlpha);
     g.strokeRoundedRect(offset, offset, innerSize, innerSize, radius);
 
+    // Inner face for a richer carved / polished tile feel
+    g.fillStyle(0xFFFFFF, 0.1);
+    g.fillRoundedRect(offset + inset, offset + inset, faceWidth, faceHeight - 2, radius - 4);
+    g.lineStyle(1, 0xFFFFFF, 0.16);
+    g.strokeRoundedRect(offset + inset, offset + inset, faceWidth, faceHeight - 2, radius - 4);
+
+    // Lower lip gives extra depth and keeps the tile from reading as flat
+    g.fillStyle(0x000000, 0.05);
+    g.fillRoundedRect(offset + inset, offset + innerSize - inset - 8, faceWidth, 6, { tl: 3, tr: 3, bl: radius - 5, br: radius - 5 });
+
     // Glossy highlight (multi-layer crystal shine)
     if (opts.glossy) {
-      // Layer 1: Yuqori yarim — keng yumshoq oq gradient
+      // Layer 1: Upper wash
       g.fillStyle(0xFFFFFF, 0.15);
       g.fillRoundedRect(offset + 1, offset + 1, innerSize - 2, innerSize * 0.5,
         { tl: radius - 1, tr: radius - 1, bl: 0, br: 0 });
 
-      // Layer 2: Yuqori qism — aniqroq glossy highlight
+      // Layer 2: Defined top shine
       g.fillStyle(0xFFFFFF, 0.35);
       g.fillRoundedRect(offset + 4, offset + 3, innerSize - 8, innerSize * 0.22,
         { tl: radius - 3, tr: radius - 3, bl: 4, br: 4 });
 
-      // Layer 3: Eng yuqori chiziq — sharp reflection
+      // Layer 3: Sharp crest reflection
       g.fillStyle(0xFFFFFF, 0.5);
       g.fillRoundedRect(offset + 6, offset + 3, innerSize - 12, 4,
         { tl: 2, tr: 2, bl: 2, br: 2 });
 
-      // Layer 4: Pastki ichki soya (depth uchun)
+      // Layer 4: Diagonal facet highlight
+      g.fillStyle(0xFFFFFF, 0.14);
+      g.fillTriangle(
+        offset + innerSize * 0.2, offset + innerSize * 0.18,
+        offset + innerSize * 0.54, offset + innerSize * 0.18,
+        offset + innerSize * 0.34, offset + innerSize * 0.52
+      );
+
+      // Layer 5: Tiny top glint
+      g.fillStyle(0xFFFFFF, 0.24);
+      g.fillEllipse(offset + innerSize * 0.34, offset + innerSize * 0.2, innerSize * 0.28, innerSize * 0.1);
+
+      // Layer 6: Lower inset shadow
       g.fillStyle(0x000000, 0.06);
       g.fillRoundedRect(offset + 2, offset + innerSize - 8, innerSize - 4, 6,
         { tl: 0, tr: 0, bl: radius - 2, br: radius - 2 });
