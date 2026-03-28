@@ -245,3 +245,68 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - `npm run build` passed after the global removal,
   - reran the `$develop-web-game` Playwright client against a local static server,
   - visually checked `output/web-game/shot-0.png` to confirm the current world renders without the extra background elements.
+
+2026-03-27 left-rail clarity polish
+- User feedback: the overall theme was acceptable, but the left-side `STATS` card and `DAILY SPIN` CTA still looked dusty / low-contrast and needed to read more clearly.
+- Fix:
+  - strengthened `.panel-card` contrast with cleaner world-linked gradients, brighter borders, and deeper shadows,
+  - rebuilt `.stats-card` into a crisper glass-card treatment with brighter heading text and more saturated per-stat cells,
+  - upgraded `.spin-card` into a richer reward CTA with a luminous gold gradient, darker label text, and stronger depth,
+  - mirrored the same reward CTA treatment onto `#btn-daily-spin-mobile` for consistency on small screens.
+- Verification:
+  - `npm run build` passed after the polish pass,
+  - reran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - captured additional visual checks in `output/web-game/left-panel-polish.png` and `output/web-game/full-page-headless.png`,
+  - visually confirmed the left rail now pops more clearly against the world backdrop with no CSS/build regressions observed during the check.
+- Follow-up icon adjustment:
+  - recolored the `DAILY SPIN` icon away from flat white into a warmer dark-gold tone so it matches the reward-button palette and the darker label text.
+  - reran `npm run build` and refreshed `output/web-game/left-panel-polish.png` to visually confirm the icon now sits naturally inside the button.
+
+2026-03-27 right-panel clarity + gem polish
+- User feedback: the `Find Words` / `Power-ups` side panel still looked dusty, and the gem visuals across the HUD and prices felt too flat and ordinary.
+- Fix:
+  - strengthened `#right-panel` with a cleaner glass-panel gradient, brighter headers, and clearer divider treatment,
+  - rebuilt `.word-item` rows for stronger contrast: brighter text, clearer check slots, deeper borders/shadows, and cleaner found-state styling,
+  - upgraded `.powerup-btn`, `.pu-icon`, `.pu-cost`, and `.ad-reward-badge` so the whole rewards/power-up area reads crisply instead of fading into the background,
+  - redesigned the shared `gem` SVG into a faceted blue/cyan diamond and reused it for the HUD gem badge, power-up costs, and the ad reward chip,
+  - injected the same gem icon into the ad reward badge from `GameScene.injectIcons()` to replace the weaker static reward text treatment.
+- Verification:
+  - `npm run build` passed after the right-panel and gem polish,
+  - reran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - captured fresh visual checks in `output/web-game/right-panel-polish.png`, `output/web-game/gem-badge-polish.png`, and `output/web-game/full-page-headless.png`,
+  - visually confirmed the word list text, power-up cards, and gem badge all read more clearly and the gem icon now looks more alive across the UI.
+
+2026-03-28 right-panel style redirect
+- User feedback: the previous right-panel direction still was not appealing and felt like the wrong style for the game.
+- Fix:
+  - redirected the `Find Words` / `Power-ups` area away from the darker heavy-card look and into a lighter quest-panel / objective-board treatment,
+  - softened the panel shell, removed the harsh bottom-dark emphasis from list rows and power-up cards, and switched to brighter layered surfaces with slim accent rails,
+  - simplified found-word presentation so completed rows feel neatly resolved instead of noisy,
+  - toned down the ad card motion language by removing the shimmer overlay and letting the reward card read as a cleaner premium panel.
+- Verification:
+  - `npm run build` passed after the redesign pass,
+  - reran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - captured refreshed artifacts in `output/web-game/right-panel-polish.png`, `output/web-game/full-page-headless.png`, and `output/web-game/right-panel-found-preview.png`,
+  - visually confirmed the new right-panel direction now reads lighter, cleaner, and more in-family with the rest of the HUD.
+
+2026-03-28 found-word emphasis follow-up
+- User feedback: the overall panel direction now works, but found words still needed to stand out more clearly and beautifully.
+- Fix:
+  - upgraded `.word-item.found` to use the assigned found-word accent color dynamically via `currentColor`,
+  - added a stronger accent rail, a clearer reward-style check badge, a light surface sheen, and a small horizontal offset so solved rows read as completed at a glance,
+  - strengthened the found word text treatment so the solved word itself stays crisp instead of fading into the row background.
+- Verification:
+  - `npm run build` passed after the found-row polish,
+  - reran the `$develop-web-game` Playwright client against a local static server,
+  - captured `output/web-game/right-panel-found-preview.png` and visually confirmed the solved row now stands out immediately from unresolved words while staying consistent with the new panel style.
+
+2026-03-28 found-word contrast correction
+- User feedback: the first found-row polish still felt too subtle, and solved vs unsolved rows were still too easy to confuse in real gameplay.
+- Fix:
+  - changed solved rows from a soft tint into a clearly filled accent state based on the word's assigned found color,
+  - added a dedicated `FOUND` capsule, a stronger white accent rail, more horizontal offset, and a higher-contrast check badge,
+  - switched solved-word text to bright white so the completed state reads instantly even at a quick glance.
+- Verification:
+  - `npm run build` passed after the stronger solved-state pass,
+  - reran the `$develop-web-game` Playwright client against a local static server,
+  - refreshed `output/web-game/right-panel-found-preview.png` and visually confirmed solved rows now separate clearly from unresolved entries.

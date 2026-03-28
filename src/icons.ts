@@ -1,6 +1,6 @@
 // Inline SVG icon system — no external dependencies
 export const ICONS = {
-  gem: `<svg viewBox="0 0 24 24" width="1em" height="1em"><path d="M6 3h12l5 8-11 12L1 11l5-8z" fill="currentColor" opacity="0.9"/><path d="M6 3h12l2.5 4H3.5L6 3z" fill="white" opacity="0.3"/></svg>`,
+  gem: `<svg viewBox="0 0 24 24" width="1em" height="1em"><path d="M6 4h12l4 6-10 10L2 10l4-6z" fill="#47DFFF"/><path d="M6 4h12l-2.4 5H8.4L6 4z" fill="#D9FFFF"/><path d="M2 10h20l-10 10L2 10z" fill="#1DAFFF"/><path d="M8.4 9h7.2L12 20 8.4 9z" fill="#6E82FF"/><path d="M6 4l2.4 5H2L6 4z" fill="#7EF1FF"/><path d="M18 4l4 6h-6.4L18 4z" fill="#2ECFFF"/><path d="M6 4h12l4 6-10 10L2 10 6 4z" fill="none" stroke="#EBFFFF" stroke-width="1" opacity="0.95"/><path d="M9 6.3h5.6" stroke="#FFFFFF" stroke-width="1.15" stroke-linecap="round" opacity="0.78"/><circle cx="8.8" cy="7.2" r="1" fill="#FFFFFF" opacity="0.48"/></svg>`,
 
   fire: `<svg viewBox="0 0 24 24" width="1em" height="1em"><path d="M12 23c-4.97 0-8-3.58-8-7.5 0-3.07 2.17-5.65 3.5-7l1.5 3c.33-.67 1.17-2.5 1-4.5C13 4 16 2 17 1c-.17 2.33.17 5.17 1.5 7 1.17 1.6 2.5 3.47 2.5 6.5 0 4.5-3.5 8.5-9 8.5z" fill="#FF6B35"/><path d="M12 23c-2.5 0-4.5-1.8-4.5-4.5 0-2.07 1.08-3.4 2-4.5.5 1 1 1.5 1.5 1.5.67-1.33 1-3 1-4.5 1 1.17 2.5 2.33 3 4 .5 1.67.5 3-.5 4.5-1 1.4-2.5 3.5-2.5 3.5z" fill="#FFD700"/></svg>`,
 

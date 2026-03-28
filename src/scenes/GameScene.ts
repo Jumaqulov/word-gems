@@ -1438,6 +1438,8 @@ export class GameScene extends Phaser.Scene {
     if (detectCost) detectCost.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.DETECT}`;
     const undoCost = document.getElementById('cost-undo');
     if (undoCost) undoCost.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.UNDO}`;
+    const adRewardBadge = document.querySelector('.ad-reward-badge');
+    if (adRewardBadge) adRewardBadge.innerHTML = `+50 ${iconHTML('gem', 'reward-gem')}`;
   }
 
   private useDetect(): void {
