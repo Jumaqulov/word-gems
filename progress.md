@@ -79,6 +79,32 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Headless note:
   - direct Phaser `delayedCall()` timing was flaky in the ad-hoc headless probe, so timeout verification used the actual timeout handler for logic assertions and then invoked the modal method directly to capture the fail-state UI reliably.
 
+2026-03-29 board theme pass
+- Started the "board + tile per world" roadmap item so world theming now affects the playfield itself, not just the scenic backdrop.
+- `BootScene` now generates world-specific cell texture families for all 12 world ids (`cell-bg-*`, `cell-hover-*`, `cell-selected-*`, including spacious variants) with palette-tuned fills and borders.
+- `GameScene` now chooses those world-specific tile textures automatically, with a safe fallback to the generic textures if a variant does not exist.
+- Added a lightweight `BoardThemeProfile` in `GameScene` so each world can tune board-shell mixes, stage glow/halo strengths, slot contrast, tile tinting, and selected/found emphasis without adding runtime-heavy effects.
+- Found and selected cells now inherit world-aware scale/tint/stroke treatment, so interaction feedback matches the active world palette more closely.
+- Verification:
+  - `npm run build` passed on 2026-03-29.
+  - Per the user's instruction, Playwright was intentionally not run for this pass.
+
+2026-03-29 timer theme pass
+- Reworked the gameplay timer so it no longer uses one generic translucent pill across every world.
+- `GameScene.applyWorldTheme()` now stamps the active world id onto `#game-info-bar` and `#timer-container`, and `updateTimerUI()` now drives a container-level `data-state` (`normal` / `warning` / `critical`) instead of only changing text classes.
+- `styles.css` now gives the timer a proper world-aware capsule style with per-world shell/rim/icon/text variables for all 12 themes, plus stronger warning and critical palettes that stay readable regardless of the current world art.
+- Verification:
+  - `npm run build` passed on 2026-03-29.
+  - Per the user's instruction, Playwright was intentionally not run for this pass.
+
+2026-03-29 right panel overflow pass
+- Fixed the desktop right-panel layout so a long `Find Words` list no longer pushes the `Power-ups` section off-screen.
+- `#right-panel` now behaves like a constrained flex column, while `#word-list` is the dedicated scroll region with a thin themed scrollbar and a soft bottom fade.
+- The section headers, divider, power-up buttons, and ad button are now non-shrinking footer content, so the player can always reach the power-ups even when the word count grows.
+- Verification:
+  - `npm run build` passed on 2026-03-29.
+  - Per the user's instruction, Playwright was intentionally not run for this pass.
+
 2026-03-23 ice frozen gating follow-up
 - Investigated the Ice World bug where a cracked frozen word could still be cleared immediately on the next trace even if the rest of the required words were still unsolved.
 - Fix:

@@ -3,6 +3,19 @@ import { CrazyGamesManager } from '../managers/CrazyGamesManager';
 import { SoundManager } from '../managers/SoundManager';
 import { COLORS, CELL_GAP } from '../consts';
 
+interface CellTexturePalette {
+  id: string;
+  baseTop: number;
+  baseBottom: number;
+  baseBorder: number;
+  hoverTop: number;
+  hoverBottom: number;
+  hoverBorder: number;
+  selectedTop: number;
+  selectedBottom: number;
+  selectedBorder: number;
+}
+
 export class BootScene extends Phaser.Scene {
   constructor() {
     super({ key: 'BootScene' });
@@ -133,11 +146,58 @@ export class BootScene extends Phaser.Scene {
       glossy: false,
     });
 
+    this.generateWorldCellTextureFamilies(cellSize, innerSize);
+    this.generateWorldCellTextureFamilies(cellSize, spaciousInnerSize, '-spacious');
+
     // Generate gem-colored cell textures for found words
     this.generateFoundGemTextures(cellSize, innerSize);
     this.generateFoundGemTextures(cellSize, spaciousInnerSize, '-spacious');
 
     this.generateBackgroundFxTextures();
+  }
+
+  private generateWorldCellTextureFamilies(cellSize: number, innerSize: number, suffix = ''): void {
+    const palettes: CellTexturePalette[] = [
+      { id: 'forest', baseTop: 0xf7fff0, baseBottom: 0xdeefcf, baseBorder: 0x90bf72, hoverTop: 0xffffff, hoverBottom: 0xeaf9df, hoverBorder: 0x87d55d, selectedTop: 0xb7ffd5, selectedBottom: 0x4dcf7d, selectedBorder: 0x2d9451 },
+      { id: 'ocean', baseTop: 0xf1fbff, baseBottom: 0xd9edff, baseBorder: 0x72bfe5, hoverTop: 0xffffff, hoverBottom: 0xe1f7ff, hoverBorder: 0x63dcff, selectedTop: 0xaeffff, selectedBottom: 0x39cde1, selectedBorder: 0x1789b3 },
+      { id: 'space', baseTop: 0xf7f4ff, baseBottom: 0xe5def9, baseBorder: 0x9b90e1, hoverTop: 0xffffff, hoverBottom: 0xeee9ff, hoverBorder: 0xb3a6ff, selectedTop: 0xdccaff, selectedBottom: 0x8a61e1, selectedBorder: 0x5833b4 },
+      { id: 'castle', baseTop: 0xfffbf3, baseBottom: 0xf1e4cf, baseBorder: 0xcda56a, hoverTop: 0xfffef8, hoverBottom: 0xf7ecd6, hoverBorder: 0xe0b476, selectedTop: 0xffe2b1, selectedBottom: 0xd89b3a, selectedBorder: 0x9b6520 },
+      { id: 'magic', baseTop: 0xfff3ff, baseBottom: 0xf0d8ff, baseBorder: 0xd08cf1, hoverTop: 0xffffff, hoverBottom: 0xf6e6ff, hoverBorder: 0xe39dff, selectedTop: 0xffc7ff, selectedBottom: 0xcf61f2, selectedBorder: 0x8a35b3 },
+      { id: 'ice', baseTop: 0xf4feff, baseBottom: 0xe0f4ff, baseBorder: 0x8fd3f1, hoverTop: 0xffffff, hoverBottom: 0xebfbff, hoverBorder: 0xb2ecff, selectedTop: 0xddfbff, selectedBottom: 0x76d4ff, selectedBorder: 0x3597cd },
+      { id: 'desert', baseTop: 0xfffcf4, baseBottom: 0xf3e3c5, baseBorder: 0xd9b173, hoverTop: 0xfffef9, hoverBottom: 0xfaf0da, hoverBorder: 0xefc67a, selectedTop: 0xffebb1, selectedBottom: 0xf0bd46, selectedBorder: 0xbf8018 },
+      { id: 'volcano', baseTop: 0xfff7f1, baseBottom: 0xf5d8cb, baseBorder: 0xe28973, hoverTop: 0xfffcfa, hoverBottom: 0xffe2d5, hoverBorder: 0xffa082, selectedTop: 0xffc4a8, selectedBottom: 0xf06f49, selectedBorder: 0xb23919 },
+      { id: 'sky', baseTop: 0xf7fdff, baseBottom: 0xdceeff, baseBorder: 0x92cceb, hoverTop: 0xffffff, hoverBottom: 0xeaf7ff, hoverBorder: 0x9ddfff, selectedTop: 0xdbf4ff, selectedBottom: 0x67d0ff, selectedBorder: 0x3188c8 },
+      { id: 'crystal', baseTop: 0xfcf8ff, baseBottom: 0xe5ddff, baseBorder: 0xa79cf2, hoverTop: 0xffffff, hoverBottom: 0xf2edff, hoverBorder: 0xc0b4ff, selectedTop: 0xd9d0ff, selectedBottom: 0x8b78ff, selectedBorder: 0x6047d2 },
+      { id: 'shadow', baseTop: 0xf7f4ff, baseBottom: 0xe0dbf4, baseBorder: 0x9488c8, hoverTop: 0xffffff, hoverBottom: 0xebe5ff, hoverBorder: 0xaba0df, selectedTop: 0xd5cbff, selectedBottom: 0x7659c8, selectedBorder: 0x46308c },
+      { id: 'clockwork', baseTop: 0xfffbf5, baseBottom: 0xefe0cc, baseBorder: 0xc39b67, hoverTop: 0xfffdf9, hoverBottom: 0xf7ebda, hoverBorder: 0xd7b17a, selectedTop: 0xf4ddb0, selectedBottom: 0xc99a4d, selectedBorder: 0x8b6531 },
+    ];
+
+    palettes.forEach((palette) => {
+      this.generateCellTexture(`cell-bg-${palette.id}${suffix}`, cellSize, innerSize, {
+        fillTop: palette.baseTop,
+        fillBottom: palette.baseBottom,
+        border: palette.baseBorder,
+        borderAlpha: 0.94,
+        borderWidth: 2,
+        glossy: true,
+      });
+      this.generateCellTexture(`cell-hover-${palette.id}${suffix}`, cellSize, innerSize, {
+        fillTop: palette.hoverTop,
+        fillBottom: palette.hoverBottom,
+        border: palette.hoverBorder,
+        borderAlpha: 0.96,
+        borderWidth: 2.2,
+        glossy: true,
+      });
+      this.generateCellTexture(`cell-selected-${palette.id}${suffix}`, cellSize, innerSize, {
+        fillTop: palette.selectedTop,
+        fillBottom: palette.selectedBottom,
+        border: palette.selectedBorder,
+        borderAlpha: 1,
+        borderWidth: 2.8,
+        glossy: true,
+      });
+    });
   }
 
   /** Generate rich gem-like cell textures for each found word color */

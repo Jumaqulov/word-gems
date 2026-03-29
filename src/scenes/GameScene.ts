@@ -16,6 +16,7 @@ import {
   getLevelConfig,
   isComboActive,
   LevelConfig,
+  WorldId,
   updateCombo,
 } from '../utils/LevelSystem';
 import {
@@ -55,6 +56,51 @@ interface WordStatusTag {
   className: string;
 }
 
+interface BoardThemeProfile {
+  shellMix: number;
+  rimMix: number;
+  faceMix: number;
+  innerMix: number;
+  coreMix: number;
+  slotBaseMix: number;
+  slotGlowMix: number;
+  facetMix: number;
+  chipMix: number;
+  stageGlowAlpha: number;
+  stageBloomAlpha: number;
+  stageHaloAlpha: number;
+  frameOuterAlpha: number;
+  frameInnerAlpha: number;
+  panelFaceAlpha: number;
+  panelInnerAlpha: number;
+  panelCoreAlpha: number;
+  topBandAlpha: number;
+  glassBandAlpha: number;
+  facetFillAlpha: number;
+  facetStrokeAlpha: number;
+  slotShadowAlpha: number;
+  slotBaseAlpha: number;
+  slotGlowAlpha: number;
+  slotEdgeAlpha: number;
+  slotInnerEdgeAlpha: number;
+  chipAlpha: number;
+  tileTintMix: number;
+  tileScale: number;
+  tileLetterScale: number;
+  letterDarkMix: number;
+  letterStrokeMix: number;
+  letterShadowAlpha: number;
+  selectedTintMix: number;
+  selectedScale: number;
+  selectedLetterScale: number;
+  selectedStrokeMix: number;
+  selectedShadowAlpha: number;
+  foundTileScale: number;
+  foundLetterScale: number;
+  foundStrokeMix: number;
+  foundShadowAlpha: number;
+}
+
 function createWordRuntimeState(): WordRuntimeState {
   return {
     cometWord: null,
@@ -78,6 +124,7 @@ export class GameScene extends Phaser.Scene {
   private juice!: GameJuice;
 
   private levelConfig!: LevelConfig;
+  private boardThemeProfile!: BoardThemeProfile;
   private cellSize = 50;
   private cellDisplaySize = 50;
   private levelWords: string[] = [];
@@ -188,6 +235,7 @@ export class GameScene extends Phaser.Scene {
 
     const save = CrazyGamesManager.saveData;
     this.levelConfig = getLevelConfig(level);
+    this.boardThemeProfile = this.getBoardThemeProfile();
     this.cellSize = this.calculateCellSize();
     this.cellDisplaySize = this.getCellDisplaySize();
     SoundManager.setWorldProfile(this.levelConfig.sfxProfile);
@@ -396,6 +444,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createGridStage(totalSize: number): void {
+    const profile = this.boardThemeProfile;
     const isDesktop = window.innerWidth > 768;
     const stagePadding = Math.round(this.cellSize * (isDesktop ? 0.68 : 0.58));
     const stageWidth = totalSize + stagePadding * 2;
@@ -412,46 +461,46 @@ export class GameScene extends Phaser.Scene {
     const cellTint = this.levelConfig.visuals.cellTint;
     const bgMid = this.hexToColorValue(this.levelConfig.visuals.backgroundMid);
     const bgBottom = this.hexToColorValue(this.levelConfig.visuals.backgroundBottom);
-    const shellColor = this.mixColor(cellTint, primary, 0.18);
-    const rimColor = this.mixColor(bgMid, cellTint, 0.48);
-    const panelFace = this.mixColor(cellTint, secondary, 0.34);
-    const panelInner = this.mixColor(primary, cellTint, 0.34);
-    const panelCore = this.mixColor(panelInner, secondary, 0.24);
+    const shellColor = this.mixColor(cellTint, primary, profile.shellMix);
+    const rimColor = this.mixColor(bgMid, cellTint, profile.rimMix);
+    const panelFace = this.mixColor(cellTint, secondary, profile.faceMix);
+    const panelInner = this.mixColor(primary, cellTint, profile.innerMix);
+    const panelCore = this.mixColor(panelInner, secondary, profile.coreMix);
     const slotShadow = this.mixColor(bgBottom, bgMid, 0.26);
-    const slotBase = this.mixColor(cellTint, panelInner, 0.22);
-    const slotGlow = this.mixColor(secondary, cellTint, 0.42);
-    const facetColor = this.mixColor(primary, secondary, 0.42);
-    const gemChipColor = this.mixColor(accent, secondary, 0.34);
+    const slotBase = this.mixColor(cellTint, panelInner, profile.slotBaseMix);
+    const slotGlow = this.mixColor(secondary, cellTint, profile.slotGlowMix);
+    const facetColor = this.mixColor(primary, secondary, profile.facetMix);
+    const gemChipColor = this.mixColor(accent, secondary, profile.chipMix);
 
     const stageGlow = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-soft-glow');
     stageGlow.setDisplaySize(stageWidth * 1.18, stageHeight * 1.14);
     stageGlow.setTint(accent);
-    stageGlow.setAlpha(0.24);
+    stageGlow.setAlpha(profile.stageGlowAlpha);
 
     const stageBloom = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-soft-glow');
     stageBloom.setDisplaySize(stageWidth * 0.9, stageHeight * 0.84);
     stageBloom.setTint(secondary);
-    stageBloom.setAlpha(0.14);
+    stageBloom.setAlpha(profile.stageBloomAlpha);
 
     const stageHalo = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-rune-halo');
     stageHalo.setDisplaySize(stageWidth * 0.64, stageWidth * 0.64);
     stageHalo.setTint(secondary);
-    stageHalo.setAlpha(0.05);
+    stageHalo.setAlpha(profile.stageHaloAlpha);
 
     const stageShadow = this.add.graphics();
     stageShadow.fillStyle(bgBottom, 0.16);
     stageShadow.fillRoundedRect(stageX + 6, stageY + 14, stageWidth, stageHeight, outerRadius + 6);
 
     const stageFrame = this.add.graphics();
-    stageFrame.fillStyle(shellColor, 0.24);
+    stageFrame.fillStyle(shellColor, profile.frameOuterAlpha);
     stageFrame.fillRoundedRect(stageX, stageY, stageWidth, stageHeight, outerRadius);
-    stageFrame.fillStyle(rimColor, 0.22);
+    stageFrame.fillStyle(rimColor, profile.frameInnerAlpha);
     stageFrame.fillRoundedRect(stageX + 6, stageY + 6, stageWidth - 12, stageHeight - 12, outerRadius - 4);
-    stageFrame.fillStyle(panelFace, 0.24);
+    stageFrame.fillStyle(panelFace, profile.panelFaceAlpha);
     stageFrame.fillRoundedRect(stageX + 18, stageY + 18, stageWidth - 36, stageHeight - 36, innerRadius);
-    stageFrame.fillStyle(panelInner, 0.18);
+    stageFrame.fillStyle(panelInner, profile.panelInnerAlpha);
     stageFrame.fillRoundedRect(stageX + 28, stageY + 28, stageWidth - 56, stageHeight - 56, coreRadius);
-    stageFrame.fillStyle(panelCore, 0.1);
+    stageFrame.fillStyle(panelCore, profile.panelCoreAlpha);
     stageFrame.fillRoundedRect(stageX + 28, stageY + 28, stageWidth - 56, Math.max(56, stageHeight * 0.26), {
       tl: coreRadius,
       tr: coreRadius,
@@ -468,20 +517,20 @@ export class GameScene extends Phaser.Scene {
     const stageTopBand = this.add.image(totalSize / 2, stageY + stagePadding * 0.7, 'bgfx-glint-band');
     stageTopBand.setDisplaySize(stageWidth * 0.56, Math.max(32, stagePadding * 0.8));
     stageTopBand.setTint(secondary);
-    stageTopBand.setAlpha(0.16);
+    stageTopBand.setAlpha(profile.topBandAlpha);
 
     const stageGlassBand = this.add.image(totalSize / 2, totalSize / 2 + this.cellSize * 0.1, 'bgfx-glint-band');
     stageGlassBand.setDisplaySize(stageWidth * 0.62, Math.max(42, this.cellSize * 0.6));
     stageGlassBand.setTint(primary);
-    stageGlassBand.setAlpha(0.08);
+    stageGlassBand.setAlpha(profile.glassBandAlpha);
 
     const facetGraphics = this.add.graphics();
-    facetGraphics.fillStyle(0xffffff, 0.06);
+    facetGraphics.fillStyle(0xffffff, profile.facetFillAlpha);
     facetGraphics.fillTriangle(stageX + 24, stageY + 28, stageX + stageWidth * 0.34, stageY + 28, stageX + 24, stageY + stageHeight * 0.3);
     facetGraphics.fillTriangle(stageX + stageWidth - 24, stageY + 28, stageX + stageWidth - 24, stageY + stageHeight * 0.3, stageX + stageWidth * 0.66, stageY + 28);
     facetGraphics.fillTriangle(stageX + 24, stageY + stageHeight - 28, stageX + stageWidth * 0.34, stageY + stageHeight - 28, stageX + 24, stageY + stageHeight * 0.7);
     facetGraphics.fillTriangle(stageX + stageWidth - 24, stageY + stageHeight - 28, stageX + stageWidth - 24, stageY + stageHeight * 0.7, stageX + stageWidth * 0.66, stageY + stageHeight - 28);
-    facetGraphics.lineStyle(1, facetColor, 0.14);
+    facetGraphics.lineStyle(1, facetColor, profile.facetStrokeAlpha);
     facetGraphics.lineBetween(stageX + 36, stageY + 34, stageX + stageWidth * 0.46, stageY + stageHeight * 0.46);
     facetGraphics.lineBetween(stageX + stageWidth - 36, stageY + 34, stageX + stageWidth * 0.54, stageY + stageHeight * 0.46);
     facetGraphics.lineBetween(stageX + 36, stageY + stageHeight - 34, stageX + stageWidth * 0.46, stageY + stageHeight * 0.54);
@@ -496,15 +545,15 @@ export class GameScene extends Phaser.Scene {
         const x = Math.round(col * this.cellSize + this.cellSize / 2 - slotSize / 2);
         const y = Math.round(row * this.cellSize + this.cellSize / 2 - slotSize / 2 + Math.max(2, this.cellSize * 0.05));
 
-        slotGraphics.fillStyle(slotShadow, 0.12);
+        slotGraphics.fillStyle(slotShadow, profile.slotShadowAlpha);
         slotGraphics.fillRoundedRect(x, y + 2, slotSize, slotSize, slotRadius);
-        slotGraphics.fillStyle(slotBase, 0.18);
+        slotGraphics.fillStyle(slotBase, profile.slotBaseAlpha);
         slotGraphics.fillRoundedRect(x + 1, y + 1, slotSize - 2, slotSize - 2, slotRadius - 1);
-        slotGraphics.fillStyle(slotGlow, 0.12);
+        slotGraphics.fillStyle(slotGlow, profile.slotGlowAlpha);
         slotGraphics.fillRoundedRect(x + 3, y + 3, slotSize - 6, slotSize * 0.24, slotRadius - 3);
-        slotGraphics.lineStyle(1, slotGlow, 0.12);
+        slotGraphics.lineStyle(1, slotGlow, profile.slotEdgeAlpha);
         slotGraphics.strokeRoundedRect(x + 1, y + 1, slotSize - 2, slotSize - 2, slotRadius - 1);
-        slotGraphics.lineStyle(1, 0xffffff, 0.08);
+        slotGraphics.lineStyle(1, 0xffffff, profile.slotInnerEdgeAlpha);
         slotGraphics.strokeRoundedRect(x + 4, y + 4, slotSize - 8, slotSize - 8, slotRadius - 4);
       }
     }
@@ -526,7 +575,7 @@ export class GameScene extends Phaser.Scene {
       gemChips.lineBetween(x, y - size, x - size * 0.45, y);
     };
     cornerPoints.forEach(({ x, y }) => {
-      drawDiamond(x, y, chipSize, gemChipColor, 0.18);
+      drawDiamond(x, y, chipSize, gemChipColor, profile.chipAlpha);
     });
 
     this.gridContainer.add([
@@ -601,11 +650,213 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getCellTextureKey(baseKey: 'cell-bg' | 'cell-selected' | 'cell-hover' | 'cell-wrong' | 'cell-found'): string {
-    return this.useSpaciousCellTextures() ? `${baseKey}-spacious` : baseKey;
+    const suffix = this.useSpaciousCellTextures() ? '-spacious' : '';
+    const variantKey = `${baseKey}-${this.getCellTextureVariant()}${suffix}`;
+    return this.textures.exists(variantKey) ? variantKey : `${baseKey}${suffix}`;
   }
 
   private getFoundCellTextureKey(colorIndex: number): string {
     return this.useSpaciousCellTextures() ? `cell-found-${colorIndex}-spacious` : `cell-found-${colorIndex}`;
+  }
+
+  private getCellTextureVariant(): WorldId {
+    return this.levelConfig.world.id;
+  }
+
+  private getBoardThemeProfile(): BoardThemeProfile {
+    const profile: BoardThemeProfile = {
+      shellMix: 0.18,
+      rimMix: 0.48,
+      faceMix: 0.34,
+      innerMix: 0.34,
+      coreMix: 0.24,
+      slotBaseMix: 0.22,
+      slotGlowMix: 0.42,
+      facetMix: 0.42,
+      chipMix: 0.34,
+      stageGlowAlpha: 0.24,
+      stageBloomAlpha: 0.14,
+      stageHaloAlpha: 0.05,
+      frameOuterAlpha: 0.24,
+      frameInnerAlpha: 0.22,
+      panelFaceAlpha: 0.24,
+      panelInnerAlpha: 0.18,
+      panelCoreAlpha: 0.1,
+      topBandAlpha: 0.16,
+      glassBandAlpha: 0.08,
+      facetFillAlpha: 0.06,
+      facetStrokeAlpha: 0.14,
+      slotShadowAlpha: 0.12,
+      slotBaseAlpha: 0.18,
+      slotGlowAlpha: 0.12,
+      slotEdgeAlpha: 0.12,
+      slotInnerEdgeAlpha: 0.08,
+      chipAlpha: 0.18,
+      tileTintMix: 0.05,
+      tileScale: 0.95,
+      tileLetterScale: 0.96,
+      letterDarkMix: 0.14,
+      letterStrokeMix: 0.16,
+      letterShadowAlpha: 0.14,
+      selectedTintMix: 0.18,
+      selectedScale: 1.04,
+      selectedLetterScale: 1.09,
+      selectedStrokeMix: 0.44,
+      selectedShadowAlpha: 0.24,
+      foundTileScale: 1.05,
+      foundLetterScale: 1.08,
+      foundStrokeMix: 0.26,
+      foundShadowAlpha: 0.22,
+    };
+
+    const overrides: Partial<Record<WorldId, Partial<BoardThemeProfile>>> = {
+      forest: {
+        faceMix: 0.28,
+        innerMix: 0.26,
+        coreMix: 0.16,
+        stageHaloAlpha: 0.03,
+        slotGlowAlpha: 0.08,
+        tileTintMix: 0.03,
+        letterDarkMix: 0.16,
+        selectedTintMix: 0.12,
+      },
+      ocean: {
+        stageGlowAlpha: 0.28,
+        stageBloomAlpha: 0.18,
+        stageHaloAlpha: 0.08,
+        faceMix: 0.3,
+        innerMix: 0.28,
+        slotGlowAlpha: 0.16,
+        glassBandAlpha: 0.12,
+        selectedTintMix: 0.28,
+      },
+      space: {
+        stageGlowAlpha: 0.28,
+        stageBloomAlpha: 0.16,
+        stageHaloAlpha: 0.1,
+        frameOuterAlpha: 0.28,
+        frameInnerAlpha: 0.24,
+        panelFaceAlpha: 0.22,
+        panelInnerAlpha: 0.16,
+        panelCoreAlpha: 0.14,
+        glassBandAlpha: 0.1,
+        facetStrokeAlpha: 0.18,
+        tileTintMix: 0.02,
+        letterDarkMix: 0.22,
+        selectedTintMix: 0.22,
+      },
+      castle: {
+        frameOuterAlpha: 0.3,
+        frameInnerAlpha: 0.26,
+        panelFaceAlpha: 0.28,
+        panelInnerAlpha: 0.2,
+        panelCoreAlpha: 0.14,
+        topBandAlpha: 0.18,
+        chipAlpha: 0.22,
+        slotBaseAlpha: 0.2,
+      },
+      magic: {
+        stageGlowAlpha: 0.3,
+        stageBloomAlpha: 0.18,
+        stageHaloAlpha: 0.12,
+        glassBandAlpha: 0.12,
+        facetFillAlpha: 0.08,
+        facetStrokeAlpha: 0.18,
+        slotGlowAlpha: 0.15,
+        selectedTintMix: 0.3,
+      },
+      ice: {
+        stageGlowAlpha: 0.26,
+        stageBloomAlpha: 0.16,
+        stageHaloAlpha: 0.08,
+        frameInnerAlpha: 0.24,
+        glassBandAlpha: 0.14,
+        facetFillAlpha: 0.07,
+        slotGlowAlpha: 0.18,
+        slotEdgeAlpha: 0.16,
+        slotInnerEdgeAlpha: 0.12,
+        tileTintMix: 0.01,
+        letterDarkMix: 0.12,
+      },
+      desert: {
+        stageGlowAlpha: 0.2,
+        stageBloomAlpha: 0.12,
+        stageHaloAlpha: 0.04,
+        panelCoreAlpha: 0.08,
+        topBandAlpha: 0.18,
+        slotBaseAlpha: 0.2,
+        slotGlowAlpha: 0.1,
+      },
+      volcano: {
+        stageGlowAlpha: 0.32,
+        stageBloomAlpha: 0.18,
+        stageHaloAlpha: 0.08,
+        frameOuterAlpha: 0.28,
+        rimMix: 0.42,
+        faceMix: 0.28,
+        innerMix: 0.3,
+        glassBandAlpha: 0.1,
+        slotShadowAlpha: 0.16,
+        slotGlowAlpha: 0.18,
+        selectedTintMix: 0.24,
+      },
+      sky: {
+        stageGlowAlpha: 0.18,
+        stageBloomAlpha: 0.12,
+        stageHaloAlpha: 0.04,
+        frameOuterAlpha: 0.18,
+        frameInnerAlpha: 0.18,
+        panelFaceAlpha: 0.2,
+        panelInnerAlpha: 0.15,
+        slotShadowAlpha: 0.08,
+        slotBaseAlpha: 0.16,
+        slotGlowAlpha: 0.14,
+        tileTintMix: 0.01,
+        tileScale: 0.96,
+        tileLetterScale: 0.97,
+      },
+      crystal: {
+        stageGlowAlpha: 0.3,
+        stageBloomAlpha: 0.18,
+        stageHaloAlpha: 0.11,
+        glassBandAlpha: 0.13,
+        facetFillAlpha: 0.09,
+        facetStrokeAlpha: 0.2,
+        slotGlowAlpha: 0.16,
+        chipAlpha: 0.24,
+        selectedTintMix: 0.32,
+      },
+      shadow: {
+        stageGlowAlpha: 0.16,
+        stageBloomAlpha: 0.1,
+        stageHaloAlpha: 0.06,
+        frameOuterAlpha: 0.3,
+        panelFaceAlpha: 0.18,
+        panelInnerAlpha: 0.16,
+        panelCoreAlpha: 0.14,
+        topBandAlpha: 0.08,
+        glassBandAlpha: 0.05,
+        slotShadowAlpha: 0.16,
+        slotBaseAlpha: 0.16,
+        slotGlowAlpha: 0.09,
+        tileTintMix: 0.03,
+        letterDarkMix: 0.24,
+        letterStrokeMix: 0.1,
+      },
+      clockwork: {
+        frameOuterAlpha: 0.32,
+        frameInnerAlpha: 0.26,
+        panelFaceAlpha: 0.26,
+        panelInnerAlpha: 0.2,
+        panelCoreAlpha: 0.12,
+        topBandAlpha: 0.2,
+        chipAlpha: 0.26,
+        slotBaseAlpha: 0.19,
+        slotGlowAlpha: 0.1,
+      },
+    };
+
+    return { ...profile, ...(overrides[this.levelConfig.world.id] ?? {}) };
   }
 
   private setupInputHandlers(): void {
@@ -932,19 +1183,22 @@ export class GameScene extends Phaser.Scene {
 
     for (const { row, col } of placedWord.cells) {
       const cell = this.cells[row][col];
+      const foundStroke = this.colorValueToCss(
+        this.mixColor(COLORS.FOUND_COLORS[colorIndex], this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), this.boardThemeProfile.foundStrokeMix)
+      );
       cell.bg.setTexture(this.getFoundCellTextureKey(colorIndex));
       cell.bg.clearTint();
       cell.bg.setAlpha(1);
       cell.bg.setPosition(cell.baseX, cell.baseY);
-      cell.bg.setScale(1.04);
+      cell.bg.setScale(this.boardThemeProfile.foundTileScale);
       cell.letter.setText(this.actualGridLetters[row][col]);
       cell.letter.setPosition(cell.baseX, cell.baseY);
-      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', 'rgba(24, 52, 78, 0.78)', 'rgba(0, 0, 0, 0.22)', {
+      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', foundStroke, `rgba(0, 0, 0, ${this.boardThemeProfile.foundShadowAlpha})`, {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(1.08);
+      cell.letter.setScale(this.boardThemeProfile.foundLetterScale);
       this.foundCellKeys.add(this.getCellKey(row, col));
     }
 
@@ -1046,25 +1300,26 @@ export class GameScene extends Phaser.Scene {
   private applyBaseCellStyle(cell: CellSprite): void {
     if (this.foundCellKeys.has(this.getCellKey(cell.row, cell.col))) return;
 
+    const profile = this.boardThemeProfile;
     const primaryColor = this.hexToColorValue(this.levelConfig.visuals.primary);
     const secondaryColor = this.hexToColorValue(this.levelConfig.visuals.secondary);
-    const letterBase = this.mixColor(this.hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, 0.18);
-    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, 0.08);
+    const letterBase = this.mixColor(this.hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, profile.letterDarkMix);
+    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, profile.tileTintMix);
     cell.bg.setTexture(this.getCellTextureKey('cell-bg'));
     cell.bg.clearTint();
     cell.bg.setAlpha(1);
     cell.bg.setPosition(cell.baseX, cell.baseY);
-    cell.bg.setScale(0.94);
+    cell.bg.setScale(profile.tileScale);
 
     cell.letter.setText(this.gridData.grid[cell.row][cell.col]);
     cell.letter.setPosition(cell.baseX, cell.baseY);
-    cell.letter.setScale(0.94);
+    cell.letter.setScale(profile.tileLetterScale);
     cell.letter.setAlpha(1);
     this.applyReadableLetterStyle(
       cell.letter,
       this.colorValueToCss(letterBase),
-      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, 0.12)),
-      'rgba(8, 18, 28, 0.12)',
+      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, profile.letterStrokeMix)),
+      `rgba(8, 18, 28, ${profile.letterShadowAlpha})`,
       {
         strokeWidth: 1,
       }
@@ -1105,6 +1360,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateSelectionVisuals(): void {
+    const profile = this.boardThemeProfile;
+    const selectedStroke = this.colorValueToCss(
+      this.mixColor(this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), this.levelConfig.visuals.accentTint, profile.selectedStrokeMix)
+    );
+    const selectedTint = this.mixColor(this.levelConfig.visuals.accentTint, this.hexToColorValue(this.levelConfig.visuals.secondary), profile.selectedTintMix);
+
     for (const row of this.cells) {
       for (const cell of row) {
         this.applyBaseCellStyle(cell);
@@ -1115,14 +1376,14 @@ export class GameScene extends Phaser.Scene {
       if (this.foundCellKeys.has(this.getCellKey(row, col))) continue;
       const cell = this.cells[row][col];
       cell.bg.setTexture(this.getCellTextureKey('cell-selected'));
-      cell.bg.setTint(this.levelConfig.visuals.accentTint);
-      cell.bg.setScale(1.03);
-      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', 'rgba(12, 82, 88, 0.9)', 'rgba(0, 0, 0, 0.24)', {
+      cell.bg.setTint(selectedTint);
+      cell.bg.setScale(profile.selectedScale);
+      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', selectedStroke, `rgba(0, 0, 0, ${profile.selectedShadowAlpha})`, {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(1.09);
+      cell.letter.setScale(profile.selectedLetterScale);
     }
 
     this.selectionGraphics.clear();
@@ -1293,6 +1554,8 @@ export class GameScene extends Phaser.Scene {
     const shell = document.getElementById('game-shell');
     const mainContent = document.getElementById('main-content');
     const gameContainer = document.getElementById('game-container');
+    const gameInfoBar = document.getElementById('game-info-bar');
+    const timerContainer = document.getElementById('timer-container');
     const theme = this.levelConfig.visuals;
     const targets = [root, shell].filter((target): target is HTMLElement => Boolean(target));
 
@@ -1302,6 +1565,14 @@ export class GameScene extends Phaser.Scene {
 
     if (mainContent) {
       mainContent.setAttribute('data-world', this.levelConfig.world.id);
+    }
+
+    if (gameInfoBar) {
+      gameInfoBar.setAttribute('data-world', this.levelConfig.world.id);
+    }
+
+    if (timerContainer) {
+      timerContainer.setAttribute('data-world', this.levelConfig.world.id);
     }
 
     if (gameContainer) {
@@ -1407,18 +1678,20 @@ export class GameScene extends Phaser.Scene {
 
   private updateTimerUI(): void {
     const el = document.getElementById('timer-display');
+    const container = document.getElementById('timer-container');
     if (!el) return;
 
     const minutes = Math.floor(this.timerSeconds / 60);
     const seconds = this.timerSeconds % 60;
     el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    el.className = 'timer-value';
 
     if (this.timerSeconds <= 15) {
-      el.className = 'timer-value timer-critical';
+      container?.setAttribute('data-state', 'critical');
     } else if (this.timerSeconds <= 30) {
-      el.className = 'timer-value timer-warning';
+      container?.setAttribute('data-state', 'warning');
     } else {
-      el.className = 'timer-value';
+      container?.setAttribute('data-state', 'normal');
     }
   }
 
