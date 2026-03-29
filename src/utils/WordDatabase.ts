@@ -101,6 +101,76 @@ export const WORLD_WORD_DATABASE: Record<WorldId, WorldDictionary> = {
       'ANCIENTRUIN', 'DUSTTRAIL', 'EMBERDUNE', 'STAROASIS', 'MOONTEMPLE',
     ],
   },
+  volcano: {
+    easy: [
+      'LAVA', 'ASH', 'HEAT', 'MAGMA', 'EMBER', 'BASALT', 'CRATER', 'FUME', 'SMOKE', 'FLARE', 'SCORIA', 'SPARK',
+      'VENT', 'GLOW', 'RIDGE', 'CINDER', 'SULFUR', 'STEAM',
+    ],
+    medium: [
+      'VOLCANO', 'ERUPTION', 'OBSIDIAN', 'MOLTEN', 'FISSURE', 'CHARCOAL', 'FIREPEAK', 'LAVAFLOW', 'BLAZE', 'CALDERA',
+      'IGNEOUS', 'THERMAL', 'PYROCLAST', 'REDSTONE', 'MAGMATIC', 'HEATWAVE', 'SMOLDER', 'BRIMSTONE',
+    ],
+    hard: [
+      'AFTERGLOW', 'ASHCLOUD', 'FIRESTORM', 'LAVATUNNEL', 'VOLCANIC', 'SCORCHED', 'CINDERCONE', 'MAGMAFALL',
+      'RIFTSTONE', 'ASHFIELD', 'FIRELIGHT', 'SMOKEPLUME',
+    ],
+  },
+  sky: {
+    easy: [
+      'SKY', 'CLOUD', 'BREEZE', 'GUST', 'WING', 'BIRD', 'DAWN', 'SUN', 'GLOW', 'AIR', 'SOAR', 'GLIDE',
+      'LIGHT', 'CIRRUS', 'HALO', 'FLOAT', 'DOVE', 'HAZE',
+    ],
+    medium: [
+      'HORIZON', 'THUNDER', 'FEATHER', 'SKYLINE', 'AIRSTREAM', 'SUNBEAM', 'UPDRAFT', 'SUNRISE', 'DAYBREAK', 'WINDSONG',
+      'SKYLARK', 'DRIFTING', 'MOONRISE', 'STARLING', 'GLIDER', 'NIMBUS', 'SKYSCAPE', 'CLOUDTOP',
+    ],
+    hard: [
+      'AEROLIGHT', 'HOVERWING', 'STARGAZE', 'WHITECLOUD', 'SKYBRIDGE', 'RAINSWEEP', 'WINDTRAIL', 'BLUEHAVEN',
+      'SUNSHOWER', 'SKYDANCER', 'HIGHNOON', 'CLOUDLINE',
+    ],
+  },
+  crystal: {
+    easy: [
+      'GEM', 'CRYSTAL', 'PRISM', 'GLOW', 'CAVE', 'SHARD', 'ECHO', 'VEIN', 'SPARK', 'STONE', 'GLINT', 'GEODE',
+      'QUARTZ', 'DRUSE', 'CAVERN', 'FACET', 'LUSTER', 'MINERAL',
+    ],
+    medium: [
+      'AMETHYST', 'SAPPHIRE', 'MINESHAFT', 'LAMPLIGHT', 'GLIMMER', 'GEMSTONE', 'REFRACT', 'MOONSTONE', 'PRISMATIC', 'STALACTITE',
+      'STALAGMITE', 'GROTTO', 'SHIMMER', 'LODESTONE', 'GEMCAVERN', 'FLICKER', 'CAVERNOUS', 'SPARKLE',
+    ],
+    hard: [
+      'DIAMOND', 'STARQUARTZ', 'PRISMLIGHT', 'GLOWSTONE', 'SHARDLIGHT', 'ECHOCAVERN', 'GEMCLUSTER', 'CAVEGLASS',
+      'REFLECTION', 'SPARKMINE', 'HIDDENVEIN', 'LUMENROCK',
+    ],
+  },
+  shadow: {
+    easy: [
+      'SHADE', 'DUSK', 'NIGHT', 'GLOOM', 'ECLIPSE', 'UMBRA', 'VEIL', 'RAVEN', 'CLOAK', 'WHISPER', 'NOIR', 'MOON',
+      'SHIVER', 'WRAITH', 'FOG', 'SILENCE', 'MIST', 'GHOST',
+    ],
+    medium: [
+      'SHADOW', 'TWILIGHT', 'PHANTOM', 'MOONLIT', 'NIGHTFALL', 'DARKNESS', 'SILHOUETTE', 'EERIE', 'MIDNIGHT', 'HUSHED',
+      'LANTERN', 'HOLLOW', 'AFTERDARK', 'VELVET', 'MOONSHADE', 'BLACKOUT', 'SHROUDED', 'STARLESS',
+    ],
+    hard: [
+      'SHADOWFORM', 'NIGHTVEIL', 'MOONGLOW', 'GLOAMING', 'WITCHHOUR', 'DARKWATER', 'SHADEWALK', 'WHISPERED',
+      'DUSKBOUND', 'NOCTURNE', 'GRIMLIGHT', 'MOONSHARD',
+    ],
+  },
+  clockwork: {
+    easy: [
+      'GEAR', 'CLOCK', 'SPRING', 'BRASS', 'STEAM', 'BOLT', 'COG', 'TICK', 'WHIRL', 'LEVER', 'CHAIN', 'WHEEL',
+      'PISTON', 'GLINT', 'METAL', 'CHIME', 'VALVE', 'AXLE',
+    ],
+    medium: [
+      'ENGINE', 'MACHINE', 'BALANCE', 'PENDULUM', 'TURNKEY', 'BLUEPRINT', 'WORKSHOP', 'TINKER', 'CIRCUIT', 'SPROCKET',
+      'COMPASS', 'AUTOMATA', 'MAINSPRING', 'CLOCKFACE', 'RATCHET', 'TIMEKEEP', 'MECHANIC', 'GEARBOX',
+    ],
+    hard: [
+      'HOURGLASS', 'CLOCKWORK', 'WINDINGKEY', 'STEELHEART', 'COPPERGEAR', 'BRASSWORK', 'TICKTOCK', 'IRONPULSE',
+      'GEARTRAIN', 'TIMEPIECE', 'SPRINGLOCK', 'AUTOMATON',
+    ],
+  },
 };
 
 export function selectWordsForLevel(level: number, usedWords: string[]): string[] {

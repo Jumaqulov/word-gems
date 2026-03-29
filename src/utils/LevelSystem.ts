@@ -12,7 +12,19 @@ export type DirectionName =
   | 'downLeft';
 
 export type WordDifficulty = 'easy' | 'medium' | 'hard';
-export type WorldId = 'forest' | 'ocean' | 'space' | 'castle' | 'magic' | 'ice' | 'desert';
+export type WorldId =
+  | 'forest'
+  | 'ocean'
+  | 'space'
+  | 'castle'
+  | 'magic'
+  | 'ice'
+  | 'desert'
+  | 'volcano'
+  | 'sky'
+  | 'crystal'
+  | 'shadow'
+  | 'clockwork';
 
 export interface DifficultyWeights {
   easy: number;
@@ -39,11 +51,20 @@ export interface WorldVisualTheme {
 export type WorldMechanicConfig =
   | { type: 'forest_stable'; hint: string }
   | { type: 'ocean_wave'; hint: string; waveCells: [number, number]; amplitude: number }
-  | { type: 'space_comet'; hint: string; bonusScore: number }
-  | { type: 'castle_lock'; hint: string; hasLockedWord: boolean }
-  | { type: 'magic_wildcard'; hint: string; wildcardCells: [number, number] }
+  | { type: 'space_comet'; hint: string; bonusScore: number; bonusLabel?: string; claimedText?: string }
+  | { type: 'castle_lock'; hint: string; hasLockedWord: boolean; unlockBurstText?: string }
+  | { type: 'magic_wildcard'; hint: string; wildcardCells: [number, number]; cellLabel?: string }
   | { type: 'ice_frozen'; hint: string; frozenWords: number }
-  | { type: 'desert_gold'; hint: string; goldenCells: [number, number]; gemBonus: number; scoreBonus: number };
+  | {
+      type: 'desert_gold';
+      hint: string;
+      goldenCells: [number, number];
+      gemBonus: number;
+      scoreBonus: number;
+      cellLabel?: string;
+      collectedText?: string;
+      rewardLabel?: string;
+    };
 
 export interface WorldConfig {
   id: WorldId;
@@ -371,7 +392,7 @@ export const WORLDS: WorldConfig[] = [
     id: 'desert',
     name: 'Desert World',
     description: 'Mirage boards with shimmering golden rewards.',
-    levels: [61, 99999],
+    levels: [61, 70],
     gridSize: [10, 10],
     wordCount: [8, 10],
     difficultyWeights: {
@@ -413,6 +434,241 @@ export const WORLDS: WorldConfig[] = [
       letterColor: '#5b3a1b',
     },
     sfxProfile: 'desert',
+  },
+  {
+    id: 'volcano',
+    name: 'Volcano World',
+    description: 'Molten trails with ember cells that forge extra rewards.',
+    levels: [71, 80],
+    gridSize: [10, 10],
+    wordCount: [8, 10],
+    difficultyWeights: {
+      start: { easy: 0.1, medium: 0.4, hard: 0.5 },
+      end: { easy: 0.05, medium: 0.25, hard: 0.7 },
+    },
+    directions: DIR_ALL,
+    directionWeights: {
+      right: 1,
+      left: 1,
+      down: 1,
+      up: 1,
+      downRight: 1.25,
+      upLeft: 1.25,
+      upRight: 1.2,
+      downLeft: 1.2,
+    },
+    timer: { enabled: true, startSeconds: 165, endSeconds: 130 },
+    mechanic: {
+      type: 'desert_gold',
+      hint: 'Ember cells flare hot and forge extra rewards when cleared.',
+      goldenCells: [2, 5],
+      gemBonus: 2,
+      scoreBonus: 20,
+      cellLabel: 'ember cell',
+      collectedText: 'All ember cells forged.',
+      rewardLabel: 'EMBER',
+    },
+    visuals: {
+      primary: '#FF7958',
+      secondary: '#FFE0BC',
+      accent: '#FFC468',
+      backgroundTop: '#2A0906',
+      backgroundMid: '#7B1E13',
+      backgroundBottom: '#170603',
+      glow: 'rgba(255, 121, 88, 0.4)',
+      overlayPrimary: 'rgba(255, 121, 88, 0.23)',
+      overlaySecondary: 'rgba(255, 224, 188, 0.11)',
+      cellTint: 0xfff0e8,
+      accentTint: 0xffa073,
+      bonusTint: 0xffd36c,
+      letterColor: '#5a2015',
+    },
+    sfxProfile: 'volcano',
+  },
+  {
+    id: 'sky',
+    name: 'Sky World',
+    description: 'Open-air boards where breeze cells drift across the grid.',
+    levels: [81, 90],
+    gridSize: [10, 10],
+    wordCount: [8, 10],
+    difficultyWeights: {
+      start: { easy: 0.12, medium: 0.45, hard: 0.43 },
+      end: { easy: 0.06, medium: 0.34, hard: 0.6 },
+    },
+    directions: DIR_ALL,
+    directionWeights: {
+      right: 1.05,
+      left: 1.05,
+      down: 1,
+      up: 1,
+      downRight: 1.15,
+      upLeft: 1.15,
+      upRight: 1.15,
+      downLeft: 1.15,
+    },
+    timer: { enabled: false, startSeconds: 0, endSeconds: 0 },
+    mechanic: {
+      type: 'ocean_wave',
+      hint: 'Breeze cells drift with the wind but keep the path readable.',
+      waveCells: [7, 11],
+      amplitude: 5,
+    },
+    visuals: {
+      primary: '#74D8FF',
+      secondary: '#F7FDFF',
+      accent: '#FFE38C',
+      backgroundTop: '#11304F',
+      backgroundMid: '#64B9F4',
+      backgroundBottom: '#0A182A',
+      glow: 'rgba(116, 216, 255, 0.38)',
+      overlayPrimary: 'rgba(116, 216, 255, 0.22)',
+      overlaySecondary: 'rgba(247, 253, 255, 0.12)',
+      cellTint: 0xf4fbff,
+      accentTint: 0xb9e8ff,
+      bonusTint: 0xffe28a,
+      letterColor: '#24506a',
+    },
+    sfxProfile: 'sky',
+  },
+  {
+    id: 'crystal',
+    name: 'Crystal Cave World',
+    description: 'Prism-lit caverns with refracting wildcard cells.',
+    levels: [91, 100],
+    gridSize: [10, 10],
+    wordCount: [8, 10],
+    difficultyWeights: {
+      start: { easy: 0.08, medium: 0.42, hard: 0.5 },
+      end: { easy: 0.04, medium: 0.28, hard: 0.68 },
+    },
+    directions: DIR_ALL,
+    directionWeights: {
+      right: 1,
+      left: 1,
+      down: 1,
+      up: 1,
+      downRight: 1.2,
+      upLeft: 1.2,
+      upRight: 1.2,
+      downLeft: 1.2,
+    },
+    timer: { enabled: false, startSeconds: 0, endSeconds: 0 },
+    mechanic: {
+      type: 'magic_wildcard',
+      hint: 'Prism cells marked ? can refract into any letter.',
+      wildcardCells: [2, 3],
+      cellLabel: 'prism cell',
+    },
+    visuals: {
+      primary: '#8D8BFF',
+      secondary: '#F6F1FF',
+      accent: '#78F2FF',
+      backgroundTop: '#17102F',
+      backgroundMid: '#3F3593',
+      backgroundBottom: '#090613',
+      glow: 'rgba(141, 139, 255, 0.42)',
+      overlayPrimary: 'rgba(120, 242, 255, 0.18)',
+      overlaySecondary: 'rgba(246, 241, 255, 0.11)',
+      cellTint: 0xf7f5ff,
+      accentTint: 0xcac4ff,
+      bonusTint: 0xa8f8ff,
+      letterColor: '#3b3468',
+    },
+    sfxProfile: 'crystal',
+  },
+  {
+    id: 'shadow',
+    name: 'Shadow World',
+    description: 'Dusky lanes where one hidden word stays sealed in shadow.',
+    levels: [101, 110],
+    gridSize: [10, 10],
+    wordCount: [8, 10],
+    difficultyWeights: {
+      start: { easy: 0.08, medium: 0.37, hard: 0.55 },
+      end: { easy: 0.03, medium: 0.22, hard: 0.75 },
+    },
+    directions: DIR_ALL,
+    directionWeights: {
+      right: 1,
+      left: 1,
+      down: 1,
+      up: 1,
+      downRight: 1.15,
+      upLeft: 1.15,
+      upRight: 1.15,
+      downLeft: 1.15,
+    },
+    timer: { enabled: true, startSeconds: 160, endSeconds: 125 },
+    mechanic: {
+      type: 'castle_lock',
+      hint: 'A shadow word clears only after its lantern word is found.',
+      hasLockedWord: true,
+      unlockBurstText: 'SHADOW LIFTED',
+    },
+    visuals: {
+      primary: '#7E7AAE',
+      secondary: '#F0EAFE',
+      accent: '#E78CFF',
+      backgroundTop: '#0F0A17',
+      backgroundMid: '#2F2445',
+      backgroundBottom: '#05040A',
+      glow: 'rgba(126, 122, 174, 0.34)',
+      overlayPrimary: 'rgba(231, 140, 255, 0.18)',
+      overlaySecondary: 'rgba(240, 234, 254, 0.08)',
+      cellTint: 0xf5f1ff,
+      accentTint: 0xc1b8e6,
+      bonusTint: 0xf0a2ff,
+      letterColor: '#342a4f',
+    },
+    sfxProfile: 'shadow',
+  },
+  {
+    id: 'clockwork',
+    name: 'Clockwork World',
+    description: 'Precision puzzleworks with hidden gears and ticking bonuses.',
+    levels: [111, 120],
+    gridSize: [10, 10],
+    wordCount: [8, 10],
+    difficultyWeights: {
+      start: { easy: 0.06, medium: 0.34, hard: 0.6 },
+      end: { easy: 0.02, medium: 0.18, hard: 0.8 },
+    },
+    directions: DIR_ALL,
+    directionWeights: {
+      right: 1.05,
+      left: 1.05,
+      down: 1,
+      up: 1,
+      downRight: 1.2,
+      upLeft: 1.2,
+      upRight: 1.2,
+      downLeft: 1.2,
+    },
+    timer: { enabled: true, startSeconds: 155, endSeconds: 120 },
+    mechanic: {
+      type: 'space_comet',
+      hint: 'One hidden gear word grants an extra score burst.',
+      bonusScore: 85,
+      bonusLabel: 'GEAR',
+      claimedText: 'Gear bonus secured.',
+    },
+    visuals: {
+      primary: '#C8A469',
+      secondary: '#FFF1D8',
+      accent: '#75D7D1',
+      backgroundTop: '#1C140E',
+      backgroundMid: '#5B4630',
+      backgroundBottom: '#0C0806',
+      glow: 'rgba(200, 164, 105, 0.35)',
+      overlayPrimary: 'rgba(117, 215, 209, 0.16)',
+      overlaySecondary: 'rgba(255, 241, 216, 0.09)',
+      cellTint: 0xfff6ea,
+      accentTint: 0xe3bd84,
+      bonusTint: 0x8fe7df,
+      letterColor: '#58412b',
+    },
+    sfxProfile: 'clockwork',
   },
 ];
 

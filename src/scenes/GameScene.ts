@@ -999,15 +999,19 @@ export class GameScene extends Phaser.Scene {
     midCell: { x: number; y: number }
   ): void {
     if (this.worldState.lockPrerequisite === word && this.worldState.lockedWord && !this.foundWords.has(this.worldState.lockedWord)) {
-      this.juice.floatingText(midCell.x, midCell.y - 56, 'GATE OPEN', '#F2DEC0', 22);
+      const unlockBurstText = this.levelConfig.mechanic.type === 'castle_lock'
+        ? this.levelConfig.mechanic.unlockBurstText ?? 'GATE OPEN'
+        : 'GATE OPEN';
+      this.juice.floatingText(midCell.x, midCell.y - 56, unlockBurstText, '#F2DEC0', 22);
       this.cameras.main.flash(180, 255, 231, 194, false);
     }
 
     if (this.worldState.cometWord === word && !this.worldState.cometClaimed && this.levelConfig.mechanic.type === 'space_comet') {
       this.worldState.cometClaimed = true;
       this.levelScore += this.levelConfig.mechanic.bonusScore;
-      this.juice.floatingText(midCell.x, midCell.y - 54, `COMET +${this.levelConfig.mechanic.bonusScore}`, '#9CC9FF', 22);
-      this.juice.sparkleAt(midCell.x, midCell.y, 0x9CC9FF, 14);
+      const bonusLabel = this.levelConfig.mechanic.bonusLabel ?? 'COMET';
+      this.juice.floatingText(midCell.x, midCell.y - 54, `${bonusLabel} +${this.levelConfig.mechanic.bonusScore}`, this.levelConfig.visuals.accent, 22);
+      this.juice.sparkleAt(midCell.x, midCell.y, this.levelConfig.visuals.bonusTint, 14);
       SoundManager.play('gem');
     }
 
@@ -1025,7 +1029,8 @@ export class GameScene extends Phaser.Scene {
         this.levelScore += scoreBonus;
         CrazyGamesManager.addGems(gemBonus);
 
-        this.juice.floatingText(midCell.x, midCell.y - 56, `SUN GOLD +${scoreBonus}`, '#FFE07A', 22);
+        const rewardLabel = this.levelConfig.mechanic.rewardLabel ?? 'SUN GOLD';
+        this.juice.floatingText(midCell.x, midCell.y - 56, `${rewardLabel} +${scoreBonus}`, this.levelConfig.visuals.secondary, 22);
         this.juice.gemBurst(midCell.x, midCell.y);
       }
     }
@@ -1286,11 +1291,21 @@ export class GameScene extends Phaser.Scene {
   private applyWorldTheme(): void {
     const root = document.documentElement;
     const shell = document.getElementById('game-shell');
+    const mainContent = document.getElementById('main-content');
+    const gameContainer = document.getElementById('game-container');
     const theme = this.levelConfig.visuals;
     const targets = [root, shell].filter((target): target is HTMLElement => Boolean(target));
 
     if (shell) {
       shell.setAttribute('data-world', this.levelConfig.world.id);
+    }
+
+    if (mainContent) {
+      mainContent.setAttribute('data-world', this.levelConfig.world.id);
+    }
+
+    if (gameContainer) {
+      gameContainer.removeAttribute('data-world');
     }
 
     targets.forEach((target) => {
@@ -1326,9 +1341,11 @@ export class GameScene extends Phaser.Scene {
         }
         return mechanic.hint;
       case 'space_comet':
-        return this.worldState.cometClaimed ? 'Comet burst secured.' : mechanic.hint;
-      case 'magic_wildcard':
-        return `${mechanic.hint} ${this.worldState.wildcardCellKeys.size} rune cell${this.worldState.wildcardCellKeys.size > 1 ? 's are' : ' is'} active.`;
+        return this.worldState.cometClaimed ? mechanic.claimedText ?? 'Comet burst secured.' : mechanic.hint;
+      case 'magic_wildcard': {
+        const cellLabel = mechanic.cellLabel ?? 'rune cell';
+        return `${mechanic.hint} ${this.worldState.wildcardCellKeys.size} ${cellLabel}${this.worldState.wildcardCellKeys.size > 1 ? 's are' : ' is'} active.`;
+      }
       case 'ice_frozen':
         if (this.worldState.crackedFrozenWords.size > 0) {
           const remaining = this.getRemainingNonFrozenRequiredWordCount();
@@ -1340,7 +1357,10 @@ export class GameScene extends Phaser.Scene {
         return mechanic.hint;
       case 'desert_gold': {
         const remaining = [...this.worldState.goldenCellKeys].filter((key) => !this.worldState.collectedGoldenCellKeys.has(key)).length;
-        return remaining > 0 ? `${remaining} golden cell${remaining > 1 ? 's' : ''} still shimmer.` : 'All golden cells collected.';
+        const cellLabel = mechanic.cellLabel ?? 'golden cell';
+        return remaining > 0
+          ? `${remaining} ${cellLabel}${remaining > 1 ? 's' : ''} still shimmer.`
+          : mechanic.collectedText ?? 'All golden cells collected.';
       }
       default:
         return mechanic.hint;

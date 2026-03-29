@@ -52,6 +52,13 @@ interface SignatureActor {
   rotationSpeed: number;
 }
 
+interface StaticBackdropActor {
+  sprite: Phaser.GameObjects.Image;
+  xRatio: number;
+  yRatio: number;
+  coverScale: number;
+}
+
 interface OrbitActor {
   sprite: Phaser.GameObjects.Image;
   centerXRatio: number;
@@ -96,6 +103,7 @@ export class BackgroundFXManager {
   private isMobileProfile = false;
   private ambientActors: AmbientActor[] = [];
   private signatureActors: SignatureActor[] = [];
+  private staticBackdropActors: StaticBackdropActor[] = [];
   private orbitActors: OrbitActor[] = [];
   private cometPool: CometPoolEntry[] = [];
   private timers = new Set<Phaser.Time.TimerEvent>();
@@ -114,6 +122,7 @@ export class BackgroundFXManager {
     this.currentLevel = levelConfig;
     this.viewport = this.readViewport();
     this.isMobileProfile = this.viewport.width <= 768;
+
     this.resize();
   }
 
@@ -131,6 +140,7 @@ export class BackgroundFXManager {
     this.objects.clear();
     this.ambientActors = [];
     this.signatureActors = [];
+    this.staticBackdropActors = [];
     this.orbitActors = [];
     this.cometPool = [];
     this.layer.removeAll(false);
@@ -152,6 +162,10 @@ export class BackgroundFXManager {
       this.applyWorld(level);
       return;
     }
+
+    this.staticBackdropActors.forEach((actor) => {
+      this.layoutStaticBackdropActor(actor);
+    });
 
     this.signatureActors.forEach((actor) => {
       actor.sprite.setDisplaySize(this.resolveSize(actor.width), this.resolveSize(actor.height));
@@ -182,7 +196,12 @@ export class BackgroundFXManager {
   }
 
   private buildForest(): void {
-    // Forest intentionally keeps a clean backdrop for now; no extra silhouette actors.
+    this.addStaticBackdrop('world-forest-backdrop', {
+      xRatio: 0.5,
+      yRatio: 0.48,
+      coverScale: this.isMobileProfile ? 1.12 : 1.08,
+      alpha: 0.78,
+    });
   }
 
   private buildOcean(): void {
@@ -1226,6 +1245,34 @@ export class BackgroundFXManager {
     return sprite;
   }
 
+  private addStaticBackdrop(
+    texture: string,
+    options: {
+      xRatio: number;
+      yRatio: number;
+      coverScale?: number;
+      alpha?: number;
+      tint?: number;
+      blendMode?: BlendMode;
+    }
+  ): void {
+    const sprite = this.createSprite(texture, 0, 0, {
+      alpha: options.alpha,
+      tint: options.tint,
+      blendMode: options.blendMode,
+    });
+
+    const actor: StaticBackdropActor = {
+      sprite,
+      xRatio: options.xRatio,
+      yRatio: options.yRatio,
+      coverScale: options.coverScale ?? 1,
+    };
+
+    this.staticBackdropActors.push(actor);
+    this.layoutStaticBackdropActor(actor);
+  }
+
   private trackObject<T extends Phaser.GameObjects.GameObject>(object: T): T {
     this.objects.add(object);
     object.once('destroy', () => {
@@ -1303,6 +1350,28 @@ export class BackgroundFXManager {
     if (actor.baseX > width + pad) actor.baseX = -pad;
     if (actor.baseY < -pad) actor.baseY = height + pad;
     if (actor.baseY > height + pad) actor.baseY = -pad;
+  }
+
+  private layoutStaticBackdropActor(actor: StaticBackdropActor): void {
+    const source = actor.sprite.texture.getSourceImage() as { width?: number; height?: number };
+    const sourceWidth = source.width ?? this.viewport.width;
+    const sourceHeight = source.height ?? this.viewport.height;
+    const sourceAspect = sourceWidth / Math.max(1, sourceHeight);
+    const viewportAspect = this.viewport.width / Math.max(1, this.viewport.height);
+
+    let width: number;
+    let height: number;
+
+    if (sourceAspect > viewportAspect) {
+      height = this.viewport.height * actor.coverScale;
+      width = height * sourceAspect;
+    } else {
+      width = this.viewport.width * actor.coverScale;
+      height = width / sourceAspect;
+    }
+
+    actor.sprite.setPosition(this.viewport.width * actor.xRatio, this.viewport.height * actor.yRatio);
+    actor.sprite.setDisplaySize(width, height);
   }
 
   private readViewport(): FXViewport {

@@ -406,3 +406,80 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - reran the `$develop-web-game` Playwright client; because the tutorial timing remained inconsistent for direct gameplay captures, also used a small supplemental Playwright snapshot to inspect gameplay and a forced found-word state after the required client run,
   - visually inspected `output/web-game/grid-bright-clarity-preview.png` and confirmed the idle board is brighter and easier to parse,
   - visually inspected `output/web-game/grid-bright-found-preview.png` and confirmed found words now read much more clearly on the board and in the side list.
+
+2026-03-29 world progression expansion
+- User feedback: the old setup kept `Desert World` forever after level 61, which would make long-term progression repetitive.
+- Fix:
+  - expanded the world roster in `LevelSystem` from 7 to 12 ids by adding `volcano`, `sky`, `crystal`, `shadow`, and `clockwork`,
+  - split the late-game progression into six 10-level blocks:
+    - `61-70 Desert World`
+    - `71-80 Volcano World`
+    - `81-90 Sky World`
+    - `91-100 Crystal Cave World`
+    - `101-110 Shadow World`
+    - `111-120 Clockwork World`
+  - kept the existing mechanic engines lightweight by reusing them with new world-specific text labels:
+    - Volcano reuses the desert reward-cell mechanic as ember cells,
+    - Sky reuses the wave-cell drift mechanic as breeze cells,
+    - Crystal Cave reuses wildcard cells as prism cells,
+    - Shadow reuses the lock mechanic with shadow-flavored unlock text,
+    - Clockwork reuses the bonus-word mechanic as a gear bonus,
+  - added themed word pools for all 5 new worlds in `WordDatabase`,
+  - added matching sound profiles for all 5 new worlds in `SoundManager`,
+  - generalized mechanic status/floating texts in `GameScene` so reused mechanics no longer show mismatched labels like `COMET`, `SUN GOLD`, or `rune cells` in the new worlds.
+- Verification:
+  - `npm run build` passed after the progression/content update,
+  - reran the `$develop-web-game` Playwright client against a local static server for the built `dist/`,
+  - captured fresh screenshots in `output/web-game/shot-0.png` and `output/web-game/shot-1.png`,
+  - ran a supplemental Playwright browser check by seeding save data at levels `61`, `71`, `81`, `91`, `101`, `111`, and `121`; verified the HUD/world title mapping resolves to `DESERT`, `VOLCANO`, `SKY`, `CRYSTAL CAVE`, `SHADOW`, `CLOCKWORK`, and `CLOCKWORK` respectively,
+  - note: the Playwright client still reported one existing `404` resource load in `output/web-game/errors-0.json`; this appears unrelated to the new world progression work.
+- Follow-up note:
+  - with the current fallback logic, levels `121+` now continue on `Clockwork World` until more worlds are added later.
+
+2026-03-29 forest image backdrop integration
+- User feedback: use the uploaded forest-theme artwork as the actual Forest World background, and make sure it is already visible the moment the level opens instead of fading/loading in late.
+- Fix:
+  - found the uploaded asset at `public/assets/forest-theme.png`,
+  - added a real Phaser preload for the forest backdrop in `BootScene` so the texture is loaded before `GameScene` starts,
+  - extended `BackgroundFXManager` with a lightweight static-backdrop path that can place a cover-sized image behind gameplay and keep it correctly sized on resize,
+  - enabled that static backdrop only for `Forest World`, using the uploaded image instead of the plain clean gradient-only center background.
+- Verification:
+  - `npm run build` passed after the forest image integration,
+  - reran the `$develop-web-game` Playwright client against the local static server build and refreshed `output/web-game/shot-0.png` / `shot-1.png`,
+  - copied the latest forest screenshot to `output/web-game/forest-theme-background.png`,
+  - saved a small verification summary to `output/web-game/forest-theme-background-check.json`; sampled multiple background bands from the screenshot and confirmed the scene now has strong color variance instead of a flat single-color fill, consistent with the new forest artwork being present at first render.
+
+2026-03-29 forest theme placement correction
+- User clarification: the forest theme art should not live as a Phaser-rendered backdrop layer; it needs to sit in the central gameplay container region shown in the reference crop.
+- Fix:
+  - removed the Forest-only Phaser backdrop injection from `BackgroundFXManager` so the canvas is no longer responsible for drawing the uploaded artwork,
+  - removed the now-unneeded Phaser preload from `BootScene`,
+  - added an HTML image preload for `forest-theme.png` so the browser starts fetching it before gameplay is shown,
+  - made `#game-container` world-aware in `GameScene.applyWorldTheme()`,
+  - applied the forest artwork as a CSS background directly on `#game-container`, with rounded clipping and light overlay gradients so it sits exactly in the middle gameplay square instead of the broader shell/background layer.
+- Verification:
+  - `npm run build` passed after the placement correction,
+  - reran the `$develop-web-game` Playwright client against the local built server and visually verified the new `output/web-game/shot-0.png`,
+  - captured a full-page confirmation screenshot at `output/web-game/forest-theme-placement-full.png`,
+  - saved a DOM/style proof in `output/web-game/forest-theme-placement-check.json` confirming both `#game-shell` and `#game-container` resolve to `data-world="forest"` and that the `#game-container` computed `backgroundImage` includes `forest-theme.png`.
+
+2026-03-29 gameplay-area background correction
+- User preference: do not run Playwright unless explicitly requested.
+- User clarification: the uploaded theme art should sit behind the broader gameplay screen area, not only behind `#game-container`.
+- Fix:
+  - moved the active world marker from `#game-container` to `#main-content` in `GameScene.applyWorldTheme()`,
+  - removed the forest-image background styling from `#game-container`,
+  - applied the forest artwork to `#main-content[data-world="forest"]::before` so it fills the whole gameplay region under the HUD instead of just the centered square board area,
+  - restored `#game-container` to a neutral transparent host so the board sits on top of the gameplay-area background instead of carrying the background itself.
+- Verification:
+  - skipped Playwright per the latest user instruction.
+
+2026-03-29 right panel readability polish
+- User feedback: after moving the forest artwork behind the gameplay area, the right-side `Find Words` panel became too translucent and the words/power-up labels lost readability.
+- Fix:
+  - increased the base opacity/solidity of `#right-panel`,
+  - strengthened the contrast of `.word-item` rows, their left accent rails, and the circular check markers,
+  - increased text clarity for `.word-text`, `.powerup-btn`, and `.pu-label` so the panel contents read clearly over scenic backgrounds.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
