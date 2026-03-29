@@ -580,10 +580,20 @@ html, body {
   min-height: 0;
 }
 
-#main-content[data-world="forest"]::before {
+#main-content[data-world="forest"]::before,
+#main-content[data-world="ocean"]::before,
+#main-content[data-world="space"]::before,
+#main-content[data-world="castle"]::before,
+#main-content[data-world="magic"]::before,
+#main-content[data-world="ice"]::before {
   content: '';
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#main-content[data-world="forest"]::before {
   background:
     linear-gradient(
       180deg,
@@ -594,8 +604,71 @@ html, body {
     radial-gradient(circle at 16% 24%, rgba(255, 242, 179, 0.2) 0%, transparent 28%),
     radial-gradient(circle at 84% 72%, rgba(218, 255, 173, 0.14) 0%, transparent 24%),
     url('/assets/forest-theme.png') center center / cover no-repeat;
-  pointer-events: none;
-  z-index: 0;
+}
+
+#main-content[data-world="ocean"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(5, 32, 52, 0.26) 0%,
+      rgba(40, 122, 170, 0.08) 38%,
+      rgba(3, 22, 38, 0.28) 100%
+    ),
+    radial-gradient(circle at 18% 20%, rgba(190, 244, 255, 0.18) 0%, transparent 30%),
+    radial-gradient(circle at 82% 74%, rgba(103, 255, 226, 0.14) 0%, transparent 24%),
+    url('/assets/ocean-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="space"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(11, 10, 34, 0.24) 0%,
+      rgba(47, 27, 98, 0.08) 36%,
+      rgba(6, 6, 20, 0.3) 100%
+    ),
+    radial-gradient(circle at 16% 22%, rgba(201, 184, 255, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 82% 74%, rgba(124, 203, 255, 0.14) 0%, transparent 24%),
+    url('/assets/space-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="castle"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(41, 22, 11, 0.24) 0%,
+      rgba(114, 64, 34, 0.08) 36%,
+      rgba(18, 9, 7, 0.28) 100%
+    ),
+    radial-gradient(circle at 16% 24%, rgba(255, 225, 180, 0.14) 0%, transparent 28%),
+    radial-gradient(circle at 82% 70%, rgba(247, 195, 123, 0.12) 0%, transparent 22%),
+    url('/assets/castle-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="magic"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(43, 16, 54, 0.24) 0%,
+      rgba(121, 46, 148, 0.08) 36%,
+      rgba(19, 6, 23, 0.3) 100%
+    ),
+    radial-gradient(circle at 18% 22%, rgba(255, 208, 255, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 84% 72%, rgba(137, 244, 255, 0.12) 0%, transparent 24%),
+    url('/assets/magic-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="ice"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 40, 63, 0.2) 0%,
+      rgba(36, 120, 175, 0.06) 36%,
+      rgba(4, 17, 28, 0.24) 100%
+    ),
+    radial-gradient(circle at 16% 22%, rgba(250, 255, 255, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 82% 74%, rgba(201, 249, 255, 0.12) 0%, transparent 24%),
+    url('/assets/ice-theme.png') center center / cover no-repeat;
 }
 
 #mobile-word-rack {

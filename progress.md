@@ -483,3 +483,14 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-03-29 multi-theme scenic background integration
+- User added five more theme images and asked to place each one behind the correct themed gameplay area, with fast first render behavior similar to the forest setup.
+- Fix:
+  - detected the new artwork in `public/assets/`: `ocean-theme.png`, `space-theme.png`, `castle-theme.png`, `magic-theme.png`, and `ice-theme.png`,
+  - added HTML image preloads for all six scenic images (`forest`, `ocean`, `space`, `castle`, `magic`, `ice`) so the browser can fetch them as early as possible,
+  - expanded the gameplay-area background styling on `#main-content` so each of those world ids now uses its own matching scenic image with a light readability overlay tuned to that palette,
+  - left the worlds without supplied artwork (`desert`, `volcano`, `sky`, `crystal`, `shadow`, `clockwork`) on the existing non-image themed background path.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
