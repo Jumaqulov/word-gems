@@ -585,7 +585,13 @@ html, body {
 #main-content[data-world="space"]::before,
 #main-content[data-world="castle"]::before,
 #main-content[data-world="magic"]::before,
-#main-content[data-world="ice"]::before {
+#main-content[data-world="ice"]::before,
+#main-content[data-world="desert"]::before,
+#main-content[data-world="volcano"]::before,
+#main-content[data-world="sky"]::before,
+#main-content[data-world="crystal"]::before,
+#main-content[data-world="shadow"]::before,
+#main-content[data-world="clockwork"]::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -669,6 +675,84 @@ html, body {
     radial-gradient(circle at 16% 22%, rgba(250, 255, 255, 0.16) 0%, transparent 28%),
     radial-gradient(circle at 82% 74%, rgba(201, 249, 255, 0.12) 0%, transparent 24%),
     url('/assets/ice-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="desert"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(58, 32, 8, 0.18) 0%,
+      rgba(157, 91, 28, 0.06) 36%,
+      rgba(21, 10, 4, 0.22) 100%
+    ),
+    radial-gradient(circle at 16% 20%, rgba(255, 240, 189, 0.16) 0%, transparent 30%),
+    radial-gradient(circle at 84% 74%, rgba(255, 224, 123, 0.12) 0%, transparent 24%),
+    url('/assets/desert-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="volcano"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(42, 9, 6, 0.2) 0%,
+      rgba(123, 30, 19, 0.08) 36%,
+      rgba(23, 6, 3, 0.26) 100%
+    ),
+    radial-gradient(circle at 16% 18%, rgba(255, 180, 120, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 82% 76%, rgba(255, 121, 88, 0.14) 0%, transparent 24%),
+    url('/assets/volcano-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="sky"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 52, 84, 0.14) 0%,
+      rgba(79, 177, 232, 0.04) 36%,
+      rgba(7, 28, 44, 0.18) 100%
+    ),
+    radial-gradient(circle at 14% 18%, rgba(247, 253, 255, 0.18) 0%, transparent 26%),
+    radial-gradient(circle at 84% 70%, rgba(255, 227, 140, 0.12) 0%, transparent 22%),
+    url('/assets/sky-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="crystal"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 24, 58, 0.2) 0%,
+      rgba(63, 68, 157, 0.08) 36%,
+      rgba(8, 11, 28, 0.24) 100%
+    ),
+    radial-gradient(circle at 16% 20%, rgba(228, 225, 255, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 84% 74%, rgba(136, 255, 245, 0.12) 0%, transparent 22%),
+    url('/assets/crystalcave-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="shadow"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10, 8, 23, 0.28) 0%,
+      rgba(42, 34, 72, 0.1) 36%,
+      rgba(5, 5, 14, 0.34) 100%
+    ),
+    radial-gradient(circle at 16% 22%, rgba(219, 203, 255, 0.1) 0%, transparent 26%),
+    radial-gradient(circle at 84% 72%, rgba(118, 103, 177, 0.1) 0%, transparent 22%),
+    url('/assets/shadow-theme.png') center center / cover no-repeat;
+}
+
+#main-content[data-world="clockwork"]::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(35, 25, 15, 0.2) 0%,
+      rgba(120, 88, 55, 0.08) 36%,
+      rgba(20, 13, 8, 0.24) 100%
+    ),
+    radial-gradient(circle at 16% 20%, rgba(255, 223, 176, 0.14) 0%, transparent 28%),
+    radial-gradient(circle at 82% 74%, rgba(201, 173, 120, 0.12) 0%, transparent 24%),
+    url('/assets/clockwork-theme.png') center center / cover no-repeat;
 }
 
 #mobile-word-rack {

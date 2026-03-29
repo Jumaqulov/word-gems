@@ -494,3 +494,14 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-03-29 remaining scenic backgrounds integration
+- User added the final six world images and asked to wire them the same way as the earlier themed gameplay-area backdrops.
+- Fix:
+  - detected new artwork for `desert`, `volcano`, `sky`, `crystal cave`, `shadow`, and `clockwork`,
+  - added preload links for all six new files in `index.html`,
+  - expanded the `#main-content[data-world=\"...\"]::before` scenic background system so those six worlds now also render their own supplied artwork behind gameplay with tuned readability overlays,
+  - mapped `Crystal Cave World` to `crystalcave-theme.png` while keeping the world id as `crystal`.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
