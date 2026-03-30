@@ -7,6 +7,7 @@ import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
 import { GameJuice } from '../utils/GameJuice';
 import { scheduleResponsiveLayout } from '../utils/ResponsiveLayout';
+import { applyWorldScene } from '../utils/WorldSceneLoader';
 import {
   calculateLevelScore,
   ComboState,
@@ -1774,6 +1775,8 @@ export class GameScene extends Phaser.Scene {
       target.style.setProperty('--world-overlay-primary', theme.overlayPrimary);
       target.style.setProperty('--world-overlay-secondary', theme.overlaySecondary);
     });
+
+    applyWorldScene(this.levelConfig.world.id);
   }
 
   private updateWorldUI(): void {

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CrazyGamesManager } from '../managers/CrazyGamesManager';
 import { SoundManager } from '../managers/SoundManager';
 import { COLORS, CELL_GAP } from '../consts';
+import { prepareInitialWorldScene } from '../utils/WorldSceneLoader';
 
 interface CellTexturePalette {
   id: string;
@@ -26,6 +27,7 @@ export class BootScene extends Phaser.Scene {
     SoundManager.init();
 
     this.generateTextures();
+    await prepareInitialWorldScene(CrazyGamesManager.saveData.level);
 
     CrazyGamesManager.loadingStop();
 

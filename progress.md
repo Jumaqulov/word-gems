@@ -593,3 +593,14 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-03-30 scenic background performance polish
+- User asked to continue the roadmap with performance work so the newly added world artwork stays fast on low-end devices instead of forcing every theme image to load up front.
+- Fix:
+  - removed the 12 static `<link rel="preload" as="image">` tags from `index.html` so the browser no longer pulls every scenic background during initial startup,
+  - replaced the 12 hardcoded `url(...)` CSS world selectors with a single dynamic `--world-scene-image` layer on `#main-content`, which keeps only the active theme image bound into the live UI,
+  - added `WorldSceneLoader` to preload the current world image before the splash screen disappears, so the gameplay backdrop is already ready on first paint,
+  - added lightweight neighbor warmup logic that quietly preloads only adjacent world artwork after the current scene is ready, improving world transitions without the memory/network hit of preloading the entire set.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
