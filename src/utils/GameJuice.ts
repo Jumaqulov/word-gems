@@ -1,6 +1,22 @@
 import Phaser from 'phaser';
 import { COLORS } from '../consts';
 
+type JuiceParticleShape = 'circle' | 'diamond' | 'star' | 'leaf' | 'shard' | 'snow';
+
+interface StarBurstOptions {
+  shape?: JuiceParticleShape;
+  secondaryColor?: number;
+  alpha?: number;
+  spread?: number;
+}
+
+interface SelectionTrailOptions {
+  shape?: JuiceParticleShape;
+  secondaryColor?: number;
+  alpha?: number;
+  count?: number;
+}
+
 export class GameJuice {
   private scene: Phaser.Scene;
 
@@ -77,13 +93,16 @@ export class GameJuice {
   }
 
   /** Star-shaped sparkle particles for word found */
-  starBurst(x: number, y: number, color: number, count = 6): void {
+  starBurst(x: number, y: number, color: number, count = 6, options?: StarBurstOptions): void {
+    const shape = options?.shape ?? 'star';
+    const alpha = options?.alpha ?? 1;
+    const spread = options?.spread ?? 20;
+
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
-      const dist = 25 + Math.random() * 20;
-
-      // Create a small star (4-point)
-      const star = this.scene.add.star(x, y, 4, 2, 5, color, 1);
+      const dist = 25 + Math.random() * spread;
+      const particleColor = options?.secondaryColor && i % 2 === 1 ? options.secondaryColor : color;
+      const star = this.createJuiceParticle(shape, x, y, 5, particleColor, alpha);
       star.setDepth(100);
 
       this.scene.tweens.add({
@@ -91,7 +110,7 @@ export class GameJuice {
         x: x + Math.cos(angle) * dist,
         y: y + Math.sin(angle) * dist,
         alpha: 0,
-        rotation: Math.PI * 2,
+        rotation: star.rotation + Math.PI * 2,
         scaleX: 0,
         scaleY: 0,
         duration: 500 + Math.random() * 200,
@@ -188,13 +207,20 @@ export class GameJuice {
   animateFoundLine(
     cells: { x: number; y: number }[],
     color: number,
-    cellSize: number
+    cellSize: number,
+    options?: {
+      alpha?: number;
+      widthScale?: number;
+      secondaryColor?: number;
+    }
   ): Phaser.GameObjects.Graphics {
     const g = this.scene.add.graphics();
     g.setDepth(5);
+    const alpha = options?.alpha ?? 0.3;
+    const width = cellSize * (options?.widthScale ?? 0.7);
 
     // Thicker rounded line
-    g.lineStyle(cellSize * 0.7, color, 0.3);
+    g.lineStyle(width, color, alpha);
     g.beginPath();
 
     if (cells.length > 0) {
@@ -207,7 +233,7 @@ export class GameJuice {
 
     // Add rounded end caps
     for (const cell of cells) {
-      g.fillStyle(color, 0.25);
+      g.fillStyle(options?.secondaryColor ?? color, alpha * 0.84);
       g.fillCircle(cell.x, cell.y, cellSize * 0.35);
     }
 
@@ -218,6 +244,16 @@ export class GameJuice {
       alpha: 1,
       duration: 300,
       ease: 'Cubic.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: g,
+          alpha: 0,
+          duration: 420,
+          delay: 120,
+          ease: 'Cubic.easeIn',
+          onComplete: () => g.destroy(),
+        });
+      },
     });
 
     return g;
@@ -332,13 +368,18 @@ export class GameJuice {
   }
 
   /** Selection trail — drag paytida zarrachalar */
-  selectionTrailAt(x: number, y: number, color: number = 0x4ECDC4): void {
-    for (let i = 0; i < 3; i++) {
+  selectionTrailAt(x: number, y: number, color: number = 0x4ECDC4, options?: SelectionTrailOptions): void {
+    const count = options?.count ?? 3;
+    const shape = options?.shape ?? 'circle';
+    const alpha = options?.alpha ?? 0.6;
+
+    for (let i = 0; i < count; i++) {
       const offsetX = (Math.random() - 0.5) * 15;
       const offsetY = (Math.random() - 0.5) * 15;
       const size = 1.5 + Math.random() * 2;
+      const particleColor = options?.secondaryColor && i % 2 === 1 ? options.secondaryColor : color;
 
-      const particle = this.scene.add.circle(x + offsetX, y + offsetY, size, color, 0.6);
+      const particle = this.createJuiceParticle(shape, x + offsetX, y + offsetY, size + 0.8, particleColor, alpha);
       particle.setDepth(15);
 
       this.scene.tweens.add({
@@ -346,11 +387,58 @@ export class GameJuice {
         alpha: 0,
         scaleX: 0,
         scaleY: 0,
+        rotation: particle.rotation + Phaser.Math.FloatBetween(-0.5, 0.5),
         y: particle.y - 10 - Math.random() * 10,
         duration: 300 + Math.random() * 200,
         ease: 'Cubic.easeOut',
         onComplete: () => particle.destroy(),
       });
+    }
+  }
+
+  private createJuiceParticle(
+    shape: JuiceParticleShape,
+    x: number,
+    y: number,
+    size: number,
+    color: number,
+    alpha: number
+  ): Phaser.GameObjects.Shape {
+    switch (shape) {
+      case 'diamond': {
+        const particle = this.scene.add.polygon(x, y, [0, -size, size * 0.9, 0, 0, size, -size * 0.9, 0], color, alpha);
+        particle.setRotation(Phaser.Math.FloatBetween(-0.2, 0.2));
+        return particle;
+      }
+      case 'star': {
+        const particle = this.scene.add.star(x, y, 5, size * 0.42, size, color, alpha);
+        particle.setRotation(Phaser.Math.FloatBetween(-0.3, 0.3));
+        return particle;
+      }
+      case 'leaf': {
+        const particle = this.scene.add.ellipse(x, y, size * 1.7, size, color, alpha);
+        particle.setRotation(Phaser.Math.FloatBetween(-1.1, 1.1));
+        return particle;
+      }
+      case 'shard': {
+        const particle = this.scene.add.polygon(
+          x,
+          y,
+          [0, -size, size * 0.58, -size * 0.08, size * 0.22, size, -size * 0.5, size * 0.14],
+          color,
+          alpha
+        );
+        particle.setRotation(Phaser.Math.FloatBetween(-0.8, 0.8));
+        return particle;
+      }
+      case 'snow': {
+        const particle = this.scene.add.star(x, y, 6, size * 0.2, size, color, alpha);
+        particle.setRotation(Phaser.Math.FloatBetween(-0.2, 0.2));
+        return particle;
+      }
+      case 'circle':
+      default:
+        return this.scene.add.circle(x, y, size, color, alpha);
     }
   }
 

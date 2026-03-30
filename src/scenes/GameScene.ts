@@ -56,6 +56,8 @@ interface WordStatusTag {
   className: string;
 }
 
+type InteractionParticleShape = 'circle' | 'diamond' | 'star' | 'leaf' | 'shard' | 'snow';
+
 interface BoardThemeProfile {
   shellMix: number;
   rimMix: number;
@@ -99,6 +101,17 @@ interface BoardThemeProfile {
   foundLetterScale: number;
   foundStrokeMix: number;
   foundShadowAlpha: number;
+  trailShape: InteractionParticleShape;
+  trailCount: number;
+  trailAlpha: number;
+  trailSecondaryMix: number;
+  foundBurstShape: InteractionParticleShape;
+  foundBurstCount: number;
+  foundBurstAlpha: number;
+  foundBurstSpread: number;
+  foundBurstSecondaryMix: number;
+  foundLineAlpha: number;
+  foundLineWidthScale: number;
 }
 
 function createWordRuntimeState(): WordRuntimeState {
@@ -707,6 +720,17 @@ export class GameScene extends Phaser.Scene {
       foundLetterScale: 1.08,
       foundStrokeMix: 0.26,
       foundShadowAlpha: 0.22,
+      trailShape: 'circle',
+      trailCount: 4,
+      trailAlpha: 0.58,
+      trailSecondaryMix: 0.34,
+      foundBurstShape: 'diamond',
+      foundBurstCount: 6,
+      foundBurstAlpha: 0.96,
+      foundBurstSpread: 18,
+      foundBurstSecondaryMix: 0.34,
+      foundLineAlpha: 0.42,
+      foundLineWidthScale: 0.62,
     };
 
     const overrides: Partial<Record<WorldId, Partial<BoardThemeProfile>>> = {
@@ -719,6 +743,17 @@ export class GameScene extends Phaser.Scene {
         tileTintMix: 0.03,
         letterDarkMix: 0.16,
         selectedTintMix: 0.12,
+        trailShape: 'leaf',
+        trailCount: 5,
+        trailAlpha: 0.62,
+        trailSecondaryMix: 0.46,
+        foundBurstShape: 'leaf',
+        foundBurstCount: 7,
+        foundBurstAlpha: 0.88,
+        foundBurstSpread: 16,
+        foundBurstSecondaryMix: 0.5,
+        foundLineAlpha: 0.38,
+        foundLineWidthScale: 0.58,
       },
       ocean: {
         stageGlowAlpha: 0.28,
@@ -729,6 +764,17 @@ export class GameScene extends Phaser.Scene {
         slotGlowAlpha: 0.16,
         glassBandAlpha: 0.12,
         selectedTintMix: 0.28,
+        trailShape: 'circle',
+        trailCount: 4,
+        trailAlpha: 0.48,
+        trailSecondaryMix: 0.44,
+        foundBurstShape: 'shard',
+        foundBurstCount: 7,
+        foundBurstAlpha: 0.9,
+        foundBurstSpread: 22,
+        foundBurstSecondaryMix: 0.56,
+        foundLineAlpha: 0.34,
+        foundLineWidthScale: 0.56,
       },
       space: {
         stageGlowAlpha: 0.28,
@@ -744,6 +790,17 @@ export class GameScene extends Phaser.Scene {
         tileTintMix: 0.02,
         letterDarkMix: 0.22,
         selectedTintMix: 0.22,
+        trailShape: 'star',
+        trailCount: 5,
+        trailAlpha: 0.72,
+        trailSecondaryMix: 0.52,
+        foundBurstShape: 'star',
+        foundBurstCount: 8,
+        foundBurstAlpha: 0.98,
+        foundBurstSpread: 24,
+        foundBurstSecondaryMix: 0.58,
+        foundLineAlpha: 0.4,
+        foundLineWidthScale: 0.6,
       },
       castle: {
         frameOuterAlpha: 0.3,
@@ -754,6 +811,17 @@ export class GameScene extends Phaser.Scene {
         topBandAlpha: 0.18,
         chipAlpha: 0.22,
         slotBaseAlpha: 0.2,
+        trailShape: 'diamond',
+        trailCount: 4,
+        trailAlpha: 0.62,
+        trailSecondaryMix: 0.42,
+        foundBurstShape: 'diamond',
+        foundBurstCount: 6,
+        foundBurstAlpha: 0.94,
+        foundBurstSpread: 18,
+        foundBurstSecondaryMix: 0.48,
+        foundLineAlpha: 0.36,
+        foundLineWidthScale: 0.64,
       },
       magic: {
         stageGlowAlpha: 0.3,
@@ -764,6 +832,17 @@ export class GameScene extends Phaser.Scene {
         facetStrokeAlpha: 0.18,
         slotGlowAlpha: 0.15,
         selectedTintMix: 0.3,
+        trailShape: 'star',
+        trailCount: 5,
+        trailAlpha: 0.76,
+        trailSecondaryMix: 0.6,
+        foundBurstShape: 'star',
+        foundBurstCount: 8,
+        foundBurstAlpha: 1,
+        foundBurstSpread: 24,
+        foundBurstSecondaryMix: 0.64,
+        foundLineAlpha: 0.44,
+        foundLineWidthScale: 0.68,
       },
       ice: {
         stageGlowAlpha: 0.26,
@@ -777,6 +856,17 @@ export class GameScene extends Phaser.Scene {
         slotInnerEdgeAlpha: 0.12,
         tileTintMix: 0.01,
         letterDarkMix: 0.12,
+        trailShape: 'snow',
+        trailCount: 5,
+        trailAlpha: 0.72,
+        trailSecondaryMix: 0.52,
+        foundBurstShape: 'snow',
+        foundBurstCount: 7,
+        foundBurstAlpha: 0.94,
+        foundBurstSpread: 20,
+        foundBurstSecondaryMix: 0.56,
+        foundLineAlpha: 0.36,
+        foundLineWidthScale: 0.56,
       },
       desert: {
         stageGlowAlpha: 0.2,
@@ -786,6 +876,17 @@ export class GameScene extends Phaser.Scene {
         topBandAlpha: 0.18,
         slotBaseAlpha: 0.2,
         slotGlowAlpha: 0.1,
+        trailShape: 'circle',
+        trailCount: 4,
+        trailAlpha: 0.52,
+        trailSecondaryMix: 0.42,
+        foundBurstShape: 'diamond',
+        foundBurstCount: 6,
+        foundBurstAlpha: 0.9,
+        foundBurstSpread: 17,
+        foundBurstSecondaryMix: 0.44,
+        foundLineAlpha: 0.3,
+        foundLineWidthScale: 0.58,
       },
       volcano: {
         stageGlowAlpha: 0.32,
@@ -799,6 +900,17 @@ export class GameScene extends Phaser.Scene {
         slotShadowAlpha: 0.16,
         slotGlowAlpha: 0.18,
         selectedTintMix: 0.24,
+        trailShape: 'shard',
+        trailCount: 5,
+        trailAlpha: 0.78,
+        trailSecondaryMix: 0.6,
+        foundBurstShape: 'shard',
+        foundBurstCount: 8,
+        foundBurstAlpha: 1,
+        foundBurstSpread: 26,
+        foundBurstSecondaryMix: 0.66,
+        foundLineAlpha: 0.42,
+        foundLineWidthScale: 0.66,
       },
       sky: {
         stageGlowAlpha: 0.18,
@@ -814,6 +926,17 @@ export class GameScene extends Phaser.Scene {
         tileTintMix: 0.01,
         tileScale: 0.96,
         tileLetterScale: 0.97,
+        trailShape: 'circle',
+        trailCount: 5,
+        trailAlpha: 0.46,
+        trailSecondaryMix: 0.38,
+        foundBurstShape: 'star',
+        foundBurstCount: 6,
+        foundBurstAlpha: 0.86,
+        foundBurstSpread: 24,
+        foundBurstSecondaryMix: 0.52,
+        foundLineAlpha: 0.28,
+        foundLineWidthScale: 0.54,
       },
       crystal: {
         stageGlowAlpha: 0.3,
@@ -825,6 +948,17 @@ export class GameScene extends Phaser.Scene {
         slotGlowAlpha: 0.16,
         chipAlpha: 0.24,
         selectedTintMix: 0.32,
+        trailShape: 'diamond',
+        trailCount: 5,
+        trailAlpha: 0.78,
+        trailSecondaryMix: 0.62,
+        foundBurstShape: 'diamond',
+        foundBurstCount: 8,
+        foundBurstAlpha: 1,
+        foundBurstSpread: 22,
+        foundBurstSecondaryMix: 0.68,
+        foundLineAlpha: 0.44,
+        foundLineWidthScale: 0.64,
       },
       shadow: {
         stageGlowAlpha: 0.16,
@@ -842,6 +976,17 @@ export class GameScene extends Phaser.Scene {
         tileTintMix: 0.03,
         letterDarkMix: 0.24,
         letterStrokeMix: 0.1,
+        trailShape: 'star',
+        trailCount: 4,
+        trailAlpha: 0.48,
+        trailSecondaryMix: 0.5,
+        foundBurstShape: 'shard',
+        foundBurstCount: 6,
+        foundBurstAlpha: 0.88,
+        foundBurstSpread: 18,
+        foundBurstSecondaryMix: 0.54,
+        foundLineAlpha: 0.26,
+        foundLineWidthScale: 0.56,
       },
       clockwork: {
         frameOuterAlpha: 0.32,
@@ -853,6 +998,17 @@ export class GameScene extends Phaser.Scene {
         chipAlpha: 0.26,
         slotBaseAlpha: 0.19,
         slotGlowAlpha: 0.1,
+        trailShape: 'diamond',
+        trailCount: 4,
+        trailAlpha: 0.64,
+        trailSecondaryMix: 0.44,
+        foundBurstShape: 'shard',
+        foundBurstCount: 7,
+        foundBurstAlpha: 0.94,
+        foundBurstSpread: 20,
+        foundBurstSecondaryMix: 0.5,
+        foundLineAlpha: 0.34,
+        foundLineWidthScale: 0.6,
       },
     };
 
@@ -1025,10 +1181,21 @@ export class GameScene extends Phaser.Scene {
       SoundManager.playLetterSelect(this.selectedCells.length - 1);
 
       const tail = nextSelection[nextSelection.length - 1];
+      const trailSecondary = this.mixColor(
+        this.levelConfig.visuals.accentTint,
+        this.hexToColorValue(this.levelConfig.visuals.secondary),
+        this.boardThemeProfile.trailSecondaryMix
+      );
       this.juice.selectionTrailAt(
         this.gridContainer.x + tail.col * this.cellSize + this.cellSize / 2,
         this.gridContainer.y + tail.row * this.cellSize + this.cellSize / 2,
-        this.levelConfig.visuals.accentTint
+        this.levelConfig.visuals.accentTint,
+        {
+          shape: this.boardThemeProfile.trailShape,
+          count: this.boardThemeProfile.trailCount,
+          alpha: this.boardThemeProfile.trailAlpha,
+          secondaryColor: trailSecondary,
+        }
       );
     }
   }
@@ -1180,6 +1347,11 @@ export class GameScene extends Phaser.Scene {
       x: this.gridContainer.x + col * this.cellSize + this.cellSize / 2,
       y: this.gridContainer.y + row * this.cellSize + this.cellSize / 2,
     }));
+    const foundSecondary = this.mixColor(
+      COLORS.FOUND_COLORS[colorIndex],
+      this.hexToColorValue(this.levelConfig.visuals.secondary),
+      this.boardThemeProfile.foundBurstSecondaryMix
+    );
 
     for (const { row, col } of placedWord.cells) {
       const cell = this.cells[row][col];
@@ -1208,7 +1380,19 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    cellCenters.forEach((position) => this.juice.starBurst(position.x, position.y, color, 5));
+    this.juice.animateFoundLine(cellCenters, color, this.cellSize, {
+      alpha: this.boardThemeProfile.foundLineAlpha,
+      widthScale: this.boardThemeProfile.foundLineWidthScale,
+      secondaryColor: foundSecondary,
+    });
+    cellCenters.forEach((position) =>
+      this.juice.starBurst(position.x, position.y, color, this.boardThemeProfile.foundBurstCount, {
+        shape: this.boardThemeProfile.foundBurstShape,
+        alpha: this.boardThemeProfile.foundBurstAlpha,
+        spread: this.boardThemeProfile.foundBurstSpread,
+        secondaryColor: foundSecondary,
+      })
+    );
 
     const comboMultiplier = updateCombo(this.comboState);
     const wordScore = Math.floor(word.length * SCORING.WORD_MULTIPLIER * comboMultiplier);
