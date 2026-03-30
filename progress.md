@@ -531,3 +531,65 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-03-29 theme-aware interaction effects pass
+- User asked to start the next roadmap item by making gameplay interaction feedback more distinct per theme, and later requested timer readability plus a fix for the right panel so power-up controls stay visible when the word list grows.
+- Fix:
+  - expanded the board theme profile in `GameScene` with world-specific interaction parameters for selection trails and found-word celebration effects,
+  - upgraded `GameJuice.selectionTrailAt()` and `GameJuice.starBurst()` usage so each world now uses different particle shapes, spread, alpha, and secondary accent mixing during selection and word-complete moments,
+  - added an animated found-word line burst that now inherits world-specific thickness and glow behavior instead of using a single generic feedback style,
+  - restyled the combo indicator to use active world colors so the info bar interaction feedback now matches the current theme instead of staying on a static gold/orange palette.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-03-30 theme-aware modal styling pass
+- User asked to continue the roadmap, so the next step focused on making overlay surfaces and CTA buttons feel tied to the active world instead of using a mostly neutral shared modal style.
+- Fix:
+  - upgraded the shared modal backdrop and base modal shell to use the current world palette via the existing `--world-*` CSS variables,
+  - restyled close buttons, secondary buttons, toggle switches, and tutorial cards so settings/tutorial overlays now visually match the active world while preserving readability,
+  - refreshed `Level Complete` and `Time Up` statistic cards and headings to inherit world color accents instead of flat generic white/pink styling,
+  - tuned CTA hover shadows to use world glow instead of a hardcoded red/orange hover treatment.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-03-30 settings modal theme polish
+- User feedback: the settings modal still looked too plain compared with the rest of the world-aware UI and needed its own more intentional theme-matched treatment.
+- Fix:
+  - added a dedicated `settings-modal-content` class in `index.html`,
+  - turned the settings modal into a themed control-panel shell with layered gradients, inner frame, and a world-colored title pill,
+  - restyled setting rows into individual glass cards with icon chips, larger themed toggles, and stronger button treatments so the whole modal reads as part of the active world instead of a generic white popup.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-03-30 settings modal contrast correction
+- User feedback: the first themed settings modal still had poor contrast, with shell, rows, title pill, and controls sitting too close in value and washing out on several worlds.
+- Fix:
+  - rebalanced the settings modal around a darker themed shell instead of a white-heavy panel,
+  - introduced settings-specific contrast variables so the shell, title, row cards, icon chips, toggles, and buttons each sit on clearly separated brightness bands while still inheriting the active world palette,
+  - strengthened button and toggle contrast so the modal remains readable and visually cohesive across both bright and dark worlds.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-03-30 settings modal text palette integration
+- User requested a premium glassmorphism text palette where the settings copy feels embedded into the blue/emerald UI instead of detached as plain white text.
+- Fix:
+  - wrapped the settings title, labels, and button text in dedicated spans so text-specific gradients could be applied without breaking the existing button backgrounds,
+  - applied an ice-blue title gradient, soft-cyan label color, and cyan/emerald gradient text treatments for `How to Play` and `Close`,
+  - added matching text-shadow and letter-spacing values so the typography now feels like part of the same luminous glass system as the rest of the panel.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-03-30 settings modal readability correction
+- User feedback: despite the themed treatment, settings modal text and icons were still too hard to read across different worlds because the title, labels, and CTA copy were using overly light cyan treatments against similarly bright surfaces.
+- Fix:
+  - replaced the gradient-clipped settings text treatments with higher-contrast solid theme-aware colors tuned for the actual surface brightness of each element,
+  - moved the title to a darker theme-derived readable color for its light pill, while keeping row labels and close-button text bright enough for dark surfaces,
+  - strengthened icon readability by shifting icon chips toward darker theme fills and keeping the icon glyphs themselves bright with a subtle shadow.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.

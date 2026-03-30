@@ -188,12 +188,12 @@
   <!-- Settings Modal -->
   <div id="settings-modal" class="modal" style="display:none;">
     <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <h2>Settings</h2>
+    <div class="modal-content settings-modal-content">
+      <h2><span class="settings-title-text">Settings</span></h2>
       <div class="setting-row">
         <div class="setting-label">
           <span class="setting-icon" id="icon-sound"></span>
-          <span>Sound</span>
+          <span class="settings-label-text">Sound</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="toggle-sound" checked />
@@ -203,7 +203,7 @@
       <div class="setting-row">
         <div class="setting-label">
           <span class="setting-icon" id="icon-vibration"></span>
-          <span>Vibration</span>
+          <span class="settings-label-text">Vibration</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="toggle-vibration" checked />
@@ -212,9 +212,11 @@
       </div>
       <button id="btn-how-to-play" class="modal-btn-secondary">
         <span id="icon-howto"></span>
-        HOW TO PLAY
+        <span class="settings-btn-text settings-btn-text--howto">HOW TO PLAY</span>
       </button>
-      <button id="btn-close-settings" class="modal-close-btn">CLOSE</button>
+      <button id="btn-close-settings" class="modal-close-btn">
+        <span class="settings-btn-text settings-btn-text--close">CLOSE</span>
+      </button>
     </div>
   </div>
 
