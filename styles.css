@@ -291,6 +291,32 @@ html, body {
 
 /* ====== TOP HUD ====== */
 #top-hud {
+  --hud-contrast-light: color-mix(in srgb, white 94%, var(--world-secondary) 6%);
+  --hud-contrast-soft: color-mix(in srgb, white 76%, var(--world-secondary) 24%);
+  --hud-contrast-dark: color-mix(in srgb, var(--world-bg-bottom) 84%, #07131d 16%);
+  --hud-level-shell-top: color-mix(in srgb, var(--world-secondary) 16%, rgba(255, 255, 255, 0.12));
+  --hud-level-shell-bottom: color-mix(in srgb, var(--world-bg-mid) 72%, rgba(9, 18, 28, 0.34));
+  --hud-level-rim: color-mix(in srgb, var(--world-secondary) 34%, rgba(255, 255, 255, 0.16));
+  --hud-level-text: var(--hud-contrast-light);
+  --hud-level-label: color-mix(in srgb, var(--hud-contrast-light) 76%, var(--world-secondary) 24%);
+  --hud-streak-shell-top: rgba(255, 196, 120, 0.22);
+  --hud-streak-shell-bottom: rgba(112, 56, 8, 0.72);
+  --hud-streak-rim: rgba(255, 189, 98, 0.34);
+  --hud-streak-text: #fff2d8;
+  --hud-streak-label: #ffd7a4;
+  --hud-coin-shell-top: color-mix(in srgb, white 18%, var(--world-accent) 82%);
+  --hud-coin-shell-bottom: color-mix(in srgb, var(--world-bg-mid) 56%, #0c3448 44%);
+  --hud-coin-rim: color-mix(in srgb, var(--world-accent) 36%, rgba(255, 255, 255, 0.18));
+  --hud-coin-text: var(--hud-contrast-light);
+  --hud-coin-label: color-mix(in srgb, var(--hud-contrast-light) 78%, var(--world-accent) 22%);
+  --hud-settings-shell: color-mix(in srgb, var(--world-bg-mid) 62%, rgba(255, 255, 255, 0.08));
+  --hud-settings-rim: color-mix(in srgb, var(--world-secondary) 22%, rgba(255, 255, 255, 0.14));
+  --hud-settings-icon: var(--hud-contrast-light);
+  --hud-title-start: color-mix(in srgb, var(--world-secondary) 72%, white 28%);
+  --hud-title-end: color-mix(in srgb, var(--world-primary) 72%, var(--world-secondary) 28%);
+  --hud-title-shadow: color-mix(in srgb, var(--world-glow) 22%, rgba(4, 12, 20, 0.16));
+  --hud-zone-text: var(--hud-contrast-light);
+  --hud-status-text: color-mix(in srgb, var(--hud-contrast-light) 82%, var(--world-accent) 18%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,6 +337,58 @@ html, body {
   box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05), 0 12px 36px color-mix(in srgb, var(--world-glow) 34%, transparent);
   z-index: 10;
   flex-shrink: 0;
+}
+
+#game-shell[data-world="forest"] #top-hud {
+  --hud-contrast-dark: #214124;
+  --hud-contrast-light: #f6ffe2;
+  --hud-contrast-soft: #dff3b8;
+}
+
+#game-shell[data-world="ocean"] #top-hud,
+#game-shell[data-world="sky"] #top-hud {
+  --hud-contrast-dark: #113c56;
+  --hud-contrast-light: #effcff;
+  --hud-contrast-soft: #caedf8;
+}
+
+#game-shell[data-world="space"] #top-hud,
+#game-shell[data-world="shadow"] #top-hud {
+  --hud-contrast-dark: #231c53;
+  --hud-contrast-light: #f5f1ff;
+  --hud-contrast-soft: #d7cef8;
+}
+
+#game-shell[data-world="castle"] #top-hud,
+#game-shell[data-world="clockwork"] #top-hud {
+  --hud-contrast-dark: #4d341c;
+  --hud-contrast-light: #fff5df;
+  --hud-contrast-soft: #f2dcc0;
+}
+
+#game-shell[data-world="magic"] #top-hud {
+  --hud-contrast-dark: #4c205f;
+  --hud-contrast-light: #fff2ff;
+  --hud-contrast-soft: #f2d7f8;
+}
+
+#game-shell[data-world="ice"] #top-hud,
+#game-shell[data-world="crystal"] #top-hud {
+  --hud-contrast-dark: #204a72;
+  --hud-contrast-light: #f4fcff;
+  --hud-contrast-soft: #d8eef8;
+}
+
+#game-shell[data-world="desert"] #top-hud {
+  --hud-contrast-dark: #5b3b18;
+  --hud-contrast-light: #fff5e1;
+  --hud-contrast-soft: #f0dec2;
+}
+
+#game-shell[data-world="volcano"] #top-hud {
+  --hud-contrast-dark: #622116;
+  --hud-contrast-light: #fff1e8;
+  --hud-contrast-soft: #f5d5c7;
 }
 
 .hud-bar {
@@ -355,11 +433,12 @@ html, body {
 .game-title {
   font-family: 'Fredoka One', cursive;
   font-size: 1.2rem;
-  background: linear-gradient(180deg, var(--world-secondary) 0%, var(--world-primary) 100%);
+  background: linear-gradient(180deg, var(--hud-title-start) 0%, var(--hud-title-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.08em;
+  filter: drop-shadow(0 6px 16px var(--hud-title-shadow));
 }
 
 /* HUD Badges */
@@ -370,26 +449,50 @@ html, body {
   padding: 5px 12px;
   border-radius: 24px;
   font-weight: 800;
+  position: relative;
+  overflow: hidden;
+  min-height: 34px;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.hud-badge::before {
+  content: '';
+  position: absolute;
+  inset: 1px 1px auto;
+  height: 52%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+  opacity: 0.82;
+  pointer-events: none;
 }
 
 .badge-icon {
   display: flex;
   align-items: center;
   font-size: 0.9rem;
+  position: relative;
+  z-index: 1;
 }
 
 .badge-label {
   font-family: 'Nunito', sans-serif;
   font-size: 0.6rem;
   font-weight: 700;
-  opacity: 0.75;
   letter-spacing: 0.06em;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
 }
 
 .badge-value {
   font-family: 'Fredoka One', cursive;
   font-size: 0.9rem;
   transition: transform 0.2s, color 0.2s;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
 }
 
 .badge-value.bump {
@@ -403,61 +506,78 @@ html, body {
 }
 
 .badge-level {
-  background: color-mix(in srgb, var(--world-primary) 16%, transparent);
-  color: color-mix(in srgb, var(--world-secondary) 70%, white 30%);
-  border: 1px solid color-mix(in srgb, var(--world-primary) 28%, white 10%);
+  background: linear-gradient(180deg, var(--hud-level-shell-top) 0%, var(--hud-level-shell-bottom) 100%);
+  color: var(--hud-level-text);
+  border: 1px solid var(--hud-level-rim);
+}
+
+.badge-level .badge-label {
+  color: var(--hud-level-label);
+}
+
+.badge-level .badge-value {
+  color: var(--hud-level-text);
 }
 
 .badge-streak {
-  background: rgba(255, 160, 50, 0.12);
-  color: #ffc880;
-  border: 1px solid rgba(255, 160, 50, 0.18);
+  background: linear-gradient(180deg, var(--hud-streak-shell-top) 0%, var(--hud-streak-shell-bottom) 100%);
+  color: var(--hud-streak-text);
+  border: 1px solid var(--hud-streak-rim);
+}
+
+.badge-streak .badge-label {
+  color: var(--hud-streak-label);
+}
+
+.badge-streak .badge-value {
+  color: var(--hud-streak-text);
 }
 
 .badge-coins {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(101, 242, 255, 0.22) 0%,
-      rgba(61, 188, 220, 0.18) 58%,
-      rgba(23, 102, 125, 0.18) 100%
-    );
-  color: #c8ffff;
-  border: 1px solid rgba(122, 244, 255, 0.28);
+  background: linear-gradient(180deg, var(--hud-coin-shell-top) 0%, var(--hud-coin-shell-bottom) 100%);
+  color: var(--hud-coin-text);
+  border: 1px solid var(--hud-coin-rim);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    0 10px 18px rgba(27, 150, 170, 0.14);
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 10px 18px color-mix(in srgb, var(--world-glow) 24%, rgba(16, 87, 104, 0.1));
+}
+
+.badge-coins .badge-label {
+  color: var(--hud-coin-label);
 }
 
 .badge-coins .badge-icon {
-  color: #7ef7ff;
-  filter: drop-shadow(0 0 8px rgba(91, 241, 255, 0.34));
+  color: color-mix(in srgb, var(--hud-coin-text) 82%, var(--world-accent) 18%);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--world-glow) 44%, transparent));
 }
 
 .badge-coins .badge-value {
-  color: #dfffff;
-  text-shadow: 0 2px 8px rgba(16, 87, 104, 0.28);
+  color: var(--hud-coin-text);
+  text-shadow: 0 2px 8px color-mix(in srgb, var(--world-bg-bottom) 42%, transparent);
 }
 
 .hud-icon-btn {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--hud-settings-rim);
+  background: linear-gradient(180deg, color-mix(in srgb, white 6%, var(--hud-settings-shell) 94%) 0%, var(--hud-settings-shell) 100%);
+  color: var(--hud-settings-icon);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 18px rgba(0, 0, 0, 0.16);
 }
 
 .hud-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(180deg, color-mix(in srgb, white 12%, var(--hud-settings-shell) 88%) 0%, color-mix(in srgb, var(--hud-settings-shell) 82%, var(--world-secondary) 18%) 100%);
+  border-color: color-mix(in srgb, var(--hud-settings-rim) 82%, white 18%);
+  color: var(--hud-contrast-light);
 }
 
 .hud-icon-btn:active { transform: scale(0.92); }
@@ -468,10 +588,13 @@ html, body {
   font-family: 'Nunito', sans-serif;
   font-size: 0.82rem;
   font-weight: 800;
-  color: color-mix(in srgb, var(--world-secondary) 60%, white 35%);
+  color: var(--hud-zone-text);
   text-transform: uppercase;
   letter-spacing: 0.24em;
   padding: 0;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    0 3px 12px rgba(6, 16, 26, 0.28);
 }
 
 .world-status {
@@ -479,11 +602,12 @@ html, body {
   font-family: 'Nunito', sans-serif;
   font-size: 0.76rem;
   font-weight: 700;
-  color: color-mix(in srgb, var(--world-accent) 78%, white 22%);
+  color: var(--hud-status-text);
   letter-spacing: 0.04em;
   max-width: 560px;
   line-height: 1.25;
   margin: 0 auto;
+  text-shadow: 0 2px 10px rgba(6, 16, 26, 0.24);
 }
 
 @media (min-width: 769px) {
@@ -1640,34 +1764,36 @@ html, body {
 
 /* ====== SETTINGS MODAL — TOGGLE SWITCH ====== */
 .settings-modal-content {
-  --settings-shell-top: color-mix(in srgb, var(--world-bg-top) 84%, #02060c 16%);
-  --settings-shell-mid: color-mix(in srgb, var(--world-bg-mid) 88%, #05101b 12%);
-  --settings-shell-bottom: color-mix(in srgb, var(--world-bg-bottom) 90%, #03070e 10%);
+  --settings-contrast-dark: color-mix(in srgb, var(--world-bg-bottom) 82%, #071521 18%);
+  --settings-contrast-light: color-mix(in srgb, white 94%, var(--world-secondary) 6%);
+  --settings-shell-top: color-mix(in srgb, var(--world-bg-top) 88%, #02060c 12%);
+  --settings-shell-mid: color-mix(in srgb, var(--world-bg-mid) 90%, #04111c 10%);
+  --settings-shell-bottom: color-mix(in srgb, var(--world-bg-bottom) 92%, #03070e 8%);
   --settings-shell-rim: color-mix(in srgb, var(--world-secondary) 26%, rgba(255, 255, 255, 0.18));
   --settings-inner-rim: color-mix(in srgb, var(--world-secondary) 16%, rgba(255, 255, 255, 0.16));
-  --settings-title-top: color-mix(in srgb, var(--world-secondary) 58%, white 42%);
-  --settings-title-bottom: color-mix(in srgb, var(--world-primary) 64%, var(--world-bg-top) 36%);
-  --settings-title-text: color-mix(in srgb, var(--world-bg-bottom) 72%, var(--world-secondary) 28%);
-  --settings-row-top: color-mix(in srgb, var(--world-bg-top) 72%, rgba(255, 255, 255, 0.12));
-  --settings-row-bottom: color-mix(in srgb, var(--world-bg-mid) 82%, rgba(10, 16, 24, 0.18));
+  --settings-title-top: color-mix(in srgb, white 74%, var(--world-secondary) 26%);
+  --settings-title-bottom: color-mix(in srgb, white 36%, var(--world-primary) 64%);
+  --settings-title-text: var(--settings-contrast-dark);
+  --settings-row-top: color-mix(in srgb, var(--world-bg-top) 78%, rgba(255, 255, 255, 0.1));
+  --settings-row-bottom: color-mix(in srgb, var(--world-bg-mid) 84%, rgba(10, 16, 24, 0.16));
   --settings-row-border: color-mix(in srgb, var(--world-secondary) 24%, rgba(255, 255, 255, 0.16));
-  --settings-row-text: color-mix(in srgb, white 92%, var(--world-secondary) 8%);
-  --settings-icon-top: color-mix(in srgb, var(--world-secondary) 52%, var(--world-bg-top) 48%);
-  --settings-icon-bottom: color-mix(in srgb, var(--world-primary) 54%, var(--world-bg-bottom) 46%);
-  --settings-icon-color: color-mix(in srgb, white 92%, var(--world-secondary) 8%);
+  --settings-row-text: var(--settings-contrast-light);
+  --settings-icon-top: color-mix(in srgb, white 72%, var(--world-secondary) 28%);
+  --settings-icon-bottom: color-mix(in srgb, white 42%, var(--world-primary) 58%);
+  --settings-icon-color: var(--settings-contrast-dark);
   --settings-toggle-off-top: color-mix(in srgb, var(--world-bg-top) 76%, rgba(255, 255, 255, 0.12));
   --settings-toggle-off-bottom: color-mix(in srgb, var(--world-bg-bottom) 82%, rgba(12, 20, 28, 0.2));
-  --settings-toggle-on-top: color-mix(in srgb, var(--world-secondary) 76%, white 24%);
-  --settings-toggle-on-bottom: color-mix(in srgb, var(--world-primary) 76%, var(--world-bg-top) 24%);
+  --settings-toggle-on-top: color-mix(in srgb, white 32%, var(--world-secondary) 68%);
+  --settings-toggle-on-bottom: color-mix(in srgb, var(--world-primary) 78%, var(--world-bg-top) 22%);
   --settings-toggle-rim: color-mix(in srgb, var(--world-secondary) 24%, rgba(255, 255, 255, 0.18));
-  --settings-action-top: color-mix(in srgb, var(--world-secondary) 48%, rgba(255, 255, 255, 0.18));
-  --settings-action-bottom: color-mix(in srgb, var(--world-primary) 46%, var(--world-bg-bottom) 54%);
+  --settings-action-top: color-mix(in srgb, white 36%, var(--world-secondary) 64%);
+  --settings-action-bottom: color-mix(in srgb, white 14%, var(--world-primary) 86%);
   --settings-close-top: color-mix(in srgb, var(--world-bg-top) 64%, rgba(255, 255, 255, 0.12));
   --settings-close-bottom: color-mix(in srgb, var(--world-bg-bottom) 82%, rgba(8, 12, 18, 0.18));
-  --settings-title-soft: color-mix(in srgb, var(--world-bg-bottom) 72%, var(--world-secondary) 28%);
-  --settings-label-soft: color-mix(in srgb, white 92%, var(--world-secondary) 8%);
-  --settings-howto-text: color-mix(in srgb, var(--world-bg-bottom) 76%, var(--world-secondary) 24%);
-  --settings-close-text: color-mix(in srgb, white 88%, var(--world-secondary) 12%);
+  --settings-title-soft: var(--settings-contrast-dark);
+  --settings-label-soft: var(--settings-contrast-light);
+  --settings-howto-text: var(--settings-contrast-dark);
+  --settings-close-text: var(--settings-contrast-light);
   max-width: 430px;
   padding: 26px 24px 22px;
   overflow: hidden;
@@ -1686,6 +1812,50 @@ html, body {
     0 34px 84px rgba(3, 9, 18, 0.48),
     0 14px 32px color-mix(in srgb, var(--world-glow) 20%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+#game-shell[data-world="forest"] .settings-modal-content {
+  --settings-contrast-dark: #1e4324;
+  --settings-contrast-light: #f4ffe7;
+}
+
+#game-shell[data-world="ocean"] .settings-modal-content,
+#game-shell[data-world="sky"] .settings-modal-content {
+  --settings-contrast-dark: #123f58;
+  --settings-contrast-light: #eefcff;
+}
+
+#game-shell[data-world="space"] .settings-modal-content,
+#game-shell[data-world="shadow"] .settings-modal-content {
+  --settings-contrast-dark: #261f54;
+  --settings-contrast-light: #f1eeff;
+}
+
+#game-shell[data-world="castle"] .settings-modal-content,
+#game-shell[data-world="clockwork"] .settings-modal-content {
+  --settings-contrast-dark: #4b3420;
+  --settings-contrast-light: #fff3de;
+}
+
+#game-shell[data-world="magic"] .settings-modal-content {
+  --settings-contrast-dark: #4d2061;
+  --settings-contrast-light: #fff0ff;
+}
+
+#game-shell[data-world="ice"] .settings-modal-content,
+#game-shell[data-world="crystal"] .settings-modal-content {
+  --settings-contrast-dark: #214a73;
+  --settings-contrast-light: #f5fbff;
+}
+
+#game-shell[data-world="desert"] .settings-modal-content {
+  --settings-contrast-dark: #5b3a18;
+  --settings-contrast-light: #fff4e2;
+}
+
+#game-shell[data-world="volcano"] .settings-modal-content {
+  --settings-contrast-dark: #612117;
+  --settings-contrast-light: #fff1ea;
 }
 
 .settings-modal-content::before {
@@ -1744,9 +1914,9 @@ html, body {
 .settings-title-text {
   color: var(--settings-title-soft);
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12),
-    0 2px 10px rgba(8, 30, 52, 0.28);
-  letter-spacing: 0.02em;
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 3px 12px rgba(8, 30, 52, 0.22);
+  letter-spacing: 0.025em;
 }
 
 .settings-modal-content .setting-row {
@@ -1776,8 +1946,10 @@ html, body {
 
 .settings-label-text {
   color: var(--settings-label-soft);
-  text-shadow: 0 1px 8px rgba(7, 27, 45, 0.3);
-  letter-spacing: 0.01em;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 10px rgba(6, 18, 28, 0.34);
+  letter-spacing: 0.015em;
 }
 
 .settings-modal-content .setting-icon {
@@ -1800,13 +1972,15 @@ html, body {
     0 10px 18px color-mix(in srgb, var(--world-glow) 14%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
   color: var(--settings-icon-color);
-  text-shadow: 0 1px 6px rgba(7, 27, 45, 0.24);
+  text-shadow: 0 1px 4px rgba(7, 27, 45, 0.18);
 }
 
 .settings-modal-content .setting-icon svg {
   width: 19px;
   height: 19px;
-  filter: drop-shadow(0 1px 4px rgba(7, 27, 45, 0.2));
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.18))
+    drop-shadow(0 2px 6px rgba(7, 27, 45, 0.12));
 }
 
 .settings-modal-content .toggle-switch {
@@ -1894,16 +2068,16 @@ html, body {
 .settings-btn-text--howto {
   color: var(--settings-howto-text);
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08),
-    0 2px 8px rgba(5, 22, 38, 0.24);
-  letter-spacing: 0.04em;
+    0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 8px rgba(5, 22, 38, 0.18);
+  letter-spacing: 0.05em;
 }
 
 .settings-btn-text--close {
   color: var(--settings-close-text);
   text-shadow:
-    0 0 10px color-mix(in srgb, var(--world-glow) 14%, transparent),
-    0 2px 8px rgba(7, 24, 34, 0.28);
+    0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 10px rgba(7, 24, 34, 0.3);
   letter-spacing: 0.06em;
 }
 
@@ -2859,13 +3033,15 @@ html, body {
   padding: 4px 0;
   min-height: 28px;
   place-self: start center;
+  --timer-contrast-dark: color-mix(in srgb, var(--world-bg-bottom) 84%, #07131d 16%);
+  --timer-contrast-light: color-mix(in srgb, white 94%, var(--world-secondary) 6%);
   --timer-shell-top: color-mix(in srgb, var(--world-secondary) 16%, rgba(255, 255, 255, 0.18));
   --timer-shell-bottom: color-mix(in srgb, var(--world-bg-mid) 62%, rgba(7, 18, 26, 0.42));
   --timer-rim: color-mix(in srgb, var(--world-secondary) 34%, rgba(255, 255, 255, 0.2));
-  --timer-text: color-mix(in srgb, var(--world-secondary) 28%, white 72%);
+  --timer-text: var(--timer-contrast-light);
   --timer-icon-top: color-mix(in srgb, var(--world-primary) 32%, rgba(255, 255, 255, 0.2));
   --timer-icon-bottom: color-mix(in srgb, var(--world-bg-top) 74%, rgba(16, 30, 42, 0.36));
-  --timer-icon-color: color-mix(in srgb, var(--world-secondary) 36%, white 64%);
+  --timer-icon-color: var(--timer-contrast-dark);
   --timer-glow: color-mix(in srgb, var(--world-glow) 24%, rgba(7, 18, 26, 0.16));
   --timer-highlight: color-mix(in srgb, var(--world-accent) 22%, rgba(255, 255, 255, 0.14));
 }
@@ -3014,6 +3190,55 @@ html, body {
   --timer-highlight: rgba(244, 221, 176, 0.16);
 }
 
+#game-info-bar[data-world] {
+  --timer-text: var(--timer-contrast-light);
+  --timer-icon-color: var(--timer-contrast-dark);
+}
+
+#game-info-bar[data-world="forest"] {
+  --timer-contrast-dark: #204222;
+  --timer-contrast-light: #f6ffe4;
+}
+
+#game-info-bar[data-world="ocean"],
+#game-info-bar[data-world="sky"] {
+  --timer-contrast-dark: #123e58;
+  --timer-contrast-light: #effcff;
+}
+
+#game-info-bar[data-world="space"],
+#game-info-bar[data-world="shadow"] {
+  --timer-contrast-dark: #241d54;
+  --timer-contrast-light: #f5f1ff;
+}
+
+#game-info-bar[data-world="castle"],
+#game-info-bar[data-world="clockwork"] {
+  --timer-contrast-dark: #4a341f;
+  --timer-contrast-light: #fff5e1;
+}
+
+#game-info-bar[data-world="magic"] {
+  --timer-contrast-dark: #4a225d;
+  --timer-contrast-light: #fff2ff;
+}
+
+#game-info-bar[data-world="ice"],
+#game-info-bar[data-world="crystal"] {
+  --timer-contrast-dark: #204a72;
+  --timer-contrast-light: #f5fcff;
+}
+
+#game-info-bar[data-world="desert"] {
+  --timer-contrast-dark: #5b3b18;
+  --timer-contrast-light: #fff5e1;
+}
+
+#game-info-bar[data-world="volcano"] {
+  --timer-contrast-dark: #642216;
+  --timer-contrast-light: #fff2ea;
+}
+
 #timer-container {
   display: flex;
   align-items: center;
@@ -3045,7 +3270,7 @@ html, body {
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--timer-rim) 54%, rgba(255, 255, 255, 0.08));
   pointer-events: none;
   z-index: 0;
 }
@@ -3075,6 +3300,10 @@ html, body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.24),
     0 6px 12px rgba(0, 0, 0, 0.16);
+  border: 1px solid color-mix(in srgb, var(--timer-rim) 52%, rgba(255, 255, 255, 0.14));
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 6px rgba(7, 22, 34, 0.14);
   position: relative;
   z-index: 1;
 }
@@ -3086,7 +3315,9 @@ html, body {
   min-width: 46px;
   text-align: center;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 10px rgba(4, 12, 20, 0.3);
   position: relative;
   z-index: 1;
 }
@@ -3145,7 +3376,7 @@ html, body {
   gap: 10px;
   --combo-start: color-mix(in srgb, var(--world-secondary) 68%, white 32%);
   --combo-end: color-mix(in srgb, var(--world-accent) 76%, var(--world-secondary) 24%);
-  --combo-text: color-mix(in srgb, white 70%, var(--world-secondary) 30%);
+  --combo-text: var(--timer-contrast-light);
   --combo-rim: color-mix(in srgb, var(--world-secondary) 30%, rgba(255, 255, 255, 0.2));
   --combo-shell-top: color-mix(in srgb, var(--world-secondary) 18%, rgba(255, 255, 255, 0.18));
   --combo-shell-bottom: color-mix(in srgb, var(--world-bg-bottom) 64%, rgba(8, 18, 28, 0.38));

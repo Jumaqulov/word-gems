@@ -604,3 +604,24 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-01 settings modal contrast-lock pass
+- User asked to continue with a planned final UI consistency pass and the first highest-risk target was the settings modal, where text and icon readability still drifted too much between bright and dark worlds.
+- Fix:
+  - converted the settings modal from direct `--world-*` text/icon mixing to a contrast-locked system built around dedicated `--settings-contrast-dark` and `--settings-contrast-light` anchors,
+  - updated title, labels, action text, and icon chips to use those controlled contrast bands so the copy stays readable on both light and dark theme surfaces,
+  - added world-specific settings contrast overrides for the riskiest palettes (`forest`, `ocean/sky`, `space/shadow`, `castle/clockwork`, `magic`, `ice/crystal`, `desert`, `volcano`) so each world keeps its own flavor without sacrificing readability.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-04-01 HUD and timer readability parity pass
+- User continued the planned final UI consistency pass, so the next target was the top HUD and timer strip where readability could drift between scenic worlds and darker fantasy palettes.
+- Fix:
+  - introduced HUD-level contrast anchors and grouped world overrides so the game title, level/streak/gem badges, zone title, and world status now use theme-aware but readability-locked text colors,
+  - upgraded HUD badge shells with stronger depth, top glints, and clearer rim separation so the level, streak, and gem pills stay legible over every world palette,
+  - converted the timer strip to the same contrast-locked approach by separating text/icon ink from the decorative timer shell colors, then strengthened timer rim and icon chip separation,
+  - aligned combo text readability with the timer contrast system so the info bar now behaves as one consistent theme-aware cluster instead of several unrelated pills.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
