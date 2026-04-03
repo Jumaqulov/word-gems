@@ -625,3 +625,14 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-03 resolution modal parity pass
+- Continued the final UI consistency roadmap by targeting the two resolution overlays that still drifted in contrast and hierarchy between worlds: `Level Complete` and `Time's Up`.
+- Fix:
+  - replaced the mostly light generic result styling with a dedicated resolution-modal surface system built around contrast-locked shell, title, stat-card, and CTA roles,
+  - added grouped world overrides for the resolution modals so risky palettes (`space/shadow`, `magic`, `ice/crystal`, `desert/volcano`, etc.) keep their flavor while title and stat text remain readable,
+  - promoted the result title into a proper pill, darkened the stat cards into distinct theme-aware bands, and clarified label/value hierarchy so score, gems, stars, and retry information read faster,
+  - upgraded completion/retry buttons into clearer primary-vs-danger roles and wrapped the stars in their own reward band so the success state feels more premium and visually separated from the content cards.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
