@@ -2,6 +2,14 @@ import Phaser from 'phaser';
 import { CrazyGamesManager } from '../managers/CrazyGamesManager';
 import { SoundManager } from '../managers/SoundManager';
 import { BackgroundFXManager } from '../managers/BackgroundFXManager';
+import {
+  BoardThemeProfile,
+  createWordRuntimeState,
+  getBoardThemeProfile,
+  WordRuntimeState,
+} from './gameScene/boardTheme';
+import { getCellTextureKey, getFoundCellTextureKey, useSpaciousCellTextures } from './gameScene/cellTextures';
+import { applyReadableLetterStyle, colorValueToCss, hexToColorValue, mixColor } from './gameScene/colorUtils';
 import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
@@ -17,7 +25,6 @@ import {
   getLevelConfig,
   isComboActive,
   LevelConfig,
-  WorldId,
   updateCombo,
 } from '../utils/LevelSystem';
 import {
@@ -39,95 +46,9 @@ interface CellSprite {
   baseY: number;
 }
 
-interface WordRuntimeState {
-  cometWord: string | null;
-  cometClaimed: boolean;
-  lockedWord: string | null;
-  lockPrerequisite: string | null;
-  wildcardCellKeys: Set<string>;
-  frozenWords: Set<string>;
-  crackedFrozenWords: Set<string>;
-  goldenCellKeys: Set<string>;
-  collectedGoldenCellKeys: Set<string>;
-  waveCellKeys: Set<string>;
-}
-
 interface WordStatusTag {
   label: string;
   className: string;
-}
-
-type InteractionParticleShape = 'circle' | 'diamond' | 'star' | 'leaf' | 'shard' | 'snow';
-
-interface BoardThemeProfile {
-  shellMix: number;
-  rimMix: number;
-  faceMix: number;
-  innerMix: number;
-  coreMix: number;
-  slotBaseMix: number;
-  slotGlowMix: number;
-  facetMix: number;
-  chipMix: number;
-  stageGlowAlpha: number;
-  stageBloomAlpha: number;
-  stageHaloAlpha: number;
-  frameOuterAlpha: number;
-  frameInnerAlpha: number;
-  panelFaceAlpha: number;
-  panelInnerAlpha: number;
-  panelCoreAlpha: number;
-  topBandAlpha: number;
-  glassBandAlpha: number;
-  facetFillAlpha: number;
-  facetStrokeAlpha: number;
-  slotShadowAlpha: number;
-  slotBaseAlpha: number;
-  slotGlowAlpha: number;
-  slotEdgeAlpha: number;
-  slotInnerEdgeAlpha: number;
-  chipAlpha: number;
-  tileTintMix: number;
-  tileScale: number;
-  tileLetterScale: number;
-  letterDarkMix: number;
-  letterStrokeMix: number;
-  letterShadowAlpha: number;
-  selectedTintMix: number;
-  selectedScale: number;
-  selectedLetterScale: number;
-  selectedStrokeMix: number;
-  selectedShadowAlpha: number;
-  foundTileScale: number;
-  foundLetterScale: number;
-  foundStrokeMix: number;
-  foundShadowAlpha: number;
-  trailShape: InteractionParticleShape;
-  trailCount: number;
-  trailAlpha: number;
-  trailSecondaryMix: number;
-  foundBurstShape: InteractionParticleShape;
-  foundBurstCount: number;
-  foundBurstAlpha: number;
-  foundBurstSpread: number;
-  foundBurstSecondaryMix: number;
-  foundLineAlpha: number;
-  foundLineWidthScale: number;
-}
-
-function createWordRuntimeState(): WordRuntimeState {
-  return {
-    cometWord: null,
-    cometClaimed: false,
-    lockedWord: null,
-    lockPrerequisite: null,
-    wildcardCellKeys: new Set(),
-    frozenWords: new Set(),
-    crackedFrozenWords: new Set(),
-    goldenCellKeys: new Set(),
-    collectedGoldenCellKeys: new Set(),
-    waveCellKeys: new Set(),
-  };
 }
 
 export class GameScene extends Phaser.Scene {
@@ -249,7 +170,7 @@ export class GameScene extends Phaser.Scene {
 
     const save = CrazyGamesManager.saveData;
     this.levelConfig = getLevelConfig(level);
-    this.boardThemeProfile = this.getBoardThemeProfile();
+    this.boardThemeProfile = getBoardThemeProfile(this.levelConfig.world.id);
     this.cellSize = this.calculateCellSize();
     this.cellDisplaySize = this.getCellDisplaySize();
     SoundManager.setWorldProfile(this.levelConfig.sfxProfile);
@@ -434,7 +355,11 @@ export class GameScene extends Phaser.Scene {
       for (let col = 0; col < this.gridData.size; col++) {
         const x = Math.round(col * this.cellSize + this.cellSize / 2);
         const y = Math.round(row * this.cellSize + this.cellSize / 2);
-        const bg = this.add.image(x, y, this.getCellTextureKey('cell-bg'));
+          const bg = this.add.image(
+            x,
+            y,
+            getCellTextureKey(this.textures, 'cell-bg', this.levelConfig.world.id, this.levelConfig.gridSize)
+          );
         bg.setDisplaySize(this.cellDisplaySize, this.cellDisplaySize);
         bg.setInteractive({ useHandCursor: false });
 
@@ -469,22 +394,22 @@ export class GameScene extends Phaser.Scene {
     const innerRadius = Math.max(18, outerRadius - 8);
     const coreRadius = Math.max(12, innerRadius - 6);
 
-    const primary = this.hexToColorValue(this.levelConfig.visuals.primary);
-    const secondary = this.hexToColorValue(this.levelConfig.visuals.secondary);
+    const primary = hexToColorValue(this.levelConfig.visuals.primary);
+    const secondary = hexToColorValue(this.levelConfig.visuals.secondary);
     const accent = this.levelConfig.visuals.accentTint;
     const cellTint = this.levelConfig.visuals.cellTint;
-    const bgMid = this.hexToColorValue(this.levelConfig.visuals.backgroundMid);
-    const bgBottom = this.hexToColorValue(this.levelConfig.visuals.backgroundBottom);
-    const shellColor = this.mixColor(cellTint, primary, profile.shellMix);
-    const rimColor = this.mixColor(bgMid, cellTint, profile.rimMix);
-    const panelFace = this.mixColor(cellTint, secondary, profile.faceMix);
-    const panelInner = this.mixColor(primary, cellTint, profile.innerMix);
-    const panelCore = this.mixColor(panelInner, secondary, profile.coreMix);
-    const slotShadow = this.mixColor(bgBottom, bgMid, 0.26);
-    const slotBase = this.mixColor(cellTint, panelInner, profile.slotBaseMix);
-    const slotGlow = this.mixColor(secondary, cellTint, profile.slotGlowMix);
-    const facetColor = this.mixColor(primary, secondary, profile.facetMix);
-    const gemChipColor = this.mixColor(accent, secondary, profile.chipMix);
+    const bgMid = hexToColorValue(this.levelConfig.visuals.backgroundMid);
+    const bgBottom = hexToColorValue(this.levelConfig.visuals.backgroundBottom);
+    const shellColor = mixColor(cellTint, primary, profile.shellMix);
+    const rimColor = mixColor(bgMid, cellTint, profile.rimMix);
+    const panelFace = mixColor(cellTint, secondary, profile.faceMix);
+    const panelInner = mixColor(primary, cellTint, profile.innerMix);
+    const panelCore = mixColor(panelInner, secondary, profile.coreMix);
+    const slotShadow = mixColor(bgBottom, bgMid, 0.26);
+    const slotBase = mixColor(cellTint, panelInner, profile.slotBaseMix);
+    const slotGlow = mixColor(secondary, cellTint, profile.slotGlowMix);
+    const facetColor = mixColor(primary, secondary, profile.facetMix);
+    const gemChipColor = mixColor(accent, secondary, profile.chipMix);
 
     const stageGlow = this.add.image(totalSize / 2, totalSize / 2, 'bgfx-soft-glow');
     stageGlow.setDisplaySize(stageWidth * 1.18, stageHeight * 1.14);
@@ -521,7 +446,7 @@ export class GameScene extends Phaser.Scene {
       bl: 12,
       br: 12,
     });
-    stageFrame.lineStyle(2, this.mixColor(primary, secondary, 0.5), 0.18);
+    stageFrame.lineStyle(2, mixColor(primary, secondary, 0.5), 0.18);
     stageFrame.strokeRoundedRect(stageX + 1, stageY + 1, stageWidth - 2, stageHeight - 2, outerRadius);
     stageFrame.lineStyle(1, 0xffffff, 0.2);
     stageFrame.strokeRoundedRect(stageX + 8, stageY + 8, stageWidth - 16, stageHeight - 16, outerRadius - 6);
@@ -606,41 +531,6 @@ export class GameScene extends Phaser.Scene {
     ]);
   }
 
-  private hexToColorValue(hex: string): number {
-    return Phaser.Display.Color.HexStringToColor(hex).color;
-  }
-
-  private mixColor(colorA: number, colorB: number, amount: number): number {
-    const a = Phaser.Display.Color.ValueToColor(colorA);
-    const b = Phaser.Display.Color.ValueToColor(colorB);
-    return Phaser.Display.Color.GetColor(
-      Math.round(Phaser.Math.Linear(a.red, b.red, amount)),
-      Math.round(Phaser.Math.Linear(a.green, b.green, amount)),
-      Math.round(Phaser.Math.Linear(a.blue, b.blue, amount))
-    );
-  }
-
-  private colorValueToCss(color: number): string {
-    return `#${color.toString(16).padStart(6, '0')}`;
-  }
-
-  private applyReadableLetterStyle(
-    letter: Phaser.GameObjects.Text,
-    color: string,
-    strokeColor: string,
-    shadowColor: string,
-    options?: {
-      fontStyle?: string;
-      strokeWidth?: number;
-      shadowOffsetY?: number;
-    }
-  ): void {
-    letter.setColor(color);
-    letter.setFontStyle(options?.fontStyle ?? '');
-    letter.setStroke(strokeColor, options?.strokeWidth ?? 1);
-    letter.setShadow(0, options?.shadowOffsetY ?? 1, shadowColor, 2, false, true);
-  }
-
   private calculateCellSize(): number {
     if (window.innerWidth > 768) {
       return getCellSizeForGrid(this.levelConfig.gridSize);
@@ -656,364 +546,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getCellContentSize(): number {
-    return this.cellSize - (this.useSpaciousCellTextures() ? 12 : CELL_GAP);
-  }
-
-  private useSpaciousCellTextures(): boolean {
-    return this.levelConfig.gridSize >= 9;
-  }
-
-  private getCellTextureKey(baseKey: 'cell-bg' | 'cell-selected' | 'cell-hover' | 'cell-wrong' | 'cell-found'): string {
-    const suffix = this.useSpaciousCellTextures() ? '-spacious' : '';
-    const variantKey = `${baseKey}-${this.getCellTextureVariant()}${suffix}`;
-    return this.textures.exists(variantKey) ? variantKey : `${baseKey}${suffix}`;
-  }
-
-  private getFoundCellTextureKey(colorIndex: number): string {
-    return this.useSpaciousCellTextures() ? `cell-found-${colorIndex}-spacious` : `cell-found-${colorIndex}`;
-  }
-
-  private getCellTextureVariant(): WorldId {
-    return this.levelConfig.world.id;
-  }
-
-  private getBoardThemeProfile(): BoardThemeProfile {
-    const profile: BoardThemeProfile = {
-      shellMix: 0.18,
-      rimMix: 0.48,
-      faceMix: 0.34,
-      innerMix: 0.34,
-      coreMix: 0.24,
-      slotBaseMix: 0.22,
-      slotGlowMix: 0.42,
-      facetMix: 0.42,
-      chipMix: 0.34,
-      stageGlowAlpha: 0.24,
-      stageBloomAlpha: 0.14,
-      stageHaloAlpha: 0.05,
-      frameOuterAlpha: 0.24,
-      frameInnerAlpha: 0.22,
-      panelFaceAlpha: 0.24,
-      panelInnerAlpha: 0.18,
-      panelCoreAlpha: 0.1,
-      topBandAlpha: 0.16,
-      glassBandAlpha: 0.08,
-      facetFillAlpha: 0.06,
-      facetStrokeAlpha: 0.14,
-      slotShadowAlpha: 0.12,
-      slotBaseAlpha: 0.18,
-      slotGlowAlpha: 0.12,
-      slotEdgeAlpha: 0.12,
-      slotInnerEdgeAlpha: 0.08,
-      chipAlpha: 0.18,
-      tileTintMix: 0.05,
-      tileScale: 0.95,
-      tileLetterScale: 0.96,
-      letterDarkMix: 0.14,
-      letterStrokeMix: 0.16,
-      letterShadowAlpha: 0.14,
-      selectedTintMix: 0.18,
-      selectedScale: 1.04,
-      selectedLetterScale: 1.09,
-      selectedStrokeMix: 0.44,
-      selectedShadowAlpha: 0.24,
-      foundTileScale: 1.05,
-      foundLetterScale: 1.08,
-      foundStrokeMix: 0.26,
-      foundShadowAlpha: 0.22,
-      trailShape: 'circle',
-      trailCount: 4,
-      trailAlpha: 0.58,
-      trailSecondaryMix: 0.34,
-      foundBurstShape: 'diamond',
-      foundBurstCount: 6,
-      foundBurstAlpha: 0.96,
-      foundBurstSpread: 18,
-      foundBurstSecondaryMix: 0.34,
-      foundLineAlpha: 0.42,
-      foundLineWidthScale: 0.62,
-    };
-
-    const overrides: Partial<Record<WorldId, Partial<BoardThemeProfile>>> = {
-      forest: {
-        faceMix: 0.28,
-        innerMix: 0.26,
-        coreMix: 0.16,
-        stageHaloAlpha: 0.03,
-        slotGlowAlpha: 0.08,
-        tileTintMix: 0.03,
-        letterDarkMix: 0.16,
-        selectedTintMix: 0.12,
-        trailShape: 'leaf',
-        trailCount: 5,
-        trailAlpha: 0.62,
-        trailSecondaryMix: 0.46,
-        foundBurstShape: 'leaf',
-        foundBurstCount: 7,
-        foundBurstAlpha: 0.88,
-        foundBurstSpread: 16,
-        foundBurstSecondaryMix: 0.5,
-        foundLineAlpha: 0.38,
-        foundLineWidthScale: 0.58,
-      },
-      ocean: {
-        stageGlowAlpha: 0.28,
-        stageBloomAlpha: 0.18,
-        stageHaloAlpha: 0.08,
-        faceMix: 0.3,
-        innerMix: 0.28,
-        slotGlowAlpha: 0.16,
-        glassBandAlpha: 0.12,
-        selectedTintMix: 0.28,
-        trailShape: 'circle',
-        trailCount: 4,
-        trailAlpha: 0.48,
-        trailSecondaryMix: 0.44,
-        foundBurstShape: 'shard',
-        foundBurstCount: 7,
-        foundBurstAlpha: 0.9,
-        foundBurstSpread: 22,
-        foundBurstSecondaryMix: 0.56,
-        foundLineAlpha: 0.34,
-        foundLineWidthScale: 0.56,
-      },
-      space: {
-        stageGlowAlpha: 0.28,
-        stageBloomAlpha: 0.16,
-        stageHaloAlpha: 0.1,
-        frameOuterAlpha: 0.28,
-        frameInnerAlpha: 0.24,
-        panelFaceAlpha: 0.22,
-        panelInnerAlpha: 0.16,
-        panelCoreAlpha: 0.14,
-        glassBandAlpha: 0.1,
-        facetStrokeAlpha: 0.18,
-        tileTintMix: 0.02,
-        letterDarkMix: 0.22,
-        selectedTintMix: 0.22,
-        trailShape: 'star',
-        trailCount: 5,
-        trailAlpha: 0.72,
-        trailSecondaryMix: 0.52,
-        foundBurstShape: 'star',
-        foundBurstCount: 8,
-        foundBurstAlpha: 0.98,
-        foundBurstSpread: 24,
-        foundBurstSecondaryMix: 0.58,
-        foundLineAlpha: 0.4,
-        foundLineWidthScale: 0.6,
-      },
-      castle: {
-        frameOuterAlpha: 0.3,
-        frameInnerAlpha: 0.26,
-        panelFaceAlpha: 0.28,
-        panelInnerAlpha: 0.2,
-        panelCoreAlpha: 0.14,
-        topBandAlpha: 0.18,
-        chipAlpha: 0.22,
-        slotBaseAlpha: 0.2,
-        trailShape: 'diamond',
-        trailCount: 4,
-        trailAlpha: 0.62,
-        trailSecondaryMix: 0.42,
-        foundBurstShape: 'diamond',
-        foundBurstCount: 6,
-        foundBurstAlpha: 0.94,
-        foundBurstSpread: 18,
-        foundBurstSecondaryMix: 0.48,
-        foundLineAlpha: 0.36,
-        foundLineWidthScale: 0.64,
-      },
-      magic: {
-        stageGlowAlpha: 0.3,
-        stageBloomAlpha: 0.18,
-        stageHaloAlpha: 0.12,
-        glassBandAlpha: 0.12,
-        facetFillAlpha: 0.08,
-        facetStrokeAlpha: 0.18,
-        slotGlowAlpha: 0.15,
-        selectedTintMix: 0.3,
-        trailShape: 'star',
-        trailCount: 5,
-        trailAlpha: 0.76,
-        trailSecondaryMix: 0.6,
-        foundBurstShape: 'star',
-        foundBurstCount: 8,
-        foundBurstAlpha: 1,
-        foundBurstSpread: 24,
-        foundBurstSecondaryMix: 0.64,
-        foundLineAlpha: 0.44,
-        foundLineWidthScale: 0.68,
-      },
-      ice: {
-        stageGlowAlpha: 0.26,
-        stageBloomAlpha: 0.16,
-        stageHaloAlpha: 0.08,
-        frameInnerAlpha: 0.24,
-        glassBandAlpha: 0.14,
-        facetFillAlpha: 0.07,
-        slotGlowAlpha: 0.18,
-        slotEdgeAlpha: 0.16,
-        slotInnerEdgeAlpha: 0.12,
-        tileTintMix: 0.01,
-        letterDarkMix: 0.12,
-        trailShape: 'snow',
-        trailCount: 5,
-        trailAlpha: 0.72,
-        trailSecondaryMix: 0.52,
-        foundBurstShape: 'snow',
-        foundBurstCount: 7,
-        foundBurstAlpha: 0.94,
-        foundBurstSpread: 20,
-        foundBurstSecondaryMix: 0.56,
-        foundLineAlpha: 0.36,
-        foundLineWidthScale: 0.56,
-      },
-      desert: {
-        stageGlowAlpha: 0.2,
-        stageBloomAlpha: 0.12,
-        stageHaloAlpha: 0.04,
-        panelCoreAlpha: 0.08,
-        topBandAlpha: 0.18,
-        slotBaseAlpha: 0.2,
-        slotGlowAlpha: 0.1,
-        trailShape: 'circle',
-        trailCount: 4,
-        trailAlpha: 0.52,
-        trailSecondaryMix: 0.42,
-        foundBurstShape: 'diamond',
-        foundBurstCount: 6,
-        foundBurstAlpha: 0.9,
-        foundBurstSpread: 17,
-        foundBurstSecondaryMix: 0.44,
-        foundLineAlpha: 0.3,
-        foundLineWidthScale: 0.58,
-      },
-      volcano: {
-        stageGlowAlpha: 0.32,
-        stageBloomAlpha: 0.18,
-        stageHaloAlpha: 0.08,
-        frameOuterAlpha: 0.28,
-        rimMix: 0.42,
-        faceMix: 0.28,
-        innerMix: 0.3,
-        glassBandAlpha: 0.1,
-        slotShadowAlpha: 0.16,
-        slotGlowAlpha: 0.18,
-        selectedTintMix: 0.24,
-        trailShape: 'shard',
-        trailCount: 5,
-        trailAlpha: 0.78,
-        trailSecondaryMix: 0.6,
-        foundBurstShape: 'shard',
-        foundBurstCount: 8,
-        foundBurstAlpha: 1,
-        foundBurstSpread: 26,
-        foundBurstSecondaryMix: 0.66,
-        foundLineAlpha: 0.42,
-        foundLineWidthScale: 0.66,
-      },
-      sky: {
-        stageGlowAlpha: 0.18,
-        stageBloomAlpha: 0.12,
-        stageHaloAlpha: 0.04,
-        frameOuterAlpha: 0.18,
-        frameInnerAlpha: 0.18,
-        panelFaceAlpha: 0.2,
-        panelInnerAlpha: 0.15,
-        slotShadowAlpha: 0.08,
-        slotBaseAlpha: 0.16,
-        slotGlowAlpha: 0.14,
-        tileTintMix: 0.01,
-        tileScale: 0.96,
-        tileLetterScale: 0.97,
-        trailShape: 'circle',
-        trailCount: 5,
-        trailAlpha: 0.46,
-        trailSecondaryMix: 0.38,
-        foundBurstShape: 'star',
-        foundBurstCount: 6,
-        foundBurstAlpha: 0.86,
-        foundBurstSpread: 24,
-        foundBurstSecondaryMix: 0.52,
-        foundLineAlpha: 0.28,
-        foundLineWidthScale: 0.54,
-      },
-      crystal: {
-        stageGlowAlpha: 0.3,
-        stageBloomAlpha: 0.18,
-        stageHaloAlpha: 0.11,
-        glassBandAlpha: 0.13,
-        facetFillAlpha: 0.09,
-        facetStrokeAlpha: 0.2,
-        slotGlowAlpha: 0.16,
-        chipAlpha: 0.24,
-        selectedTintMix: 0.32,
-        trailShape: 'diamond',
-        trailCount: 5,
-        trailAlpha: 0.78,
-        trailSecondaryMix: 0.62,
-        foundBurstShape: 'diamond',
-        foundBurstCount: 8,
-        foundBurstAlpha: 1,
-        foundBurstSpread: 22,
-        foundBurstSecondaryMix: 0.68,
-        foundLineAlpha: 0.44,
-        foundLineWidthScale: 0.64,
-      },
-      shadow: {
-        stageGlowAlpha: 0.16,
-        stageBloomAlpha: 0.1,
-        stageHaloAlpha: 0.06,
-        frameOuterAlpha: 0.3,
-        panelFaceAlpha: 0.18,
-        panelInnerAlpha: 0.16,
-        panelCoreAlpha: 0.14,
-        topBandAlpha: 0.08,
-        glassBandAlpha: 0.05,
-        slotShadowAlpha: 0.16,
-        slotBaseAlpha: 0.16,
-        slotGlowAlpha: 0.09,
-        tileTintMix: 0.03,
-        letterDarkMix: 0.24,
-        letterStrokeMix: 0.1,
-        trailShape: 'star',
-        trailCount: 4,
-        trailAlpha: 0.48,
-        trailSecondaryMix: 0.5,
-        foundBurstShape: 'shard',
-        foundBurstCount: 6,
-        foundBurstAlpha: 0.88,
-        foundBurstSpread: 18,
-        foundBurstSecondaryMix: 0.54,
-        foundLineAlpha: 0.26,
-        foundLineWidthScale: 0.56,
-      },
-      clockwork: {
-        frameOuterAlpha: 0.32,
-        frameInnerAlpha: 0.26,
-        panelFaceAlpha: 0.26,
-        panelInnerAlpha: 0.2,
-        panelCoreAlpha: 0.12,
-        topBandAlpha: 0.2,
-        chipAlpha: 0.26,
-        slotBaseAlpha: 0.19,
-        slotGlowAlpha: 0.1,
-        trailShape: 'diamond',
-        trailCount: 4,
-        trailAlpha: 0.64,
-        trailSecondaryMix: 0.44,
-        foundBurstShape: 'shard',
-        foundBurstCount: 7,
-        foundBurstAlpha: 0.94,
-        foundBurstSpread: 20,
-        foundBurstSecondaryMix: 0.5,
-        foundLineAlpha: 0.34,
-        foundLineWidthScale: 0.6,
-      },
-    };
-
-    return { ...profile, ...(overrides[this.levelConfig.world.id] ?? {}) };
+    return this.cellSize - (useSpaciousCellTextures(this.levelConfig.gridSize) ? 12 : CELL_GAP);
   }
 
   private setupInputHandlers(): void {
@@ -1182,9 +715,9 @@ export class GameScene extends Phaser.Scene {
       SoundManager.playLetterSelect(this.selectedCells.length - 1);
 
       const tail = nextSelection[nextSelection.length - 1];
-      const trailSecondary = this.mixColor(
+      const trailSecondary = mixColor(
         this.levelConfig.visuals.accentTint,
-        this.hexToColorValue(this.levelConfig.visuals.secondary),
+        hexToColorValue(this.levelConfig.visuals.secondary),
         this.boardThemeProfile.trailSecondaryMix
       );
       this.juice.selectionTrailAt(
@@ -1348,29 +881,29 @@ export class GameScene extends Phaser.Scene {
       x: this.gridContainer.x + col * this.cellSize + this.cellSize / 2,
       y: this.gridContainer.y + row * this.cellSize + this.cellSize / 2,
     }));
-    const foundSecondary = this.mixColor(
+    const foundSecondary = mixColor(
       COLORS.FOUND_COLORS[colorIndex],
-      this.hexToColorValue(this.levelConfig.visuals.secondary),
+      hexToColorValue(this.levelConfig.visuals.secondary),
       this.boardThemeProfile.foundBurstSecondaryMix
     );
 
     for (const { row, col } of placedWord.cells) {
       const cell = this.cells[row][col];
-      const foundStroke = this.colorValueToCss(
-        this.mixColor(
-          this.mixColor(COLORS.FOUND_COLORS[colorIndex], 0xFFFFFF, 0.12),
-          this.hexToColorValue(this.levelConfig.visuals.backgroundBottom),
+      const foundStroke = colorValueToCss(
+        mixColor(
+          mixColor(COLORS.FOUND_COLORS[colorIndex], 0xFFFFFF, 0.12),
+          hexToColorValue(this.levelConfig.visuals.backgroundBottom),
           this.boardThemeProfile.foundStrokeMix
         )
       );
-      cell.bg.setTexture(this.getFoundCellTextureKey(colorIndex));
+      cell.bg.setTexture(getFoundCellTextureKey(colorIndex, this.levelConfig.gridSize));
       cell.bg.clearTint();
       cell.bg.setAlpha(1);
       cell.bg.setPosition(cell.baseX, cell.baseY);
       cell.bg.setScale(this.boardThemeProfile.foundTileScale + 0.01);
       cell.letter.setText(this.actualGridLetters[row][col]);
       cell.letter.setPosition(cell.baseX, cell.baseY);
-      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', foundStroke, `rgba(0, 0, 0, ${this.boardThemeProfile.foundShadowAlpha})`, {
+      applyReadableLetterStyle(cell.letter, '#FFFFFF', foundStroke, `rgba(0, 0, 0, ${this.boardThemeProfile.foundShadowAlpha})`, {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
@@ -1490,15 +1023,15 @@ export class GameScene extends Phaser.Scene {
     if (this.foundCellKeys.has(this.getCellKey(cell.row, cell.col))) return;
 
     const profile = this.boardThemeProfile;
-    const primaryColor = this.hexToColorValue(this.levelConfig.visuals.primary);
-    const secondaryColor = this.hexToColorValue(this.levelConfig.visuals.secondary);
-    const letterBase = this.mixColor(this.hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, profile.letterDarkMix);
+    const primaryColor = hexToColorValue(this.levelConfig.visuals.primary);
+    const secondaryColor = hexToColorValue(this.levelConfig.visuals.secondary);
+    const letterBase = mixColor(hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, profile.letterDarkMix);
     const baseStrokeMix = Math.min(0.36, profile.letterStrokeMix + 0.12);
     const baseShadowAlpha = Math.min(0.34, profile.letterShadowAlpha + 0.08);
-    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, Math.max(0.12, profile.tileTintMix + 0.04));
+    const baseTint = mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, Math.max(0.12, profile.tileTintMix + 0.04));
     const specialTileScale = Math.max(0.98, profile.tileScale + 0.03);
     const specialLetterScale = Math.max(1, profile.tileLetterScale + 0.05);
-    cell.bg.setTexture(this.getCellTextureKey('cell-bg'));
+    cell.bg.setTexture(getCellTextureKey(this.textures, 'cell-bg', this.levelConfig.world.id, this.levelConfig.gridSize));
     cell.bg.clearTint();
     cell.bg.setAlpha(1);
     cell.bg.setPosition(cell.baseX, cell.baseY);
@@ -1508,10 +1041,10 @@ export class GameScene extends Phaser.Scene {
     cell.letter.setPosition(cell.baseX, cell.baseY);
     cell.letter.setScale(profile.tileLetterScale);
     cell.letter.setAlpha(1);
-    this.applyReadableLetterStyle(
+    applyReadableLetterStyle(
       cell.letter,
-      this.colorValueToCss(letterBase),
-      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, baseStrokeMix)),
+      colorValueToCss(letterBase),
+      colorValueToCss(mixColor(primaryColor, 0xFFFFFF, baseStrokeMix)),
       `rgba(8, 18, 28, ${baseShadowAlpha})`,
       {
         strokeWidth: 1.4,
@@ -1523,10 +1056,10 @@ export class GameScene extends Phaser.Scene {
 
     const cellKey = this.getCellKey(cell.row, cell.col);
     if (this.worldState.goldenCellKeys.has(cellKey) && !this.worldState.collectedGoldenCellKeys.has(cellKey)) {
-      cell.bg.setTexture(this.getCellTextureKey('cell-hover'));
+      cell.bg.setTexture(getCellTextureKey(this.textures, 'cell-hover', this.levelConfig.world.id, this.levelConfig.gridSize));
       cell.bg.setTint(this.levelConfig.visuals.bonusTint);
       cell.bg.setScale(specialTileScale);
-      this.applyReadableLetterStyle(cell.letter, '#FFF8DE', 'rgba(137, 99, 21, 0.84)', 'rgba(255, 223, 115, 0.74)', {
+      applyReadableLetterStyle(cell.letter, '#FFF8DE', 'rgba(137, 99, 21, 0.84)', 'rgba(255, 223, 115, 0.74)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
@@ -1535,10 +1068,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.worldState.wildcardCellKeys.has(cellKey)) {
-      cell.bg.setTexture(this.getCellTextureKey('cell-hover'));
+      cell.bg.setTexture(getCellTextureKey(this.textures, 'cell-hover', this.levelConfig.world.id, this.levelConfig.gridSize));
       cell.bg.setTint(this.levelConfig.visuals.accentTint);
       cell.bg.setScale(specialTileScale);
-      this.applyReadableLetterStyle(cell.letter, '#FFF7FF', 'rgba(91, 52, 113, 0.78)', 'rgba(255, 255, 255, 0.38)', {
+      applyReadableLetterStyle(cell.letter, '#FFF7FF', 'rgba(91, 52, 113, 0.78)', 'rgba(255, 255, 255, 0.38)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
@@ -1548,10 +1081,17 @@ export class GameScene extends Phaser.Scene {
 
     if (this.isCellInFrozenWord(cell.row, cell.col)) {
       const isCracked = this.isCellInCrackedFrozenWord(cell.row, cell.col);
-      cell.bg.setTexture(this.getCellTextureKey(isCracked ? 'cell-selected' : 'cell-hover'));
+      cell.bg.setTexture(
+        getCellTextureKey(
+          this.textures,
+          isCracked ? 'cell-selected' : 'cell-hover',
+          this.levelConfig.world.id,
+          this.levelConfig.gridSize
+        )
+      );
       cell.bg.setTint(this.isCellInCrackedFrozenWord(cell.row, cell.col) ? 0xd2f2ff : 0xb5e3ff);
       cell.bg.setScale(isCracked ? specialTileScale + 0.02 : specialTileScale);
-      this.applyReadableLetterStyle(cell.letter, '#F1FCFF', 'rgba(47, 107, 132, 0.76)', 'rgba(183, 244, 255, 0.78)', {
+      applyReadableLetterStyle(cell.letter, '#F1FCFF', 'rgba(47, 107, 132, 0.76)', 'rgba(183, 244, 255, 0.78)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
@@ -1562,16 +1102,16 @@ export class GameScene extends Phaser.Scene {
 
   private updateSelectionVisuals(): void {
     const profile = this.boardThemeProfile;
-    const selectedStroke = this.colorValueToCss(
-      this.mixColor(
-        this.mixColor(this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), 0xFFFFFF, 0.16),
+    const selectedStroke = colorValueToCss(
+      mixColor(
+        mixColor(hexToColorValue(this.levelConfig.visuals.backgroundBottom), 0xFFFFFF, 0.16),
         this.levelConfig.visuals.accentTint,
         Math.min(0.56, profile.selectedStrokeMix + 0.08)
       )
     );
-    const selectedTint = this.mixColor(
-      this.mixColor(this.levelConfig.visuals.accentTint, 0xFFFFFF, 0.18),
-      this.hexToColorValue(this.levelConfig.visuals.secondary),
+    const selectedTint = mixColor(
+      mixColor(this.levelConfig.visuals.accentTint, 0xFFFFFF, 0.18),
+      hexToColorValue(this.levelConfig.visuals.secondary),
       Math.max(0.12, profile.selectedTintMix * 0.8)
     );
 
@@ -1584,10 +1124,12 @@ export class GameScene extends Phaser.Scene {
     for (const { row, col } of this.selectedCells) {
       if (this.foundCellKeys.has(this.getCellKey(row, col))) continue;
       const cell = this.cells[row][col];
-      cell.bg.setTexture(this.getCellTextureKey('cell-selected'));
+      cell.bg.setTexture(
+        getCellTextureKey(this.textures, 'cell-selected', this.levelConfig.world.id, this.levelConfig.gridSize)
+      );
       cell.bg.setTint(selectedTint);
       cell.bg.setScale(profile.selectedScale + 0.01);
-      this.applyReadableLetterStyle(cell.letter, '#FFFFFF', selectedStroke, `rgba(0, 0, 0, ${profile.selectedShadowAlpha})`, {
+      applyReadableLetterStyle(cell.letter, '#FFFFFF', selectedStroke, `rgba(0, 0, 0, ${profile.selectedShadowAlpha})`, {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,

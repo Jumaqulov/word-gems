@@ -647,3 +647,33 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-04 GameScene refactor slice 1
+- Started the planned post-polish refactor by extracting the lowest-risk theme/runtime state logic out of `GameScene.ts` before touching gameplay flow.
+- Fix:
+  - moved `BoardThemeProfile`, `WordRuntimeState`, and `createWordRuntimeState()` into a new `src/scenes/gameScene/boardTheme.ts` helper so they no longer crowd the main scene file,
+  - extracted `getBoardThemeProfile(worldId)` into that helper as a pure world-driven function, which removes a large static override block from `GameScene` and makes future theme tuning safer,
+  - updated `GameScene` to import the shared board-theme helper and request profiles directly from the active world id, reducing scene size while keeping gameplay behavior unchanged.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-04-04 GameScene refactor slice 2
+- Continued the planned scene refactor by extracting low-level color and readable-text helpers that were being reused across board rendering and cell-state styling.
+- Fix:
+  - created `src/scenes/gameScene/colorUtils.ts` for shared color mixing, hex conversion, CSS conversion, and readable letter styling helpers,
+  - rewired `GameScene` board-shell rendering, selection trail, found-word state, base tile styling, and selected tile styling to use the shared helper module instead of keeping those utility methods inline,
+  - reduced `GameScene.ts` further without changing gameplay behavior, making future tile/theme polish work less risky and easier to reuse.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-04-04 GameScene refactor slice 3
+- Continued the sequential scene cleanup by extracting the grid texture-key helpers that still lived inline in `GameScene`.
+- Fix:
+  - added `src/scenes/gameScene/cellTextures.ts` to centralize spacious-grid detection plus world-aware tile texture and found-tile key resolution,
+  - rewired board construction and cell-state styling to use the shared texture helpers instead of local scene methods,
+  - removed another small utility cluster from `GameScene`, keeping the gameplay logic intact while shrinking the scene surface area a bit more.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
