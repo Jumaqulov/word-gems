@@ -1357,13 +1357,17 @@ export class GameScene extends Phaser.Scene {
     for (const { row, col } of placedWord.cells) {
       const cell = this.cells[row][col];
       const foundStroke = this.colorValueToCss(
-        this.mixColor(COLORS.FOUND_COLORS[colorIndex], this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), this.boardThemeProfile.foundStrokeMix)
+        this.mixColor(
+          this.mixColor(COLORS.FOUND_COLORS[colorIndex], 0xFFFFFF, 0.12),
+          this.hexToColorValue(this.levelConfig.visuals.backgroundBottom),
+          this.boardThemeProfile.foundStrokeMix
+        )
       );
       cell.bg.setTexture(this.getFoundCellTextureKey(colorIndex));
       cell.bg.clearTint();
       cell.bg.setAlpha(1);
       cell.bg.setPosition(cell.baseX, cell.baseY);
-      cell.bg.setScale(this.boardThemeProfile.foundTileScale);
+      cell.bg.setScale(this.boardThemeProfile.foundTileScale + 0.01);
       cell.letter.setText(this.actualGridLetters[row][col]);
       cell.letter.setPosition(cell.baseX, cell.baseY);
       this.applyReadableLetterStyle(cell.letter, '#FFFFFF', foundStroke, `rgba(0, 0, 0, ${this.boardThemeProfile.foundShadowAlpha})`, {
@@ -1371,7 +1375,7 @@ export class GameScene extends Phaser.Scene {
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(this.boardThemeProfile.foundLetterScale);
+      cell.letter.setScale(this.boardThemeProfile.foundLetterScale + 0.02);
       this.foundCellKeys.add(this.getCellKey(row, col));
     }
 
@@ -1489,7 +1493,11 @@ export class GameScene extends Phaser.Scene {
     const primaryColor = this.hexToColorValue(this.levelConfig.visuals.primary);
     const secondaryColor = this.hexToColorValue(this.levelConfig.visuals.secondary);
     const letterBase = this.mixColor(this.hexToColorValue(this.levelConfig.visuals.letterColor), 0x061018, profile.letterDarkMix);
-    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, profile.tileTintMix);
+    const baseStrokeMix = Math.min(0.36, profile.letterStrokeMix + 0.12);
+    const baseShadowAlpha = Math.min(0.34, profile.letterShadowAlpha + 0.08);
+    const baseTint = this.mixColor(0xFFFFFF, this.levelConfig.visuals.cellTint, Math.max(0.12, profile.tileTintMix + 0.04));
+    const specialTileScale = Math.max(0.98, profile.tileScale + 0.03);
+    const specialLetterScale = Math.max(1, profile.tileLetterScale + 0.05);
     cell.bg.setTexture(this.getCellTextureKey('cell-bg'));
     cell.bg.clearTint();
     cell.bg.setAlpha(1);
@@ -1503,10 +1511,11 @@ export class GameScene extends Phaser.Scene {
     this.applyReadableLetterStyle(
       cell.letter,
       this.colorValueToCss(letterBase),
-      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, profile.letterStrokeMix)),
-      `rgba(8, 18, 28, ${profile.letterShadowAlpha})`,
+      this.colorValueToCss(this.mixColor(primaryColor, 0xFFFFFF, baseStrokeMix)),
+      `rgba(8, 18, 28, ${baseShadowAlpha})`,
       {
-        strokeWidth: 1,
+        strokeWidth: 1.4,
+        shadowOffsetY: 2,
       }
     );
 
@@ -1514,42 +1523,57 @@ export class GameScene extends Phaser.Scene {
 
     const cellKey = this.getCellKey(cell.row, cell.col);
     if (this.worldState.goldenCellKeys.has(cellKey) && !this.worldState.collectedGoldenCellKeys.has(cellKey)) {
+      cell.bg.setTexture(this.getCellTextureKey('cell-hover'));
       cell.bg.setTint(this.levelConfig.visuals.bonusTint);
+      cell.bg.setScale(specialTileScale);
       this.applyReadableLetterStyle(cell.letter, '#FFF8DE', 'rgba(137, 99, 21, 0.84)', 'rgba(255, 223, 115, 0.74)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(1);
+      cell.letter.setScale(specialLetterScale);
     }
 
     if (this.worldState.wildcardCellKeys.has(cellKey)) {
+      cell.bg.setTexture(this.getCellTextureKey('cell-hover'));
       cell.bg.setTint(this.levelConfig.visuals.accentTint);
+      cell.bg.setScale(specialTileScale);
       this.applyReadableLetterStyle(cell.letter, '#FFF7FF', 'rgba(91, 52, 113, 0.78)', 'rgba(255, 255, 255, 0.38)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(1);
+      cell.letter.setScale(specialLetterScale);
     }
 
     if (this.isCellInFrozenWord(cell.row, cell.col)) {
+      const isCracked = this.isCellInCrackedFrozenWord(cell.row, cell.col);
+      cell.bg.setTexture(this.getCellTextureKey(isCracked ? 'cell-selected' : 'cell-hover'));
       cell.bg.setTint(this.isCellInCrackedFrozenWord(cell.row, cell.col) ? 0xd2f2ff : 0xb5e3ff);
+      cell.bg.setScale(isCracked ? specialTileScale + 0.02 : specialTileScale);
       this.applyReadableLetterStyle(cell.letter, '#F1FCFF', 'rgba(47, 107, 132, 0.76)', 'rgba(183, 244, 255, 0.78)', {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(1);
+      cell.letter.setScale(specialLetterScale);
     }
   }
 
   private updateSelectionVisuals(): void {
     const profile = this.boardThemeProfile;
     const selectedStroke = this.colorValueToCss(
-      this.mixColor(this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), this.levelConfig.visuals.accentTint, profile.selectedStrokeMix)
+      this.mixColor(
+        this.mixColor(this.hexToColorValue(this.levelConfig.visuals.backgroundBottom), 0xFFFFFF, 0.16),
+        this.levelConfig.visuals.accentTint,
+        Math.min(0.56, profile.selectedStrokeMix + 0.08)
+      )
     );
-    const selectedTint = this.mixColor(this.levelConfig.visuals.accentTint, this.hexToColorValue(this.levelConfig.visuals.secondary), profile.selectedTintMix);
+    const selectedTint = this.mixColor(
+      this.mixColor(this.levelConfig.visuals.accentTint, 0xFFFFFF, 0.18),
+      this.hexToColorValue(this.levelConfig.visuals.secondary),
+      Math.max(0.12, profile.selectedTintMix * 0.8)
+    );
 
     for (const row of this.cells) {
       for (const cell of row) {
@@ -1562,13 +1586,13 @@ export class GameScene extends Phaser.Scene {
       const cell = this.cells[row][col];
       cell.bg.setTexture(this.getCellTextureKey('cell-selected'));
       cell.bg.setTint(selectedTint);
-      cell.bg.setScale(profile.selectedScale);
+      cell.bg.setScale(profile.selectedScale + 0.01);
       this.applyReadableLetterStyle(cell.letter, '#FFFFFF', selectedStroke, `rgba(0, 0, 0, ${profile.selectedShadowAlpha})`, {
         fontStyle: 'bold',
         strokeWidth: 2,
         shadowOffsetY: 2,
       });
-      cell.letter.setScale(profile.selectedLetterScale);
+      cell.letter.setScale(profile.selectedLetterScale + 0.02);
     }
 
     this.selectionGraphics.clear();

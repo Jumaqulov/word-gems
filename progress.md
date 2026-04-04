@@ -636,3 +636,14 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-04 word list and board state parity pass
+- Continued the final UI consistency roadmap by tightening readability for the remaining interactive gameplay states: word list rows and board-cell state feedback.
+- Fix:
+  - strengthened desktop word-list row layering with clearer glass highlights and state-specific surfaces so `locked`, `cracked`, `frozen`, and `found` rows now separate more cleanly from the scenic backgrounds,
+  - upgraded found-word presentation on both desktop and mobile with stronger check pills, brighter found capsules, and more obvious solved-state contrast,
+  - improved the `ALL FOUND!` reward row so it now reads like a completion banner instead of plain text dropped into the list,
+  - adjusted board-cell readability in `GameScene` by lifting base tile contrast, strengthening base letter stroke/shadow, and giving `gold`, `wildcard`, `frozen`, `cracked`, `selected`, and `found` cells slightly stronger texture/scale treatment so mechanic states stay readable across worlds.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
