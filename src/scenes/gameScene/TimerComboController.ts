@@ -1,11 +1,7 @@
 import Phaser from 'phaser';
 import {
   ComboState,
-  createComboState,
-  getComboTimeFraction,
-  isComboActive,
   LevelConfig,
-  updateCombo,
 } from '../../utils/LevelSystem';
 import { scheduleResponsiveLayout } from '../../utils/ResponsiveLayout';
 
@@ -14,10 +10,14 @@ interface TimerComboControllerCallbacks {
 }
 
 export class TimerComboController {
-  private comboState: ComboState = createComboState();
-  private comboInterval: ReturnType<typeof setInterval> | null = null;
+  private comboState: ComboState = this.createComboState();
   private timerSeconds = 0;
   private timerEvent: Phaser.Time.TimerEvent | null = null;
+  private comboUiEvent: Phaser.Time.TimerEvent | null = null;
+  private comboExpiryEvent: Phaser.Time.TimerEvent | null = null;
+
+  private readonly comboTiers = [1, 1.5, 2.0, 2.5, 3.0];
+  private readonly comboWindow = 5000;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -26,7 +26,7 @@ export class TimerComboController {
 
   resetForLevel(levelConfig: Pick<LevelConfig, 'hasTimer' | 'timerSeconds'>): void {
     this.stop();
-    this.comboState = createComboState();
+    this.comboState = this.createComboState();
     this.timerSeconds = levelConfig.hasTimer ? levelConfig.timerSeconds : 0;
 
     if (levelConfig.hasTimer) {
@@ -40,7 +40,9 @@ export class TimerComboController {
 
   stop(): void {
     this.stopTimer();
-    this.stopComboTick();
+    this.stopComboEvents();
+    this.comboState = this.createComboState();
+    this.updateComboUI();
   }
 
   destroy(): void {
@@ -48,8 +50,8 @@ export class TimerComboController {
   }
 
   onWordFound(): number {
-    const comboMultiplier = updateCombo(this.comboState);
-    this.startComboTick();
+    const comboMultiplier = this.updateComboState(this.scene.time.now);
+    this.startComboEvents();
     this.updateComboUI();
     return comboMultiplier;
   }
@@ -74,6 +76,7 @@ export class TimerComboController {
         this.timerSeconds -= 1;
         this.updateTimerUI();
         if (this.timerSeconds <= 0) {
+          this.stopTimer();
           this.callbacks.onTimerExpired();
         }
       },
@@ -123,33 +126,74 @@ export class TimerComboController {
     const barEl = document.getElementById('combo-bar-fill');
     if (!displayEl || !barEl) return;
 
-    if (this.comboState.multiplier > 1 && isComboActive(this.comboState)) {
+    if (this.comboState.multiplier > 1 && this.isComboActive(this.scene.time.now)) {
       displayEl.style.display = 'flex';
       displayEl.textContent = `x${this.comboState.multiplier}`;
-      barEl.style.width = `${getComboTimeFraction(this.comboState) * 100}%`;
+      barEl.style.width = `${this.getComboTimeFraction(this.scene.time.now) * 100}%`;
     } else {
       displayEl.style.display = 'none';
       barEl.style.width = '0%';
     }
   }
 
-  private startComboTick(): void {
-    if (this.comboInterval) return;
+  private startComboEvents(): void {
+    this.stopComboEvents();
 
-    this.comboInterval = setInterval(() => {
-      this.updateComboUI();
-      if (!isComboActive(this.comboState)) {
-        this.comboState.multiplier = 1;
+    this.comboUiEvent = this.scene.time.addEvent({
+      delay: 50,
+      loop: true,
+      callback: () => {
         this.updateComboUI();
-        this.stopComboTick();
-      }
-    }, 50);
+      },
+    });
+
+    this.comboExpiryEvent = this.scene.time.delayedCall(this.comboState.comboWindow, () => {
+      this.comboState.multiplier = 1;
+      this.comboState.lastFoundTime = 0;
+      this.updateComboUI();
+      this.stopComboEvents();
+    });
   }
 
-  private stopComboTick(): void {
-    if (this.comboInterval) {
-      clearInterval(this.comboInterval);
-      this.comboInterval = null;
+  private stopComboEvents(): void {
+    if (this.comboUiEvent) {
+      this.comboUiEvent.destroy();
+      this.comboUiEvent = null;
     }
+
+    if (this.comboExpiryEvent) {
+      this.comboExpiryEvent.destroy();
+      this.comboExpiryEvent = null;
+    }
+  }
+
+  private createComboState(): ComboState {
+    return { multiplier: 1, lastFoundTime: 0, comboWindow: this.comboWindow };
+  }
+
+  private updateComboState(now: number): number {
+    const timeSinceLast = now - this.comboState.lastFoundTime;
+
+    if (this.comboState.lastFoundTime === 0 || timeSinceLast > this.comboState.comboWindow) {
+      this.comboState.multiplier = this.comboTiers[0];
+    } else {
+      const currentIdx = this.comboTiers.indexOf(this.comboState.multiplier);
+      const nextIdx = Math.min(currentIdx + 1, this.comboTiers.length - 1);
+      this.comboState.multiplier = this.comboTiers[nextIdx];
+    }
+
+    this.comboState.lastFoundTime = now;
+    return this.comboState.multiplier;
+  }
+
+  private isComboActive(now: number): boolean {
+    if (this.comboState.lastFoundTime === 0) return false;
+    return now - this.comboState.lastFoundTime < this.comboState.comboWindow;
+  }
+
+  private getComboTimeFraction(now: number): number {
+    if (this.comboState.lastFoundTime === 0) return 0;
+    const elapsed = now - this.comboState.lastFoundTime;
+    return Math.max(0, 1 - elapsed / this.comboState.comboWindow);
   }
 }

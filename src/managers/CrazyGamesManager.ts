@@ -289,7 +289,7 @@ class CrazyGamesManagerSingleton {
   // --- Streak ---
 
   private updateStreak(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.getLocalDateStamp();
     const lastPlay = this._saveData.lastPlayDate;
 
     if (!lastPlay) {
@@ -297,9 +297,7 @@ class CrazyGamesManagerSingleton {
     } else if (lastPlay === today) {
       // Same day, no change
     } else {
-      const lastDate = new Date(lastPlay);
-      const todayDate = new Date(today);
-      const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = this.getDayDiff(lastPlay, today);
 
       if (diffDays === 1) {
         this._saveData.streak += 1;
@@ -313,6 +311,19 @@ class CrazyGamesManagerSingleton {
       this._saveData.bestStreak = this._saveData.streak;
     }
     this.saveGame();
+  }
+
+  private getLocalDateStamp(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private getDayDiff(fromDateStamp: string, toDateStamp: string): number {
+    const fromDate = new Date(`${fromDateStamp}T00:00:00`);
+    const toDate = new Date(`${toDateStamp}T00:00:00`);
+    return Math.floor((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   // --- Helpers ---

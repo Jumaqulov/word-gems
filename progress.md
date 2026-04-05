@@ -753,3 +753,16 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - added `normalizePendingCompletion()` so older or malformed save payloads cannot inject an invalid pending-completion structure into runtime state.
 - Verification:
   - `npm run build` passed after the migration skeleton was added.
+
+2026-04-05 combo timing and streak cleanup
+- Closed the next runtime-cleanup item by moving combo timing onto Phaser scene events and correcting streak date handling to use local calendar days.
+- Fix:
+  - replaced the `setInterval`-driven combo UI polling in `src/scenes/gameScene/TimerComboController.ts` with Phaser `time.addEvent` / `delayedCall`,
+  - moved combo timing calculations onto `scene.time.now`, so combo expiration now follows the active scene clock instead of wall-clock `Date.now()`,
+  - made the level timer stop itself before firing the timeout callback so it cannot keep ticking after expiry,
+  - changed `src/managers/CrazyGamesManager.ts` streak logic to use local date stamps instead of `toISOString()`, which avoids UTC midnight drift for local players.
+- Verification:
+  - `npm run build` passed,
+  - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - latest `output/web-game/final-check/state-0.json` still shows a healthy forest start with 4 required words and active background FX counts,
+  - visually checked `output/web-game/final-check/shot-0.png` to confirm the game still boots cleanly after the timing/streak cleanup.
