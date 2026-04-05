@@ -707,3 +707,17 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-05 BackgroundFXManager bugfix pass
+- Continued the post-`GameScene` priority list by fixing the highest-risk `BackgroundFXManager` runtime issues before splitting it further.
+- Fix:
+  - rewired `applyWorld()` so it now refreshes the viewport, dispatches the active world builder, and lays out the generated layers instead of only clearing/resizing,
+  - replaced the canvas-width mobile heuristic with a browser viewport check (`visualViewport` / `innerWidth`) so desktop sessions no longer fall into the mobile FX profile,
+  - added a reusable world-dispatch path plus fallback FX profiles for the worlds that were still missing dedicated builder methods,
+  - restored real animated forest FX by adding light shafts, glow layers, drifting leaves, and firefly sparkles on top of the static scenic backdrop,
+  - extended the debug summary with `staticBackdrops` so non-particle scenic layers are visible in state dumps.
+- Verification:
+  - `npm run build` passed,
+  - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - latest `output/web-game/bgfx-check/state-0.json` now reports `mobileProfile: false`, `staticBackdrops: 1`, `ambientActors: 12`, `signatureActors: 3`, `trackedObjects: 16` for the forest level,
+  - visually checked `output/web-game/bgfx-check/shot-0.png` and confirmed the forest scene now shows moving shaft/glow ambience behind the board without hurting readability.

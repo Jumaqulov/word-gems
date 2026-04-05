@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { LevelConfig } from '../utils/LevelSystem';
+import { LevelConfig, WorldId } from '../utils/LevelSystem';
 
 interface FXViewport {
   width: number;
@@ -86,6 +86,7 @@ interface CometPoolEntry {
 interface BackgroundFXDebugSummary {
   world: string | null;
   mobileProfile: boolean;
+  staticBackdrops: number;
   ambientActors: number;
   signatureActors: number;
   orbitActors: number;
@@ -93,6 +94,55 @@ interface BackgroundFXDebugSummary {
   pooledComets: number;
   trackedObjects: number;
 }
+
+const MOBILE_PROFILE_BREAKPOINT = 768;
+
+interface FallbackWorldProfile {
+  primaryGlow: number;
+  secondaryGlow: number;
+  ambientColors: number[];
+  accentTexture: 'bgfx-soft-glow' | 'bgfx-rune-halo' | 'bgfx-glint-band';
+}
+
+const FALLBACK_WORLD_PROFILES: Record<WorldId, FallbackWorldProfile | null> = {
+  forest: null,
+  ocean: null,
+  space: null,
+  castle: null,
+  magic: null,
+  ice: null,
+  desert: null,
+  volcano: {
+    primaryGlow: 0xff7b52,
+    secondaryGlow: 0xffc16a,
+    ambientColors: [0xff8a5c, 0xffc76d, 0xff6b4a],
+    accentTexture: 'bgfx-soft-glow',
+  },
+  sky: {
+    primaryGlow: 0x96ddff,
+    secondaryGlow: 0xf5fbff,
+    ambientColors: [0xdaf4ff, 0xa8dcff, 0xf9fdff],
+    accentTexture: 'bgfx-glint-band',
+  },
+  crystal: {
+    primaryGlow: 0xb0a0ff,
+    secondaryGlow: 0xe4d9ff,
+    ambientColors: [0xdfd4ff, 0xbfc9ff, 0xf3efff],
+    accentTexture: 'bgfx-rune-halo',
+  },
+  shadow: {
+    primaryGlow: 0x7c68bb,
+    secondaryGlow: 0xc5bdf4,
+    ambientColors: [0x9e8edf, 0x7868b6, 0xd9d1ff],
+    accentTexture: 'bgfx-rune-halo',
+  },
+  clockwork: {
+    primaryGlow: 0xd2a15e,
+    secondaryGlow: 0xf1d5a8,
+    ambientColors: [0xe0b872, 0xc28b4b, 0xf0dab0],
+    accentTexture: 'bgfx-glint-band',
+  },
+};
 
 export class BackgroundFXManager {
   private readonly scene: Phaser.Scene;
@@ -114,16 +164,15 @@ export class BackgroundFXManager {
     this.layer = scene.add.container(0, 0);
     this.layer.setDepth(-20);
     this.viewport = this.readViewport();
-    this.isMobileProfile = this.viewport.width <= 768;
+    this.isMobileProfile = this.readIsMobileProfile();
   }
 
   applyWorld(levelConfig: LevelConfig): void {
     this.clear();
     this.currentLevel = levelConfig;
-    this.viewport = this.readViewport();
-    this.isMobileProfile = this.viewport.width <= 768;
-
-    this.resize();
+    this.refreshViewport();
+    this.buildCurrentWorld(levelConfig.world.id);
+    this.layoutWorldLayers();
   }
 
   clear(): void {
@@ -154,8 +203,7 @@ export class BackgroundFXManager {
 
   resize(): void {
     const previousMobileProfile = this.isMobileProfile;
-    this.viewport = this.readViewport();
-    this.isMobileProfile = this.viewport.width <= 768;
+    this.refreshViewport();
 
     if (this.currentLevel && previousMobileProfile !== this.isMobileProfile) {
       const level = this.currentLevel;
@@ -163,12 +211,27 @@ export class BackgroundFXManager {
       return;
     }
 
+    this.layoutWorldLayers();
+  }
+
+  private layoutWorldLayers(): void {
     this.staticBackdropActors.forEach((actor) => {
       this.layoutStaticBackdropActor(actor);
     });
 
     this.signatureActors.forEach((actor) => {
+      actor.sprite.x = this.viewport.width * actor.xRatio;
+      actor.sprite.y = this.viewport.height * actor.yRatio;
       actor.sprite.setDisplaySize(this.resolveSize(actor.width), this.resolveSize(actor.height));
+    });
+
+    this.orbitActors.forEach((actor) => {
+      const radiusX = this.resolveSize(actor.radiusX);
+      const radiusY = this.resolveSize(actor.radiusY);
+      const centerX = this.viewport.width * actor.centerXRatio;
+      const centerY = this.viewport.height * actor.centerYRatio;
+      actor.sprite.x = centerX + Math.cos(actor.phase) * radiusX;
+      actor.sprite.y = centerY + Math.sin(actor.phase * 1.08) * radiusY;
     });
   }
 
@@ -186,6 +249,7 @@ export class BackgroundFXManager {
     return {
       world: this.currentLevel?.world.id ?? null,
       mobileProfile: this.isMobileProfile,
+      staticBackdrops: this.staticBackdropActors.length,
       ambientActors: this.ambientActors.length,
       signatureActors: this.signatureActors.length,
       orbitActors: this.orbitActors.length,
@@ -195,6 +259,155 @@ export class BackgroundFXManager {
     };
   }
 
+  private refreshViewport(): void {
+    this.viewport = this.readViewport();
+    this.isMobileProfile = this.readIsMobileProfile();
+  }
+
+  private readIsMobileProfile(): boolean {
+    const viewport = window.visualViewport;
+    const width = Math.round(viewport?.width ?? window.innerWidth);
+    return width <= MOBILE_PROFILE_BREAKPOINT;
+  }
+
+  private buildCurrentWorld(worldId: WorldId): void {
+    switch (worldId) {
+      case 'forest':
+        this.buildForest();
+        return;
+      case 'ocean':
+        this.buildOcean();
+        return;
+      case 'space':
+        this.buildSpace();
+        return;
+      case 'castle':
+        this.buildCastle();
+        return;
+      case 'magic':
+        this.buildMagic();
+        return;
+      case 'ice':
+        this.buildIce();
+        return;
+      case 'desert':
+        this.buildDesert();
+        return;
+      default:
+        this.buildFallbackWorld(worldId);
+    }
+  }
+
+  private buildFallbackWorld(worldId: WorldId): void {
+    const profile = FALLBACK_WORLD_PROFILES[worldId];
+    if (!profile) return;
+
+    this.addSignatureLayer(profile.accentTexture, {
+      xRatio: 0.5,
+      yRatio: 0.24,
+      width: (viewport) => viewport.width * 0.78,
+      height: (viewport) => viewport.height * 0.2,
+      tint: profile.secondaryGlow,
+      alphaBase: 0.08,
+      alphaSwing: 0.014,
+      alphaSpeed: 0.16,
+      scaleBase: 1,
+      scaleSwing: 0.01,
+      scaleSpeed: 0.12,
+      driftX: 2.5,
+      driftY: 1.2,
+      driftSpeed: 0.08,
+      rotationBase: -0.04,
+      rotationSwing: 0.006,
+      rotationSpeed: 0.08,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    this.addSignatureLayer('bgfx-soft-glow', {
+      xRatio: 0.18,
+      yRatio: 0.68,
+      width: (viewport) => viewport.width * 0.3,
+      height: (viewport) => viewport.height * 0.18,
+      tint: profile.primaryGlow,
+      alphaBase: 0.08,
+      alphaSwing: 0.012,
+      alphaSpeed: 0.14,
+      scaleBase: 1,
+      scaleSwing: 0.008,
+      scaleSpeed: 0.1,
+      driftX: 1.6,
+      driftY: 1,
+      driftSpeed: 0.07,
+      rotationBase: 0,
+      rotationSwing: 0.004,
+      rotationSpeed: 0.05,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    this.addSignatureLayer('bgfx-soft-glow', {
+      xRatio: 0.82,
+      yRatio: 0.76,
+      width: (viewport) => viewport.width * 0.26,
+      height: (viewport) => viewport.height * 0.16,
+      tint: profile.secondaryGlow,
+      alphaBase: 0.06,
+      alphaSwing: 0.01,
+      alphaSpeed: 0.12,
+      scaleBase: 1,
+      scaleSwing: 0.008,
+      scaleSpeed: 0.1,
+      driftX: 1.2,
+      driftY: 0.8,
+      driftSpeed: 0.06,
+      rotationBase: 0,
+      rotationSwing: 0.004,
+      rotationSpeed: 0.05,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    const sparkleCount = this.pickCount(5, 3);
+    const dustCount = this.pickCount(4, 2);
+
+    for (let index = 0; index < sparkleCount; index++) {
+      this.addAmbientSprite('bgfx-sparkle', {
+        tint: Phaser.Utils.Array.GetRandom(profile.ambientColors),
+        alphaBase: Phaser.Math.FloatBetween(0.05, 0.1),
+        alphaSwing: Phaser.Math.FloatBetween(0.02, 0.04),
+        alphaSpeed: Phaser.Math.FloatBetween(0.5, 0.9),
+        scaleBase: Phaser.Math.FloatBetween(0.16, 0.3),
+        scaleSwing: 0.03,
+        scaleSpeed: Phaser.Math.FloatBetween(0.4, 0.8),
+        velocityX: Phaser.Math.FloatBetween(-2.5, 2.5),
+        velocityY: Phaser.Math.FloatBetween(-1.5, 1.5),
+        bobX: Phaser.Math.FloatBetween(2, 6),
+        bobY: Phaser.Math.FloatBetween(2, 6),
+        bobSpeed: Phaser.Math.FloatBetween(0.25, 0.55),
+        rotationSpeed: Phaser.Math.FloatBetween(-0.08, 0.08),
+        wrapPadding: 18,
+        blendMode: Phaser.BlendModes.ADD,
+      });
+    }
+
+    for (let index = 0; index < dustCount; index++) {
+      this.addAmbientSprite('bgfx-dust', {
+        tint: Phaser.Utils.Array.GetRandom(profile.ambientColors),
+        alphaBase: Phaser.Math.FloatBetween(0.04, 0.08),
+        alphaSwing: Phaser.Math.FloatBetween(0.02, 0.04),
+        alphaSpeed: Phaser.Math.FloatBetween(0.3, 0.6),
+        scaleBase: Phaser.Math.FloatBetween(0.14, 0.26),
+        scaleSwing: 0.02,
+        scaleSpeed: Phaser.Math.FloatBetween(0.25, 0.5),
+        velocityX: Phaser.Math.FloatBetween(-2, 2),
+        velocityY: Phaser.Math.FloatBetween(-1, 1),
+        bobX: Phaser.Math.FloatBetween(2, 8),
+        bobY: Phaser.Math.FloatBetween(2, 6),
+        bobSpeed: Phaser.Math.FloatBetween(0.2, 0.45),
+        rotationSpeed: Phaser.Math.FloatBetween(-0.05, 0.05),
+        wrapPadding: 18,
+      });
+    }
+  }
+
   private buildForest(): void {
     this.addStaticBackdrop('world-forest-backdrop', {
       xRatio: 0.5,
@@ -202,6 +415,111 @@ export class BackgroundFXManager {
       coverScale: this.isMobileProfile ? 1.12 : 1.08,
       alpha: 0.78,
     });
+
+    this.addSignatureLayer('bgfx-light-shaft', {
+      xRatio: 0.26,
+      yRatio: 0.26,
+      width: (viewport) => viewport.width * 0.22,
+      height: (viewport) => viewport.height * 0.72,
+      tint: 0xcaf6b2,
+      alphaBase: 0.12,
+      alphaSwing: 0.018,
+      alphaSpeed: 0.16,
+      scaleBase: 1,
+      scaleSwing: 0.02,
+      scaleSpeed: 0.12,
+      driftX: 7,
+      driftY: 5,
+      driftSpeed: 0.08,
+      rotationBase: -0.2,
+      rotationSwing: 0.02,
+      rotationSpeed: 0.1,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    this.addSignatureLayer('bgfx-light-shaft', {
+      xRatio: 0.78,
+      yRatio: 0.28,
+      width: (viewport) => viewport.width * 0.2,
+      height: (viewport) => viewport.height * 0.68,
+      tint: 0xe7ffd0,
+      alphaBase: 0.09,
+      alphaSwing: 0.014,
+      alphaSpeed: 0.14,
+      scaleBase: 1,
+      scaleSwing: 0.016,
+      scaleSpeed: 0.1,
+      driftX: 5,
+      driftY: 4,
+      driftSpeed: 0.07,
+      rotationBase: 0.12,
+      rotationSwing: 0.016,
+      rotationSpeed: 0.08,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    this.addSignatureLayer('bgfx-soft-glow', {
+      xRatio: 0.18,
+      yRatio: 0.78,
+      width: (viewport) => viewport.width * 0.28,
+      height: (viewport) => viewport.height * 0.18,
+      tint: 0x7edf7d,
+      alphaBase: 0.08,
+      alphaSwing: 0.014,
+      alphaSpeed: 0.18,
+      scaleBase: 1,
+      scaleSwing: 0.01,
+      scaleSpeed: 0.12,
+      driftX: 2.6,
+      driftY: 1.6,
+      driftSpeed: 0.08,
+      rotationBase: 0,
+      rotationSwing: 0.004,
+      rotationSpeed: 0.05,
+      blendMode: Phaser.BlendModes.ADD,
+    });
+
+    const leafCount = this.pickCount(7, 4);
+    const fireflyCount = this.pickCount(5, 3);
+
+    for (let index = 0; index < leafCount; index++) {
+      this.addAmbientSprite('bgfx-leaf', {
+        tint: Phaser.Utils.Array.GetRandom([0x78c16d, 0x9ad77a, 0xc6eea8]),
+        alphaBase: Phaser.Math.FloatBetween(0.06, 0.12),
+        alphaSwing: Phaser.Math.FloatBetween(0.02, 0.04),
+        alphaSpeed: Phaser.Math.FloatBetween(0.25, 0.5),
+        scaleBase: Phaser.Math.FloatBetween(0.18, 0.34),
+        scaleSwing: 0.02,
+        scaleSpeed: Phaser.Math.FloatBetween(0.2, 0.45),
+        velocityX: Phaser.Math.FloatBetween(-4.5, -1.2),
+        velocityY: Phaser.Math.FloatBetween(1.5, 4.5),
+        bobX: Phaser.Math.FloatBetween(6, 12),
+        bobY: Phaser.Math.FloatBetween(2, 5),
+        bobSpeed: Phaser.Math.FloatBetween(0.22, 0.42),
+        rotationSpeed: Phaser.Math.FloatBetween(-0.22, 0.22),
+        wrapPadding: 28,
+      });
+    }
+
+    for (let index = 0; index < fireflyCount; index++) {
+      this.addAmbientSprite('bgfx-sparkle', {
+        tint: Phaser.Utils.Array.GetRandom([0xd6ff9a, 0xbef683, 0xf4ffb8]),
+        alphaBase: Phaser.Math.FloatBetween(0.08, 0.16),
+        alphaSwing: Phaser.Math.FloatBetween(0.03, 0.06),
+        alphaSpeed: Phaser.Math.FloatBetween(0.6, 1),
+        scaleBase: Phaser.Math.FloatBetween(0.16, 0.28),
+        scaleSwing: 0.03,
+        scaleSpeed: Phaser.Math.FloatBetween(0.45, 0.8),
+        velocityX: Phaser.Math.FloatBetween(-1.4, 1.4),
+        velocityY: Phaser.Math.FloatBetween(-0.8, 0.8),
+        bobX: Phaser.Math.FloatBetween(3, 8),
+        bobY: Phaser.Math.FloatBetween(3, 8),
+        bobSpeed: Phaser.Math.FloatBetween(0.35, 0.65),
+        rotationSpeed: Phaser.Math.FloatBetween(-0.08, 0.08),
+        wrapPadding: 18,
+        blendMode: Phaser.BlendModes.ADD,
+      });
+    }
   }
 
   private buildOcean(): void {
