@@ -910,11 +910,6 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    this.juice.animateFoundLine(cellCenters, color, this.cellSize, {
-      alpha: this.boardThemeProfile.foundLineAlpha,
-      widthScale: this.boardThemeProfile.foundLineWidthScale,
-      secondaryColor: foundSecondary,
-    });
     cellCenters.forEach((position) =>
       this.juice.starBurst(position.x, position.y, color, this.boardThemeProfile.foundBurstCount, {
         shape: this.boardThemeProfile.foundBurstShape,

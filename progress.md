@@ -766,3 +766,17 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
   - latest `output/web-game/final-check/state-0.json` still shows a healthy forest start with 4 required words and active background FX counts,
   - visually checked `output/web-game/final-check/shot-0.png` to confirm the game still boots cleanly after the timing/streak cleanup.
+
+2026-04-05 timer and found-state visual cleanup
+- User reported three active UI/feedback issues: low-contrast timer icon, strange overlay content on found word rows, and a temporary straight line drawn across found words on the board.
+- Fix:
+  - removed the generic `#game-info-bar[data-world]` timer icon color override in `styles.css` so per-world timer icon ink stays theme-specific,
+  - strengthened `.timer-icon` size, weight, rim, and shadow treatment so the stopwatch stays readable against themed timer chips,
+  - removed the desktop found-row `FOUND` pseudo-badge and the extra right padding it forced into solved word rows,
+  - softened the solved-row slide distance slightly so found rows still feel active without looking offset,
+  - removed the `GameJuice.animateFoundLine(...)` call from `GameScene.onWordFound()` so found words no longer flash a temporary straight line across the board.
+- Verification:
+  - `npm run build` passed,
+  - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - visually checked `output/web-game/ui-fix-check/timer-icon-check.png`, `output/web-game/ui-fix-check/before-found.png`, and `output/web-game/ui-fix-check/after-found.png`,
+  - confirmed in `output/web-game/ui-fix-check/ui-fix-state.json` that found rows now keep `paddingRight: 0px`, the solved-row transform is reduced, and `Graphics` count stays at `1` before/after forced word resolution.
