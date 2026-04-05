@@ -18,6 +18,7 @@ import {
 } from './gameScene/selectionLogic';
 import {
   evaluatePreFoundMechanic,
+  evaluatePostFoundMechanics,
   getFrozenWordBlockedText,
   getLockedWordFeedbackText,
 } from './gameScene/wordMechanics';
@@ -917,41 +918,52 @@ export class GameScene extends Phaser.Scene {
     placedWord: PlacedWord,
     midCell: { x: number; y: number }
   ): void {
-    if (this.worldState.lockPrerequisite === word && this.worldState.lockedWord && !this.foundWords.has(this.worldState.lockedWord)) {
-      const unlockBurstText = this.levelConfig.mechanic.type === 'castle_lock'
-        ? this.levelConfig.mechanic.unlockBurstText ?? 'GATE OPEN'
-        : 'GATE OPEN';
-      this.juice.floatingText(midCell.x, midCell.y - 56, unlockBurstText, '#F2DEC0', 22);
+    const postFoundResult = evaluatePostFoundMechanics({
+      word,
+      wordCellKeys: placedWord.cells.map(({ row, col }) => this.getCellKey(row, col)),
+      mechanic: this.levelConfig.mechanic,
+      lockPrerequisite: this.worldState.lockPrerequisite,
+      lockedWord: this.worldState.lockedWord,
+      foundWords: this.foundWords,
+      cometWord: this.worldState.cometWord,
+      cometClaimed: this.worldState.cometClaimed,
+      goldenCellKeys: this.worldState.goldenCellKeys,
+      collectedGoldenCellKeys: this.worldState.collectedGoldenCellKeys,
+    });
+
+    if (postFoundResult.unlockBurstText) {
+      this.juice.floatingText(midCell.x, midCell.y - 56, postFoundResult.unlockBurstText, '#F2DEC0', 22);
       this.cameras.main.flash(180, 255, 231, 194, false);
     }
 
-    if (this.worldState.cometWord === word && !this.worldState.cometClaimed && this.levelConfig.mechanic.type === 'space_comet') {
+    if (postFoundResult.cometReward) {
       this.worldState.cometClaimed = true;
-      this.levelScore += this.levelConfig.mechanic.bonusScore;
-      const bonusLabel = this.levelConfig.mechanic.bonusLabel ?? 'COMET';
-      this.juice.floatingText(midCell.x, midCell.y - 54, `${bonusLabel} +${this.levelConfig.mechanic.bonusScore}`, this.levelConfig.visuals.accent, 22);
+      this.levelScore += postFoundResult.cometReward.bonusScore;
+      this.juice.floatingText(
+        midCell.x,
+        midCell.y - 54,
+        `${postFoundResult.cometReward.bonusLabel} +${postFoundResult.cometReward.bonusScore}`,
+        this.levelConfig.visuals.accent,
+        22
+      );
       this.juice.sparkleAt(midCell.x, midCell.y, this.levelConfig.visuals.bonusTint, 14);
       SoundManager.play('gem');
     }
 
-    if (this.levelConfig.mechanic.type === 'desert_gold') {
-      const newGoldenCells = placedWord.cells.filter(({ row, col }) => {
-        const key = this.getCellKey(row, col);
-        return this.worldState.goldenCellKeys.has(key) && !this.worldState.collectedGoldenCellKeys.has(key);
-      });
-
-      if (newGoldenCells.length > 0) {
-        newGoldenCells.forEach(({ row, col }) => this.worldState.collectedGoldenCellKeys.add(this.getCellKey(row, col)));
-
-        const scoreBonus = newGoldenCells.length * this.levelConfig.mechanic.scoreBonus;
-        const gemBonus = newGoldenCells.length * this.levelConfig.mechanic.gemBonus;
-        this.levelScore += scoreBonus;
-        CrazyGamesManager.addGems(gemBonus);
-
-        const rewardLabel = this.levelConfig.mechanic.rewardLabel ?? 'SUN GOLD';
-        this.juice.floatingText(midCell.x, midCell.y - 56, `${rewardLabel} +${scoreBonus}`, this.levelConfig.visuals.secondary, 22);
-        this.juice.gemBurst(midCell.x, midCell.y);
-      }
+    if (postFoundResult.goldenReward) {
+      postFoundResult.goldenReward.newlyCollectedGoldenCellKeys.forEach((key) =>
+        this.worldState.collectedGoldenCellKeys.add(key)
+      );
+      this.levelScore += postFoundResult.goldenReward.scoreBonus;
+      CrazyGamesManager.addGems(postFoundResult.goldenReward.gemBonus);
+      this.juice.floatingText(
+        midCell.x,
+        midCell.y - 56,
+        `${postFoundResult.goldenReward.rewardLabel} +${postFoundResult.goldenReward.scoreBonus}`,
+        this.levelConfig.visuals.secondary,
+        22
+      );
+      this.juice.gemBurst(midCell.x, midCell.y);
     }
   }
 

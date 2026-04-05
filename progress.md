@@ -697,3 +697,13 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-05 GameScene refactor slice 6
+- Continued the gameplay refactor by pulling the post-found world mechanic decisions out of `GameScene`.
+- Fix:
+  - expanded `src/scenes/gameScene/wordMechanics.ts` with a pure `evaluatePostFoundMechanics()` helper that resolves unlock bursts, comet rewards, and desert-gold rewards from state and mechanic config,
+  - rewired `handlePostFoundMechanics()` so the scene now receives a structured result and applies only the state mutations plus audio/visual side effects,
+  - removed the inline reward-decision branching from `GameScene`, making the remaining method easier to scan and safer to extend.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
