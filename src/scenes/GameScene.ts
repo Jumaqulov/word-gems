@@ -23,12 +23,12 @@ import {
   getLockedWordFeedbackText,
 } from './gameScene/wordMechanics';
 import { GameUIController, WordStatusTag } from './gameScene/GameUIController';
+import { GamePresentationController } from './gameScene/GamePresentationController';
 import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
 import { GameJuice } from '../utils/GameJuice';
 import { scheduleResponsiveLayout } from '../utils/ResponsiveLayout';
-import { applyWorldScene } from '../utils/WorldSceneLoader';
 import {
   calculateLevelScore,
   getCellSizeForGrid,
@@ -43,7 +43,6 @@ import {
   SCORING,
   SPIN_REWARDS,
 } from '../consts';
-import { ICONS } from '../icons';
 import { TimerComboController } from './gameScene/TimerComboController';
 import { WorldEffectsController } from './gameScene/WorldEffectsController';
 
@@ -83,6 +82,7 @@ export class GameScene extends Phaser.Scene {
   private timerCombo!: TimerComboController;
   private worldEffects!: WorldEffectsController;
   private ui!: GameUIController;
+  private presentation!: GamePresentationController;
   private timedOut = false;
   private resolutionState: 'active' | 'success' | 'timeout' = 'active';
 
@@ -107,6 +107,7 @@ export class GameScene extends Phaser.Scene {
     this.selectionGraphics = this.add.graphics();
     this.selectionGraphics.setDepth(10);
     this.backgroundFX = new BackgroundFXManager(this);
+    this.presentation = new GamePresentationController();
     this.ui = new GameUIController({
       isGameplayLocked: () => this.isGameplayLocked(),
       onRetryLevel: () => this.retryCurrentLevel(),
@@ -1112,8 +1113,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private hideResolutionModals(): void {
-    document.getElementById('level-complete-modal')?.style.setProperty('display', 'none');
-    document.getElementById('time-up-modal')?.style.setProperty('display', 'none');
+    this.presentation.hideResolutionModals();
   }
 
   private isGameplayLocked(): boolean {
@@ -1191,30 +1191,9 @@ export class GameScene extends Phaser.Scene {
     result: { total: number; gemsEarned: number; stars: number },
     summary?: { foundWords: number; totalWords: number }
   ): void {
-    const modal = document.getElementById('level-complete-modal')!;
     const foundWords = summary?.foundWords ?? this.getFoundRequiredWordCount();
     const totalWords = summary?.totalWords ?? this.levelWords.length;
-    document.getElementById('complete-level-num')!.textContent = level.toString();
-    document.getElementById('complete-words')!.textContent = `${foundWords}/${totalWords}`;
-    document.getElementById('complete-score')!.textContent = result.total.toString();
-    document.getElementById('complete-gems')!.textContent = result.gemsEarned.toString();
-
-    const starsContainer = document.getElementById('complete-stars');
-    if (starsContainer) {
-      starsContainer.innerHTML = '';
-      for (let i = 0; i < 3; i++) {
-        const star = document.createElement('span');
-        star.className = i < result.stars ? 'star-icon star-filled' : 'star-icon star-empty';
-        star.innerHTML = i < result.stars ? ICONS.starFilled : ICONS.starEmpty;
-        starsContainer.appendChild(star);
-      }
-    }
-
-    const perfectEl = document.getElementById('complete-perfect')!;
-    const perfectValueEl = perfectEl.querySelector('.complete-value');
-    if (perfectValueEl) perfectValueEl.textContent = `+${SCORING.PERFECT_BONUS}`;
-    perfectEl.style.display = result.stars === 3 ? 'flex' : 'none';
-    modal.style.display = 'flex';
+    this.presentation.showLevelCompleteModal(level, result, { foundWords, totalWords });
   }
 
   private restorePendingCompletionIfNeeded(level: number): void {
@@ -1238,69 +1217,15 @@ export class GameScene extends Phaser.Scene {
     if (this.resolutionState !== 'timeout') return;
 
     const level = CrazyGamesManager.saveData.level;
-    const modal = document.getElementById('time-up-modal');
-    const levelEl = document.getElementById('time-up-level-num');
-    const wordsEl = document.getElementById('time-up-words');
-    const scoreEl = document.getElementById('time-up-score');
-
-    if (levelEl) levelEl.textContent = level.toString();
-    if (wordsEl) wordsEl.textContent = `${this.getFoundRequiredWordCount()}/${this.levelWords.length}`;
-    if (scoreEl) scoreEl.textContent = this.levelScore.toString();
-    if (modal) modal.style.display = 'flex';
+    this.presentation.showTimeUpModal(level, this.getFoundRequiredWordCount(), this.levelWords.length, this.levelScore);
   }
 
   private applyWorldTheme(): void {
-    const root = document.documentElement;
-    const shell = document.getElementById('game-shell');
-    const mainContent = document.getElementById('main-content');
-    const gameContainer = document.getElementById('game-container');
-    const gameInfoBar = document.getElementById('game-info-bar');
-    const timerContainer = document.getElementById('timer-container');
-    const theme = this.levelConfig.visuals;
-    const targets = [root, shell].filter((target): target is HTMLElement => Boolean(target));
-
-    if (shell) {
-      shell.setAttribute('data-world', this.levelConfig.world.id);
-    }
-
-    if (mainContent) {
-      mainContent.setAttribute('data-world', this.levelConfig.world.id);
-    }
-
-    if (gameInfoBar) {
-      gameInfoBar.setAttribute('data-world', this.levelConfig.world.id);
-    }
-
-    if (timerContainer) {
-      timerContainer.setAttribute('data-world', this.levelConfig.world.id);
-    }
-
-    if (gameContainer) {
-      gameContainer.removeAttribute('data-world');
-    }
-
-    targets.forEach((target) => {
-      target.style.setProperty('--world-primary', theme.primary);
-      target.style.setProperty('--world-secondary', theme.secondary);
-      target.style.setProperty('--world-accent', theme.accent);
-      target.style.setProperty('--world-bg-top', theme.backgroundTop);
-      target.style.setProperty('--world-bg-mid', theme.backgroundMid);
-      target.style.setProperty('--world-bg-bottom', theme.backgroundBottom);
-      target.style.setProperty('--world-glow', theme.glow);
-      target.style.setProperty('--world-overlay-primary', theme.overlayPrimary);
-      target.style.setProperty('--world-overlay-secondary', theme.overlaySecondary);
-    });
-
-    applyWorldScene(this.levelConfig.world.id);
+    this.presentation.applyWorldTheme(this.levelConfig.world.id, this.levelConfig.visuals);
   }
 
   private updateWorldUI(): void {
-    const worldNameEl = document.getElementById('zone-name');
-    const worldStatusEl = document.getElementById('world-status');
-
-    if (worldNameEl) worldNameEl.textContent = this.levelConfig.world.name.toUpperCase();
-    if (worldStatusEl) worldStatusEl.textContent = this.getWorldStatusText();
-    scheduleResponsiveLayout();
+    this.presentation.updateWorldStatus(this.levelConfig.world.name.toUpperCase(), this.getWorldStatusText());
   }
 
   private getWorldStatusText(): string {
