@@ -721,3 +721,35 @@ Original prompt: Add a performant, theme-aware animated background FX system for
   - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
   - latest `output/web-game/bgfx-check/state-0.json` now reports `mobileProfile: false`, `staticBackdrops: 1`, `ambientActors: 12`, `signatureActors: 3`, `trackedObjects: 16` for the forest level,
   - visually checked `output/web-game/bgfx-check/shot-0.png` and confirmed the forest scene now shows moving shaft/glow ambience behind the board without hurting readability.
+
+2026-04-05 BackgroundFXManager refactor slice 1
+- Continued the same priority item by splitting the `BackgroundFXManager` internals so the class is no longer carrying world-builder data and actor/type definitions inline.
+- Fix:
+  - moved all FX actor/types/options/constants into `src/managers/backgroundFX/types.ts`,
+  - moved world-specific builder logic plus fallback world profiles into `src/managers/backgroundFX/worldBuilders.ts`,
+  - rewired `BackgroundFXManager` to expose a narrow builder context and delegate world composition to the extracted builder module, leaving the manager focused on lifecycle, layout, pooling, and per-frame updates.
+- Verification:
+  - `npm run build` passed after the split,
+  - ran the `$develop-web-game` Playwright client again against `http://127.0.0.1:4173`,
+  - latest `output/web-game/bgfx-refactor-check/state-0.json` still reports `mobileProfile: false`, `staticBackdrops: 1`, `ambientActors: 12`, `signatureActors: 3`, `trackedObjects: 16` for the forest level,
+  - visually checked `output/web-game/bgfx-refactor-check/shot-0.png` and confirmed the refactor preserved the forest ambient FX presentation.
+
+2026-04-05 grid reliability pass
+- Continued the next priority item by hardening word placement so level word counts stop collapsing into partial boards as easily.
+- Fix:
+  - upgraded `src/utils/GridGenerator.ts` from a mostly random placement loop to a candidate-based placement search that evaluates all fitting placements for a word and prefers higher-overlap / better-centered options,
+  - increased top-level grid generation retries so the generator spends more time searching for a complete placement set,
+  - added a `GameScene` retry wrapper that re-rolls word selections and grid generation multiple times before accepting a fallback result, so a weak word combination is less likely to leak into live gameplay.
+- Verification:
+  - `npm run build` passed,
+  - ran the `$develop-web-game` Playwright client against `http://127.0.0.1:4173`,
+  - latest `output/web-game/grid-check/state-0.json` shows level 1 now spawning with 4 required words (`NEST`, `TRAIL`, `TREE`, `TIMBER`), matching the expected forest start count.
+
+2026-04-05 save migration skeleton pass
+- Added a proper migration entry point to the save layer so future save-shape changes can be introduced without ad-hoc load logic.
+- Fix:
+  - introduced `SAVE_VERSION` and a central `SAVE_MIGRATIONS` table in `src/managers/CrazyGamesManager.ts`,
+  - replaced direct spread-based load hydration with `migrateSaveData(raw)` so versioned transforms can run before defaults are applied,
+  - added `normalizePendingCompletion()` so older or malformed save payloads cannot inject an invalid pending-completion structure into runtime state.
+- Verification:
+  - `npm run build` passed after the migration skeleton was added.

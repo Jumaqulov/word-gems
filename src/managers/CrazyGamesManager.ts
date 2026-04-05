@@ -33,8 +33,10 @@ export interface SaveData {
   } | null;
 }
 
+const SAVE_VERSION = 2;
+
 const DEFAULT_SAVE: SaveData = {
-  version: 2,
+  version: SAVE_VERSION,
   level: 1,
   gems: 0,
   totalScore: 0,
@@ -53,6 +55,16 @@ const DEFAULT_SAVE: SaveData = {
   hintsUsed: 0,
   bestStreak: 0,
   pendingCompletion: null,
+};
+
+type SaveMigration = (data: Record<string, unknown>) => Record<string, unknown>;
+
+const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
+  1: (data) => ({
+    ...data,
+    pendingCompletion: null,
+    version: 2,
+  }),
 };
 
 class CrazyGamesManagerSingleton {
@@ -211,13 +223,67 @@ class CrazyGamesManagerSingleton {
     if (json) {
       try {
         const parsed = JSON.parse(json);
-        this._saveData = { ...DEFAULT_SAVE, ...parsed };
+        this._saveData = this.migrateSaveData(parsed);
       } catch (e) {
         this._saveData = { ...DEFAULT_SAVE };
       }
     } else {
       this._saveData = { ...DEFAULT_SAVE };
     }
+  }
+
+  private migrateSaveData(raw: unknown): SaveData {
+    if (!raw || typeof raw !== 'object') {
+      return { ...DEFAULT_SAVE };
+    }
+
+    let working = { ...(raw as Record<string, unknown>) };
+    let version =
+      typeof working.version === 'number' && Number.isFinite(working.version)
+        ? Math.floor(working.version)
+        : 1;
+
+    while (version < SAVE_VERSION) {
+      const migrate = SAVE_MIGRATIONS[version];
+      if (!migrate) {
+        console.warn(`Missing save migration for version ${version}; resetting save data`);
+        return { ...DEFAULT_SAVE };
+      }
+
+      working = migrate(working);
+      version =
+        typeof working.version === 'number' && Number.isFinite(working.version)
+          ? Math.floor(working.version)
+          : version + 1;
+    }
+
+    return {
+      ...DEFAULT_SAVE,
+      ...(working as Partial<SaveData>),
+      version: SAVE_VERSION,
+      pendingCompletion: this.normalizePendingCompletion(working.pendingCompletion),
+    };
+  }
+
+  private normalizePendingCompletion(value: unknown): SaveData['pendingCompletion'] {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    const pending = value as NonNullable<SaveData['pendingCompletion']>;
+    if (
+      typeof pending.level !== 'number' ||
+      !pending.result ||
+      typeof pending.result.total !== 'number' ||
+      typeof pending.result.gemsEarned !== 'number' ||
+      typeof pending.result.stars !== 'number' ||
+      typeof pending.foundWords !== 'number' ||
+      typeof pending.totalWords !== 'number'
+    ) {
+      return null;
+    }
+
+    return pending;
   }
 
   // --- Streak ---

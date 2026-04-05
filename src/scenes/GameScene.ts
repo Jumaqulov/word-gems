@@ -205,7 +205,7 @@ export class GameScene extends Phaser.Scene {
     this.cellDisplaySize = this.getCellDisplaySize();
     SoundManager.setWorldProfile(this.levelConfig.sfxProfile);
 
-    const requestedWords = selectWordsForLevel(level, save.usedWords);
+    const { requestedWords, gridData } = this.buildGridDataForLevel(level, save.usedWords);
     this.foundWords.clear();
     this.foundWordColors.clear();
     this.foundCellKeys.clear();
@@ -218,13 +218,11 @@ export class GameScene extends Phaser.Scene {
     this.worldState = createWordRuntimeState();
     this.bonusWords.clear();
 
-    this.gridData = generateGrid(requestedWords, this.levelConfig.gridSize, {
-      directions: this.levelConfig.directions,
-      directionWeights: this.levelConfig.directionWeights,
-      seedAnchorWord: this.levelConfig.mechanic.type === 'forest_stable',
-    });
-
-    this.levelWords = this.gridData.placedWords.map((placedWord) => placedWord.word);
+    this.gridData = gridData;
+    this.levelWords =
+      this.gridData.placedWords.length === requestedWords.length
+        ? requestedWords
+        : this.gridData.placedWords.map((placedWord) => placedWord.word);
     this.actualGridLetters = this.gridData.grid.map((row) => [...row]);
     this.configureWorldMechanics();
     this.backgroundFX?.applyWorld(this.levelConfig);
@@ -242,6 +240,48 @@ export class GameScene extends Phaser.Scene {
     scheduleResponsiveLayout();
     EventBus.emit(EVENTS.LEVEL_START, level);
     this.restorePendingCompletionIfNeeded(level);
+  }
+
+  private buildGridDataForLevel(
+    level: number,
+    usedWords: string[]
+  ): { requestedWords: string[]; gridData: GridData } {
+    const maxAttempts = 10;
+    let bestWords = selectWordsForLevel(level, usedWords);
+    let bestGrid = this.generateGridForWords(bestWords);
+
+    if (bestGrid.placedWords.length === bestWords.length) {
+      return { requestedWords: bestWords, gridData: bestGrid };
+    }
+
+    for (let attempt = 1; attempt < maxAttempts; attempt++) {
+      const candidateWords = selectWordsForLevel(level, usedWords);
+      const candidateGrid = this.generateGridForWords(candidateWords);
+
+      if (candidateGrid.placedWords.length > bestGrid.placedWords.length) {
+        bestWords = candidateWords;
+        bestGrid = candidateGrid;
+      }
+
+      if (candidateGrid.placedWords.length === candidateWords.length) {
+        return { requestedWords: candidateWords, gridData: candidateGrid };
+      }
+    }
+
+    console.warn(
+      `Falling back to partial grid after ${maxAttempts} attempts: ` +
+      `${bestGrid.placedWords.length}/${bestWords.length} words placed on level ${level}`
+    );
+
+    return { requestedWords: bestWords, gridData: bestGrid };
+  }
+
+  private generateGridForWords(words: string[]): GridData {
+    return generateGrid(words, this.levelConfig.gridSize, {
+      directions: this.levelConfig.directions,
+      directionWeights: this.levelConfig.directionWeights,
+      seedAnchorWord: this.levelConfig.mechanic.type === 'forest_stable',
+    });
   }
 
   private cleanupLevel(): void {
