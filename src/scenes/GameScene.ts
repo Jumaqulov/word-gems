@@ -22,6 +22,7 @@ import {
   getFrozenWordBlockedText,
   getLockedWordFeedbackText,
 } from './gameScene/wordMechanics';
+import { GameUIController, WordStatusTag } from './gameScene/GameUIController';
 import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
@@ -42,7 +43,7 @@ import {
   SCORING,
   SPIN_REWARDS,
 } from '../consts';
-import { iconHTML, ICONS, setIcon } from '../icons';
+import { ICONS } from '../icons';
 import { TimerComboController } from './gameScene/TimerComboController';
 import { WorldEffectsController } from './gameScene/WorldEffectsController';
 
@@ -53,11 +54,6 @@ interface CellSprite {
   col: number;
   baseX: number;
   baseY: number;
-}
-
-interface WordStatusTag {
-  label: string;
-  className: string;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -86,6 +82,7 @@ export class GameScene extends Phaser.Scene {
   private backgroundFX: BackgroundFXManager | null = null;
   private timerCombo!: TimerComboController;
   private worldEffects!: WorldEffectsController;
+  private ui!: GameUIController;
   private timedOut = false;
   private resolutionState: 'active' | 'success' | 'timeout' = 'active';
 
@@ -110,6 +107,19 @@ export class GameScene extends Phaser.Scene {
     this.selectionGraphics = this.add.graphics();
     this.selectionGraphics.setDepth(10);
     this.backgroundFX = new BackgroundFXManager(this);
+    this.ui = new GameUIController({
+      isGameplayLocked: () => this.isGameplayLocked(),
+      onRetryLevel: () => this.retryCurrentLevel(),
+      onNextLevel: () => this.advanceToNextLevel(),
+      onSoundToggle: (checked) => this.handleSoundToggle(checked),
+      onVibrationToggle: (checked) => this.handleVibrationToggle(checked),
+      onDetect: () => this.useDetect(),
+      onUndo: () => this.useUndo(),
+      onWatchAdForGems: () => void this.watchAdForGems(),
+      onOpenDailySpin: () => this.openDailySpin(),
+      onSpin: () => void this.performSpin(),
+      onTutorialDismiss: () => CrazyGamesManager.markTutorialSeen(),
+    });
     this.timerCombo = new TimerComboController(this, {
       onTimerExpired: () => this.onTimerExpired(),
     });
@@ -127,11 +137,11 @@ export class GameScene extends Phaser.Scene {
     this.startLevel(CrazyGamesManager.saveData.level);
 
     if (!this.uiSetup) {
-      this.setupUI();
+      this.ui.initialize(CrazyGamesManager.saveData);
       this.uiSetup = true;
     }
 
-    this.updateHUD();
+    this.refreshHUD();
     CrazyGamesManager.gameplayStart();
     this.setupPageVisibilitySave();
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleSceneResize, this);
@@ -222,8 +232,8 @@ export class GameScene extends Phaser.Scene {
     this.worldEffects.start(this.levelConfig);
     this.juice.animateGridEntrance(this.cells, this.levelConfig.gridSize);
 
-    this.updateWordListUI();
-    this.updateHUD();
+    this.refreshWordListUI();
+    this.refreshHUD();
     this.updateWorldUI();
 
     this.timerCombo.resetForLevel(this.levelConfig);
@@ -777,7 +787,7 @@ export class GameScene extends Phaser.Scene {
     );
 
     placedWord.cells.forEach(({ row, col }) => this.applyBaseCellStyle(this.cells[row][col]));
-    this.updateWordListUI();
+    this.refreshWordListUI();
     this.updateWorldUI();
   }
 
@@ -886,10 +896,10 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(300, () => SoundManager.play('gem'));
 
     this.handlePostFoundMechanics(word, placedWord, midCell);
-    this.updateWordListUI();
+    this.refreshWordListUI();
     this.updateWorldUI();
-    this.updateHUD();
-    this.bumpHudGems();
+    this.refreshHUD();
+    this.ui.bumpHudGems();
 
     if (this.getFoundRequiredWordCount() === this.levelWords.length) {
       this.resolveLevelSuccess();
@@ -1108,14 +1118,6 @@ export class GameScene extends Phaser.Scene {
 
   private isGameplayLocked(): boolean {
     return this.resolutionState !== 'active' || this.isLevelTransitioning;
-  }
-
-  private bumpHudGems(): void {
-    const el = document.getElementById('hud-gems');
-    if (!el) return;
-    el.classList.remove('bump');
-    void el.offsetWidth;
-    el.classList.add('bump');
   }
 
   private async onLevelComplete(): Promise<void> {
@@ -1352,212 +1354,53 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(600, () => this.showTimeUpModal());
   }
 
-  private setupUI(): void {
-    this.injectIcons();
-    this.setupMobileWordRackScroll();
+  private async retryCurrentLevel(): Promise<void> {
+    if (this.isLevelTransitioning) return;
 
-    document.getElementById('btn-retry-level')?.addEventListener('click', async () => {
-      if (this.isLevelTransitioning) return;
+    this.isLevelTransitioning = true;
 
-      this.isLevelTransitioning = true;
-      const retryButton = document.getElementById('btn-retry-level') as HTMLButtonElement | null;
-      retryButton?.setAttribute('disabled', 'true');
-      document.getElementById('time-up-modal')!.style.display = 'none';
-      SoundManager.play('click');
-
-      try {
-        await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
-        CrazyGamesManager.gameplayStart();
-        this.startLevel(CrazyGamesManager.saveData.level);
-      } finally {
-        retryButton?.removeAttribute('disabled');
-        this.isLevelTransitioning = false;
-      }
-    });
-
-    document.getElementById('btn-next-level')?.addEventListener('click', async () => {
-      if (this.isLevelTransitioning) return;
-
-      this.isLevelTransitioning = true;
-      const nextLevelButton = document.getElementById('btn-next-level') as HTMLButtonElement | null;
-      nextLevelButton?.setAttribute('disabled', 'true');
-      document.getElementById('level-complete-modal')!.style.display = 'none';
-      SoundManager.play('click');
-
-      try {
-        const currentLevel = CrazyGamesManager.saveData.pendingCompletion?.level ?? CrazyGamesManager.saveData.level;
-        const nextLevel = currentLevel + 1;
-        CrazyGamesManager.clearPendingCompletion();
-        CrazyGamesManager.advanceLevel();
-
-        if (nextLevel % AD_INTERVAL_LEVELS === 0) {
-          await CrazyGamesManager.requestMidgameAd();
-        }
-
-        await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
-        CrazyGamesManager.gameplayStart();
-        this.startLevel(nextLevel);
-      } finally {
-        nextLevelButton?.removeAttribute('disabled');
-        this.isLevelTransitioning = false;
-      }
-    });
-
-    document.getElementById('btn-settings')?.addEventListener('click', () => {
-      if (this.isGameplayLocked()) return;
-      SoundManager.play('click');
-      document.getElementById('settings-modal')!.style.display = 'flex';
-    });
-
-    document.getElementById('btn-close-settings')?.addEventListener('click', () => {
-      SoundManager.play('click');
-      document.getElementById('settings-modal')!.style.display = 'none';
-    });
-
-    document.getElementById('btn-how-to-play')?.addEventListener('click', () => {
-      SoundManager.play('click');
-      document.getElementById('settings-modal')!.style.display = 'none';
-      document.getElementById('tutorial-overlay')!.style.display = 'flex';
-    });
-
-    document.getElementById('toggle-sound')?.addEventListener('change', (event) => {
-      const checked = (event.target as HTMLInputElement).checked;
-      SoundManager.setEnabled(checked);
-      CrazyGamesManager.saveData.soundEnabled = checked;
-      CrazyGamesManager.saveGame();
-    });
-
-    document.getElementById('toggle-vibration')?.addEventListener('change', (event) => {
-      const checked = (event.target as HTMLInputElement).checked;
-      SoundManager.setVibrationEnabled(checked);
-      CrazyGamesManager.saveData.vibrationEnabled = checked;
-      CrazyGamesManager.saveGame();
-    });
-
-    document.getElementById('btn-detect')?.addEventListener('click', () => {
-      if (this.isGameplayLocked()) return;
-      SoundManager.play('click');
-      this.useDetect();
-    });
-    document.getElementById('btn-undo')?.addEventListener('click', () => {
-      if (this.isGameplayLocked()) return;
-      SoundManager.play('click');
-      this.useUndo();
-    });
-    document.getElementById('btn-ad-gems')?.addEventListener('click', () => {
-      if (this.isGameplayLocked()) return;
-      SoundManager.play('click');
-      this.watchAdForGems();
-    });
-
-    const spinHandler = () => {
-      if (this.isGameplayLocked()) return;
-      SoundManager.play('click');
-      this.openDailySpin();
-    };
-    document.getElementById('btn-daily-spin')?.addEventListener('click', spinHandler);
-    document.getElementById('btn-daily-spin-mobile')?.addEventListener('click', spinHandler);
-    document.getElementById('btn-close-spin')?.addEventListener('click', () => {
-      document.getElementById('spin-modal')!.style.display = 'none';
-    });
-    document.getElementById('btn-spin')?.addEventListener('click', () => this.performSpin());
-    document.getElementById('btn-spin-collect')?.addEventListener('click', () => {
-      document.getElementById('spin-modal')!.style.display = 'none';
-    });
-
-    document.getElementById('btn-tutorial-ok')?.addEventListener('click', () => {
-      document.getElementById('tutorial-overlay')!.style.display = 'none';
-      CrazyGamesManager.markTutorialSeen();
-    });
-
-    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
-      backdrop.addEventListener('click', () => {
-        const modal = backdrop.parentElement as HTMLElement | null;
-        if (!modal || modal.dataset.static === 'true') return;
-        modal.style.display = 'none';
-      });
-    });
-
-    const save = CrazyGamesManager.saveData;
-    if (!save.soundEnabled) {
-      SoundManager.setEnabled(false);
-      (document.getElementById('toggle-sound') as HTMLInputElement | null)!.checked = false;
-    }
-    if (!save.vibrationEnabled) {
-      SoundManager.setVibrationEnabled(false);
-      (document.getElementById('toggle-vibration') as HTMLInputElement | null)!.checked = false;
+    try {
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+      CrazyGamesManager.gameplayStart();
+      this.startLevel(CrazyGamesManager.saveData.level);
+    } finally {
+      this.isLevelTransitioning = false;
     }
   }
 
-  private setupMobileWordRackScroll(): void {
-    const mobileList = document.getElementById('mobile-word-list');
-    if (!mobileList || mobileList.dataset.dragScrollBound === '1') return;
+  private async advanceToNextLevel(): Promise<void> {
+    if (this.isLevelTransitioning) return;
 
-    mobileList.dataset.dragScrollBound = '1';
+    this.isLevelTransitioning = true;
 
-    let activePointerId: number | null = null;
-    let startX = 0;
-    let startScrollLeft = 0;
-    let dragged = false;
+    try {
+      const currentLevel = CrazyGamesManager.saveData.pendingCompletion?.level ?? CrazyGamesManager.saveData.level;
+      const nextLevel = currentLevel + 1;
+      CrazyGamesManager.clearPendingCompletion();
+      CrazyGamesManager.advanceLevel();
 
-    mobileList.addEventListener('pointerdown', (event: PointerEvent) => {
-      activePointerId = event.pointerId;
-      startX = event.clientX;
-      startScrollLeft = mobileList.scrollLeft;
-      dragged = false;
-      mobileList.setPointerCapture?.(event.pointerId);
-    });
-
-    mobileList.addEventListener('pointermove', (event: PointerEvent) => {
-      if (activePointerId !== event.pointerId) return;
-
-      const deltaX = event.clientX - startX;
-      if (!dragged && Math.abs(deltaX) < 3) return;
-
-      dragged = true;
-      mobileList.scrollLeft = startScrollLeft - deltaX;
-      event.preventDefault();
-      event.stopPropagation();
-    }, { passive: false });
-
-    const clearPointer = (event: PointerEvent) => {
-      if (activePointerId !== event.pointerId) return;
-      if (mobileList.hasPointerCapture?.(event.pointerId)) {
-        mobileList.releasePointerCapture(event.pointerId);
+      if (nextLevel % AD_INTERVAL_LEVELS === 0) {
+        await CrazyGamesManager.requestMidgameAd();
       }
-      activePointerId = null;
-      window.setTimeout(() => {
-        dragged = false;
-      }, 0);
-    };
 
-    mobileList.addEventListener('pointerup', clearPointer);
-    mobileList.addEventListener('pointercancel', clearPointer);
-    mobileList.addEventListener('click', (event) => {
-      if (!dragged) return;
-      event.preventDefault();
-      event.stopPropagation();
-    });
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+      CrazyGamesManager.gameplayStart();
+      this.startLevel(nextLevel);
+    } finally {
+      this.isLevelTransitioning = false;
+    }
   }
 
-  private injectIcons(): void {
-    setIcon('icon-streak', 'fire');
-    setIcon('icon-gems', 'gem');
-    setIcon('icon-settings', 'settings');
-    setIcon('icon-spin', 'spin');
-    setIcon('icon-detect', 'detect');
-    setIcon('icon-undo', 'undo');
-    setIcon('icon-watch-ad', 'watchAd');
-    setIcon('icon-sound', 'soundOn');
-    setIcon('icon-vibration', 'vibration');
-    setIcon('icon-howto', 'howToPlay');
+  private handleSoundToggle(checked: boolean): void {
+    SoundManager.setEnabled(checked);
+    CrazyGamesManager.saveData.soundEnabled = checked;
+    CrazyGamesManager.saveGame();
+  }
 
-    const detectCost = document.getElementById('cost-detect');
-    if (detectCost) detectCost.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.DETECT}`;
-    const undoCost = document.getElementById('cost-undo');
-    if (undoCost) undoCost.innerHTML = `${iconHTML('gem', 'cost-gem')} ${POWERUP_COSTS.UNDO}`;
-    const adRewardBadge = document.querySelector('.ad-reward-badge');
-    if (adRewardBadge) adRewardBadge.innerHTML = `+50 ${iconHTML('gem', 'reward-gem')}`;
+  private handleVibrationToggle(checked: boolean): void {
+    SoundManager.setVibrationEnabled(checked);
+    CrazyGamesManager.saveData.vibrationEnabled = checked;
+    CrazyGamesManager.saveGame();
   }
 
   private useDetect(): void {
@@ -1637,7 +1480,7 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    this.updateHUD();
+    this.refreshHUD();
     EventBus.emit(EVENTS.POWERUP_DETECT);
   }
 
@@ -1656,7 +1499,7 @@ export class GameScene extends Phaser.Scene {
 
     this.isDragging = false;
     this.clearSelection();
-    this.updateHUD();
+    this.refreshHUD();
     EventBus.emit(EVENTS.POWERUP_UNDO);
   }
 
@@ -1668,8 +1511,8 @@ export class GameScene extends Phaser.Scene {
 
     CrazyGamesManager.addGems(POWERUP_COSTS.AD_REWARD);
     this.adUsedThisLevel = true;
-    this.updateHUD();
-    this.bumpHudGems();
+    this.refreshHUD();
+    this.ui.bumpHudGems();
 
     this.juice.floatingText(this.cameras.main.centerX, this.cameras.main.centerY, `+${POWERUP_COSTS.AD_REWARD} GEMS`, '#FFD700', 26);
     this.juice.gemBurst(this.cameras.main.centerX, this.cameras.main.centerY);
@@ -1851,95 +1694,24 @@ export class GameScene extends Phaser.Scene {
     button.style.display = 'none';
     document.getElementById('spin-reward-text')!.textContent = `${reward.label}!`;
     document.getElementById('spin-result')!.style.display = 'block';
-    this.updateHUD();
+    this.refreshHUD();
 
     await CrazyGamesManager.requestMidgameAd();
   }
 
-  private updateHUD(): void {
-    const save = CrazyGamesManager.saveData;
-    const levelEl = document.getElementById('hud-level');
-    const streakEl = document.getElementById('hud-streak');
-    const gemsEl = document.getElementById('hud-gems');
-    if (levelEl) levelEl.textContent = save.level.toString();
-    if (streakEl) streakEl.textContent = save.streak.toString();
-    if (gemsEl) gemsEl.textContent = save.gems.toString();
-
-    const wordsEl = document.getElementById('stat-words');
-    const perfectEl = document.getElementById('stat-perfect');
-    const bestStreakEl = document.getElementById('stat-best-streak');
-    if (wordsEl) wordsEl.textContent = save.wordsFound.toString();
-    if (perfectEl) perfectEl.textContent = save.perfectLevels.toString();
-    if (bestStreakEl) bestStreakEl.textContent = save.bestStreak.toString();
+  private refreshHUD(): void {
+    this.ui.updateHUD(CrazyGamesManager.saveData);
   }
 
-  private updateWordListUI(): void {
-    const allFound = this.getFoundRequiredWordCount() === this.levelWords.length;
-    const desktopList = document.getElementById('word-list');
-    if (desktopList) {
-      desktopList.innerHTML = '';
-      this.levelWords.forEach((word) => {
-        const item = document.createElement('div');
-        const isFound = this.foundWords.has(word);
-        const statusTag = this.getWordStatusTag(word);
-        item.className = 'word-item';
+  private refreshWordListUI(): void {
+    const items = this.levelWords.map((word) => ({
+      word,
+      isFound: this.foundWords.has(word),
+      colorIndex: this.foundWordColors.get(word) ?? null,
+      statusTag: this.getWordStatusTag(word),
+    }));
 
-        if (isFound) {
-          const colorIndex = this.foundWordColors.get(word) ?? 0;
-          item.classList.add('found', `word-color-${colorIndex % COLORS.FOUND_COLORS.length}`);
-        }
-        if (statusTag) item.classList.add(statusTag.className);
-        item.title = statusTag && !isFound ? `${word} - ${statusTag.label}` : word;
-        item.setAttribute('aria-label', item.title);
-
-        const check = document.createElement('span');
-        check.className = 'word-check';
-        check.innerHTML = isFound ? ICONS.checkFilled : ICONS.checkEmpty;
-
-        const wordBody = document.createElement('span');
-        wordBody.className = 'word-body';
-
-        const wordText = document.createElement('span');
-        wordText.className = 'word-text';
-        wordText.textContent = word;
-        wordText.dataset.word = word;
-
-        wordBody.appendChild(wordText);
-        item.append(check, wordBody);
-        desktopList.appendChild(item);
-      });
-
-      if (allFound) {
-        const msg = document.createElement('div');
-        msg.className = 'all-found-msg';
-        msg.textContent = 'ALL FOUND!';
-        desktopList.appendChild(msg);
-      }
-    }
-
-    const mobileList = document.getElementById('mobile-word-list');
-    if (mobileList) {
-      mobileList.innerHTML = '';
-      mobileList.scrollLeft = 0;
-      this.levelWords.forEach((word) => {
-        const item = document.createElement('span');
-        const isFound = this.foundWords.has(word);
-        const statusTag = this.getWordStatusTag(word);
-        item.className = 'mobile-word';
-        if (isFound) {
-          const colorIndex = this.foundWordColors.get(word) ?? 0;
-          item.classList.add('found', `word-color-${colorIndex % COLORS.FOUND_COLORS.length}`);
-        }
-        if (statusTag) item.classList.add(statusTag.className);
-        item.textContent = word;
-        item.dataset.word = word;
-        item.title = statusTag && !isFound ? `${word} - ${statusTag.label}` : word;
-        item.setAttribute('aria-label', item.title);
-        mobileList.appendChild(item);
-      });
-    }
-
-    scheduleResponsiveLayout();
+    this.ui.updateWordLists(items, this.getFoundRequiredWordCount() === this.levelWords.length);
   }
 
   private getFoundRequiredWordCount(): number {
