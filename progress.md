@@ -677,3 +677,23 @@ Original prompt: Add a performant, theme-aware animated background FX system for
 - Verification:
   - `npm run build` passed,
   - skipped Playwright per the latest user instruction.
+
+2026-04-05 GameScene refactor slice 4
+- Began extracting the actual gameplay interaction cluster by moving the most reusable selection and word-matching logic out of the scene.
+- Fix:
+  - added `src/scenes/gameScene/selectionLogic.ts` to hold pure helpers for hover-based straight-line selection building and matched-word resolution,
+  - rewired `GameScene` pointer-hover handling to delegate path calculation to the shared selection helper instead of computing the whole line inline,
+  - removed the inline matched-word / selection-direction helpers from `GameScene` and switched `pointer up` resolution to use the shared module, shrinking the scene again without changing the mechanic flow.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.
+
+2026-04-05 GameScene refactor slice 5
+- Continued the interaction refactor by extracting the pure mechanic-decision logic that runs before a word is finally resolved.
+- Fix:
+  - added `src/scenes/gameScene/wordMechanics.ts` to hold reusable pre-found mechanic evaluation and feedback text helpers,
+  - rewired `GameScene` to ask the helper whether a word should resolve, crack a frozen word, or stay blocked instead of keeping that conditional tree inline,
+  - moved the locked/frozen feedback text construction into the helper module so the scene keeps only the visual/audio side effects.
+- Verification:
+  - `npm run build` passed,
+  - skipped Playwright per the latest user instruction.

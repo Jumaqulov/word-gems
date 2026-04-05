@@ -10,6 +10,17 @@ import {
 } from './gameScene/boardTheme';
 import { getCellTextureKey, getFoundCellTextureKey, useSpaciousCellTextures } from './gameScene/cellTextures';
 import { applyReadableLetterStyle, colorValueToCss, hexToColorValue, mixColor } from './gameScene/colorUtils';
+import {
+  CellCoord,
+  findMatchedWord,
+  resolveSelectionHover,
+  SelectionDirection,
+} from './gameScene/selectionLogic';
+import {
+  evaluatePreFoundMechanic,
+  getFrozenWordBlockedText,
+  getLockedWordFeedbackText,
+} from './gameScene/wordMechanics';
 import EventBus, { EVENTS } from '../utils/EventBus';
 import { selectWordsForLevel } from '../utils/WordDatabase';
 import { generateGrid, GridData, PlacedWord } from '../utils/GridGenerator';
@@ -85,8 +96,8 @@ export class GameScene extends Phaser.Scene {
   private resolutionState: 'active' | 'success' | 'timeout' = 'active';
 
   private isDragging = false;
-  private selectedCells: { row: number; col: number }[] = [];
-  private selectionDirection: { dx: number; dy: number } | null = null;
+  private selectedCells: CellCoord[] = [];
+  private selectionDirection: SelectionDirection | null = null;
   private selectionGraphics!: Phaser.GameObjects.Graphics;
 
   private idleTimer: Phaser.Time.TimerEvent | null = null;
@@ -656,82 +667,32 @@ export class GameScene extends Phaser.Scene {
 
   private onCellPointerOver(row: number, col: number): void {
     if (!this.isDragging || this.selectedCells.length === 0) return;
+    const hoverResult = resolveSelectionHover(this.selectedCells, { row, col }, this.selectionDirection);
+    this.selectionDirection = hoverResult.direction;
 
-    const first = this.selectedCells[0];
-    const last = this.selectedCells[this.selectedCells.length - 1];
-    if (last.row === row && last.col === col) return;
+    if (!hoverResult.nextSelection) return;
 
-    if (this.selectedCells.length === 1) {
-      const absCol = Math.abs(col - first.col);
-      const absRow = Math.abs(row - first.row);
-      if (absCol === 0 && absRow === 0) return;
+    this.selectedCells = hoverResult.nextSelection;
+    this.updateSelectionVisuals();
+    SoundManager.playLetterSelect(this.selectedCells.length - 1);
 
-      if (absCol > 1 || absRow > 1) {
-        const angle = Math.atan2(row - first.row, col - first.col);
-        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
-        const dx = Math.round(Math.cos(snapAngle));
-        const dy = Math.round(Math.sin(snapAngle));
-        if (dx === 0 && dy === 0) return;
-        this.selectionDirection = { dx, dy };
-      } else {
-        this.selectionDirection = {
-          dx: Math.sign(col - first.col),
-          dy: Math.sign(row - first.row),
-        };
+    const tail = hoverResult.nextSelection[hoverResult.nextSelection.length - 1];
+    const trailSecondary = mixColor(
+      this.levelConfig.visuals.accentTint,
+      hexToColorValue(this.levelConfig.visuals.secondary),
+      this.boardThemeProfile.trailSecondaryMix
+    );
+    this.juice.selectionTrailAt(
+      this.gridContainer.x + tail.col * this.cellSize + this.cellSize / 2,
+      this.gridContainer.y + tail.row * this.cellSize + this.cellSize / 2,
+      this.levelConfig.visuals.accentTint,
+      {
+        shape: this.boardThemeProfile.trailShape,
+        count: this.boardThemeProfile.trailCount,
+        alpha: this.boardThemeProfile.trailAlpha,
+        secondaryColor: trailSecondary,
       }
-    }
-
-    if (!this.selectionDirection) return;
-
-    const { dx, dy } = this.selectionDirection;
-    const dRow = row - first.row;
-    const dCol = col - first.col;
-
-    if (dx === 0 && dCol !== 0) return;
-    if (dy === 0 && dRow !== 0) return;
-    if (dx !== 0 && dy !== 0) {
-      if (Math.abs(dRow) !== Math.abs(dCol)) return;
-      if (Math.sign(dCol) !== dx || Math.sign(dRow) !== dy) return;
-    }
-    if (dx !== 0 && Math.sign(dCol) !== dx) return;
-    if (dy !== 0 && Math.sign(dRow) !== dy) return;
-
-    const steps = dx !== 0 ? Math.abs(dCol) : Math.abs(dRow);
-    const nextSelection: { row: number; col: number }[] = [];
-    for (let index = 0; index <= steps; index++) {
-      nextSelection.push({
-        row: first.row + index * dy,
-        col: first.col + index * dx,
-      });
-    }
-
-    if (
-      nextSelection.length !== this.selectedCells.length ||
-      nextSelection[nextSelection.length - 1].row !== last.row ||
-      nextSelection[nextSelection.length - 1].col !== last.col
-    ) {
-      this.selectedCells = nextSelection;
-      this.updateSelectionVisuals();
-      SoundManager.playLetterSelect(this.selectedCells.length - 1);
-
-      const tail = nextSelection[nextSelection.length - 1];
-      const trailSecondary = mixColor(
-        this.levelConfig.visuals.accentTint,
-        hexToColorValue(this.levelConfig.visuals.secondary),
-        this.boardThemeProfile.trailSecondaryMix
-      );
-      this.juice.selectionTrailAt(
-        this.gridContainer.x + tail.col * this.cellSize + this.cellSize / 2,
-        this.gridContainer.y + tail.row * this.cellSize + this.cellSize / 2,
-        this.levelConfig.visuals.accentTint,
-        {
-          shape: this.boardThemeProfile.trailShape,
-          count: this.boardThemeProfile.trailCount,
-          alpha: this.boardThemeProfile.trailAlpha,
-          secondaryColor: trailSecondary,
-        }
-      );
-    }
+    );
   }
 
   private onPointerUp(): void {
@@ -743,7 +704,15 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const matchedWord = this.findMatchedWord();
+    const matchedWord = findMatchedWord(
+      this.levelWords,
+      this.bonusWords,
+      this.foundWords,
+      this.selectedCells,
+      this.gridData.grid,
+      this.worldState.wildcardCellKeys,
+      this.getCellKey.bind(this)
+    );
     if (!matchedWord) {
       this.onWordInvalid();
       this.clearSelection();
@@ -758,51 +727,27 @@ export class GameScene extends Phaser.Scene {
     this.clearSelection();
   }
 
-  private findMatchedWord(): string | null {
-    const matchableWords = [
-      ...this.levelWords,
-      ...[...this.bonusWords].filter((word) => !this.foundWords.has(word)),
-    ];
-    return matchableWords.find((word) => !this.foundWords.has(word) && this.selectionMatchesWord(word)) ?? null;
-  }
-
-  private selectionMatchesWord(word: string): boolean {
-    if (word.length !== this.selectedCells.length) return false;
-    return this.matchesWordDirection(word, false) || this.matchesWordDirection(word, true);
-  }
-
-  private matchesWordDirection(word: string, reversed: boolean): boolean {
-    const characters = reversed ? [...word].reverse() : [...word];
-    for (let index = 0; index < this.selectedCells.length; index++) {
-      const { row, col } = this.selectedCells[index];
-      const cellKey = this.getCellKey(row, col);
-      const cellChar = this.gridData.grid[row][col];
-      if (cellChar === '?' && this.worldState.wildcardCellKeys.has(cellKey)) continue;
-      if (cellChar !== characters[index]) return false;
-    }
-    return true;
-  }
-
   private handlePreFoundMechanics(word: string): 'resolve' | 'blocked' {
-    if (this.isWordLocked(word)) {
+    const outcome = evaluatePreFoundMechanic({
+      isLockedWord: this.isWordLocked(word),
+      isFrozenWord: this.worldState.frozenWords.has(word),
+      isCrackedFrozenWord: this.worldState.crackedFrozenWords.has(word),
+      remainingNonFrozenRequiredWordCount: this.getRemainingNonFrozenRequiredWordCount(),
+    });
+
+    if (outcome === 'locked') {
       this.showLockedWordFeedback(word);
       return 'blocked';
     }
 
-    if (this.worldState.frozenWords.has(word)) {
-      const canClearFrozenWordNow = this.getRemainingNonFrozenRequiredWordCount() === 0;
-      if (!this.worldState.crackedFrozenWords.has(word)) {
-        if (canClearFrozenWordNow) {
-          return 'resolve';
-        }
-        this.crackFrozenWord(word);
-        return 'blocked';
-      }
+    if (outcome === 'crack_frozen') {
+      this.crackFrozenWord(word);
+      return 'blocked';
+    }
 
-      if (!canClearFrozenWordNow) {
-        this.showFrozenWordBlockedFeedback(word);
-        return 'blocked';
-      }
+    if (outcome === 'blocked_frozen') {
+      this.showFrozenWordBlockedFeedback(word);
+      return 'blocked';
     }
 
     return 'resolve';
@@ -812,8 +757,7 @@ export class GameScene extends Phaser.Scene {
     SoundManager.play('wrong');
     this.juice.shake(this.gridContainer, 2, 180);
 
-    const prerequisite = this.worldState.lockPrerequisite;
-    const text = prerequisite ? `Unlock with ${prerequisite}` : `${word} is locked`;
+    const text = getLockedWordFeedbackText(word, this.worldState.lockPrerequisite);
     this.juice.floatingText(this.cameras.main.centerX, this.cameras.main.centerY - 40, text, '#F2DEC0', 20);
     this.updateWorldUI();
   }
@@ -846,9 +790,8 @@ export class GameScene extends Phaser.Scene {
     SoundManager.play('wrong');
     this.juice.shake(this.gridContainer, 2, 180);
 
-    const remaining = this.getRemainingNonFrozenRequiredWordCount();
     const midPoint = placedWord.cells[Math.floor(placedWord.cells.length / 2)];
-    const text = remaining > 1 ? `FIND ${remaining} MORE WORDS` : 'FIND 1 MORE WORD';
+    const text = getFrozenWordBlockedText(this.getRemainingNonFrozenRequiredWordCount());
 
     this.juice.floatingText(
       this.gridContainer.x + midPoint.col * this.cellSize + this.cellSize / 2,
