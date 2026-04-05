@@ -30,14 +30,9 @@ import { scheduleResponsiveLayout } from '../utils/ResponsiveLayout';
 import { applyWorldScene } from '../utils/WorldSceneLoader';
 import {
   calculateLevelScore,
-  ComboState,
-  createComboState,
   getCellSizeForGrid,
-  getComboTimeFraction,
   getLevelConfig,
-  isComboActive,
   LevelConfig,
-  updateCombo,
 } from '../utils/LevelSystem';
 import {
   AD_INTERVAL_LEVELS,
@@ -48,6 +43,8 @@ import {
   SPIN_REWARDS,
 } from '../consts';
 import { iconHTML, ICONS, setIcon } from '../icons';
+import { TimerComboController } from './gameScene/TimerComboController';
+import { WorldEffectsController } from './gameScene/WorldEffectsController';
 
 interface CellSprite {
   bg: Phaser.GameObjects.Image;
@@ -86,13 +83,9 @@ export class GameScene extends Phaser.Scene {
   private spinAngle = 0;
 
   private worldState: WordRuntimeState = createWordRuntimeState();
-  private worldEffectTimer: Phaser.Time.TimerEvent | null = null;
   private backgroundFX: BackgroundFXManager | null = null;
-
-  private comboState!: ComboState;
-  private comboInterval: ReturnType<typeof setInterval> | null = null;
-  private timerSeconds = 0;
-  private timerEvent: Phaser.Time.TimerEvent | null = null;
+  private timerCombo!: TimerComboController;
+  private worldEffects!: WorldEffectsController;
   private timedOut = false;
   private resolutionState: 'active' | 'success' | 'timeout' = 'active';
 
@@ -114,10 +107,21 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.juice = new GameJuice(this);
-    this.comboState = createComboState();
     this.selectionGraphics = this.add.graphics();
     this.selectionGraphics.setDepth(10);
     this.backgroundFX = new BackgroundFXManager(this);
+    this.timerCombo = new TimerComboController(this, {
+      onTimerExpired: () => this.onTimerExpired(),
+    });
+    this.worldEffects = new WorldEffectsController({
+      scene: this,
+      getCells: () => this.cells,
+      getWorldState: () => this.worldState,
+      getFoundCellKeys: () => this.foundCellKeys,
+      getCellKey: (row, col) => this.getCellKey(row, col),
+      getCellFromKey: (key) => this.getCellFromKey(key),
+      applyBaseCellStyle: (cell) => this.applyBaseCellStyle(cell),
+    });
 
     this.setupInputHandlers();
     this.startLevel(CrazyGamesManager.saveData.level);
@@ -149,6 +153,9 @@ export class GameScene extends Phaser.Scene {
       this.backgroundFX.destroy();
       this.backgroundFX = null;
     }
+
+    this.timerCombo.destroy();
+    this.worldEffects.destroy();
   }
 
   private setupPageVisibilitySave(): void {
@@ -195,7 +202,6 @@ export class GameScene extends Phaser.Scene {
     this.hintsUsedThisLevel = 0;
     this.adUsedThisLevel = false;
     this.foundColorIndex = 0;
-    this.comboState = createComboState();
     this.timedOut = false;
     this.resolutionState = 'active';
     this.worldState = createWordRuntimeState();
@@ -213,22 +219,14 @@ export class GameScene extends Phaser.Scene {
     this.backgroundFX?.applyWorld(this.levelConfig);
     this.buildGrid();
     this.applyWorldTheme();
-    this.startWorldAmbientEffects();
+    this.worldEffects.start(this.levelConfig);
     this.juice.animateGridEntrance(this.cells, this.levelConfig.gridSize);
 
     this.updateWordListUI();
     this.updateHUD();
     this.updateWorldUI();
 
-    if (this.levelConfig.hasTimer) {
-      this.timerSeconds = this.levelConfig.timerSeconds;
-      this.startTimer();
-    } else {
-      this.timerSeconds = 0;
-      this.hideTimer();
-    }
-
-    this.updateComboUI();
+    this.timerCombo.resetForLevel(this.levelConfig);
     this.startIdleAnimation();
     scheduleResponsiveLayout();
     EventBus.emit(EVENTS.LEVEL_START, level);
@@ -236,10 +234,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private cleanupLevel(): void {
-    this.stopTimer();
-    this.stopComboTick();
+    this.timerCombo.stop();
     this.stopIdleAnimation();
-    this.stopWorldAmbientEffects();
+    this.worldEffects.stop();
     this.backgroundFX?.clear();
     this.tweens.killAll();
     this.time.removeAllEvents();
@@ -876,12 +873,9 @@ export class GameScene extends Phaser.Scene {
       })
     );
 
-    const comboMultiplier = updateCombo(this.comboState);
+    const comboMultiplier = this.timerCombo.onWordFound();
     const wordScore = Math.floor(word.length * SCORING.WORD_MULTIPLIER * comboMultiplier);
     this.levelScore += wordScore;
-
-    this.startComboTick();
-    this.updateComboUI();
 
     const midCell = cellCenters[Math.floor(cellCenters.length / 2)];
     const scoreText = comboMultiplier > 1 ? `+${wordScore} x${comboMultiplier}` : `+${wordScore}`;
@@ -908,8 +902,7 @@ export class GameScene extends Phaser.Scene {
     if (this.resolutionState !== 'active') return;
 
     this.resolutionState = 'success';
-    this.stopTimer();
-    this.stopComboTick();
+    this.timerCombo.stop();
     this.time.delayedCall(600, () => void this.onLevelComplete());
   }
 
@@ -1136,15 +1129,15 @@ export class GameScene extends Phaser.Scene {
       level,
       this.levelScore,
       save.streak,
-      this.comboState.multiplier,
+      this.timerCombo.getComboMultiplier(),
       this.hintsUsedThisLevel,
       this.timedOut,
-      this.timerSeconds
+      this.timerCombo.getTimerSeconds()
     );
 
     this.juice.screenFlash(COLORS.GOLD, 400);
     this.juice.crystalShower(this.cameras.main.centerX, this.cameras.main.centerY);
-    this.stopWorldAmbientEffects();
+    this.worldEffects.stop();
     this.animateGridExit();
     SoundManager.play('complete');
 
@@ -1228,8 +1221,7 @@ export class GameScene extends Phaser.Scene {
 
     this.resolutionState = 'success';
     this.timedOut = false;
-    this.stopTimer();
-    this.stopComboTick();
+    this.timerCombo.stop();
     CrazyGamesManager.gameplayStop();
 
     this.time.delayedCall(0, () => {
@@ -1346,34 +1338,10 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private startTimer(): void {
-    this.stopTimer();
-    this.updateTimerUI();
-    this.showTimer();
-
-    this.timerEvent = this.time.addEvent({
-      delay: 1000,
-      loop: true,
-      callback: () => {
-        this.timerSeconds -= 1;
-        this.updateTimerUI();
-        if (this.timerSeconds <= 0) this.onTimerExpired();
-      },
-    });
-  }
-
-  private stopTimer(): void {
-    if (this.timerEvent) {
-      this.timerEvent.destroy();
-      this.timerEvent = null;
-    }
-  }
-
   private onTimerExpired(): void {
     if (this.resolutionState !== 'active') return;
 
-    this.stopTimer();
-    this.stopComboTick();
+    this.timerCombo.stop();
     this.resolutionState = 'timeout';
     this.timedOut = true;
     this.isDragging = false;
@@ -1382,72 +1350,6 @@ export class GameScene extends Phaser.Scene {
     this.juice.screenFlash(COLORS.ERROR_RED, 400);
     SoundManager.play('wrong');
     this.time.delayedCall(600, () => this.showTimeUpModal());
-  }
-
-  private updateTimerUI(): void {
-    const el = document.getElementById('timer-display');
-    const container = document.getElementById('timer-container');
-    if (!el) return;
-
-    const minutes = Math.floor(this.timerSeconds / 60);
-    const seconds = this.timerSeconds % 60;
-    el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    el.className = 'timer-value';
-
-    if (this.timerSeconds <= 15) {
-      container?.setAttribute('data-state', 'critical');
-    } else if (this.timerSeconds <= 30) {
-      container?.setAttribute('data-state', 'warning');
-    } else {
-      container?.setAttribute('data-state', 'normal');
-    }
-  }
-
-  private showTimer(): void {
-    const el = document.getElementById('timer-container');
-    if (el) el.style.display = 'flex';
-    scheduleResponsiveLayout();
-  }
-
-  private hideTimer(): void {
-    const el = document.getElementById('timer-container');
-    if (el) el.style.display = 'none';
-    scheduleResponsiveLayout();
-  }
-
-  private updateComboUI(): void {
-    const displayEl = document.getElementById('combo-display');
-    const barEl = document.getElementById('combo-bar-fill');
-    if (!displayEl || !barEl) return;
-
-    if (this.comboState.multiplier > 1 && isComboActive(this.comboState)) {
-      displayEl.style.display = 'flex';
-      displayEl.textContent = `x${this.comboState.multiplier}`;
-      barEl.style.width = `${getComboTimeFraction(this.comboState) * 100}%`;
-    } else {
-      displayEl.style.display = 'none';
-      barEl.style.width = '0%';
-    }
-  }
-
-  private startComboTick(): void {
-    if (this.comboInterval) return;
-
-    this.comboInterval = setInterval(() => {
-      this.updateComboUI();
-      if (!isComboActive(this.comboState)) {
-        this.comboState.multiplier = 1;
-        this.updateComboUI();
-        this.stopComboTick();
-      }
-    }, 50);
-  }
-
-  private stopComboTick(): void {
-    if (this.comboInterval) {
-      clearInterval(this.comboInterval);
-      this.comboInterval = null;
-    }
   }
 
   private setupUI(): void {
@@ -2099,112 +2001,6 @@ export class GameScene extends Phaser.Scene {
       this.idleTimer.destroy();
       this.idleTimer = null;
     }
-  }
-
-  private startWorldAmbientEffects(): void {
-    this.stopWorldAmbientEffects();
-    const mechanic = this.levelConfig.mechanic;
-
-    if (mechanic.type === 'ocean_wave') {
-      this.worldEffectTimer = this.time.addEvent({
-        delay: 950,
-        loop: true,
-        callback: () => this.animateOceanWave(mechanic.amplitude),
-      });
-    }
-
-    if (mechanic.type === 'desert_gold') {
-      this.worldEffectTimer = this.time.addEvent({
-        delay: 1200,
-        loop: true,
-        callback: () => this.animateGoldenCells(),
-      });
-    }
-
-    if (mechanic.type === 'magic_wildcard') {
-      this.worldEffectTimer = this.time.addEvent({
-        delay: 1400,
-        loop: true,
-        callback: () => this.animateWildcardCells(),
-      });
-    }
-  }
-
-  private stopWorldAmbientEffects(): void {
-    if (this.worldEffectTimer) {
-      this.worldEffectTimer.destroy();
-      this.worldEffectTimer = null;
-    }
-
-    for (const row of this.cells) {
-      for (const cell of row) {
-        if (!this.foundCellKeys.has(this.getCellKey(cell.row, cell.col))) {
-          this.applyBaseCellStyle(cell);
-        }
-      }
-    }
-  }
-
-  private animateOceanWave(amplitude: number): void {
-    const candidates = shuffleArray([...this.worldState.waveCellKeys])
-      .map((key) => this.getCellFromKey(key))
-      .filter((cell): cell is CellSprite => {
-        if (!cell) return false;
-        return !this.foundCellKeys.has(this.getCellKey(cell.row, cell.col));
-      })
-      .slice(0, 4);
-
-    candidates.forEach((cell, index) => {
-      this.tweens.add({
-        targets: [cell.bg, cell.letter],
-        y: cell.baseY + (index % 2 === 0 ? amplitude : -amplitude),
-        duration: 450,
-        yoyo: true,
-        ease: 'Sine.easeInOut',
-      });
-    });
-  }
-
-  private animateGoldenCells(): void {
-    const candidates = shuffleArray([...this.worldState.goldenCellKeys])
-      .filter((key) => !this.worldState.collectedGoldenCellKeys.has(key))
-      .map((key) => this.getCellFromKey(key))
-      .filter((cell): cell is CellSprite => {
-        if (!cell) return false;
-        return !this.foundCellKeys.has(this.getCellKey(cell.row, cell.col));
-      })
-      .slice(0, 3);
-
-    candidates.forEach((cell) => {
-      this.tweens.add({
-        targets: [cell.bg, cell.letter],
-        scaleX: 1.08,
-        scaleY: 1.08,
-        duration: 220,
-        yoyo: true,
-        ease: 'Sine.easeInOut',
-      });
-    });
-  }
-
-  private animateWildcardCells(): void {
-    const candidates = shuffleArray([...this.worldState.wildcardCellKeys])
-      .map((key) => this.getCellFromKey(key))
-      .filter((cell): cell is CellSprite => {
-        if (!cell) return false;
-        return !this.foundCellKeys.has(this.getCellKey(cell.row, cell.col));
-      })
-      .slice(0, 2);
-
-    candidates.forEach((cell) => {
-      this.tweens.add({
-        targets: cell.letter,
-        alpha: 0.65,
-        duration: 240,
-        yoyo: true,
-        ease: 'Sine.easeInOut',
-      });
-    });
   }
 
   private getPlacedWord(word: string): PlacedWord | undefined {
